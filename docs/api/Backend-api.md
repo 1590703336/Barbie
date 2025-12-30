@@ -674,6 +674,7 @@ Retrieve all budgets for the authenticated user for a specific month and year. b
     {
       "category": "Food",
       "limit": 500,
+      "currency": "USD",
       "month": 6,
       "year": 2025,
       "user": "507f1f77bcf86cd799439011",
@@ -700,6 +701,7 @@ Create a new budget for a category in a specific month and year.
 {
   "category": "string (Food, Transport, Entertainment, Utilities, Rent, Health, Others)",
   "limit": "number (>= 0, required)",
+  "currency": "string (EUR, USD, CNY, AUD, default: USD)",
   "month": "number (1–12, required)",
   "year": "number (>= 2025, required)"
 }
@@ -710,6 +712,7 @@ Create a new budget for a category in a specific month and year.
 {
   "category": "Transport",
   "limit": 500,
+  "currency": "USD",
   "month": 6,
   "year": 2025
 }
@@ -724,6 +727,7 @@ Create a new budget for a category in a specific month and year.
     "user": "507f1f77bcf86cd799439011",
     "category": "Transport",
     "limit": 500,
+    "currency": "USD",
     "month": 6,
     "year": 2025,
     "createdAt": "2025-06-01T00:00:00.000Z",
@@ -750,6 +754,7 @@ Update an existing budget.
 {
   "category": "string",
   "limit": "number",
+  "currency": "string (EUR, USD, CNY, AUD)",
   "month": "number",
   "year": "number"
 }
@@ -763,6 +768,7 @@ Update an existing budget.
     "user": "69531ed5cf2358fa573d233d",
     "category": "Others",
     "limit": 300,
+    "currency": "USD",
     "month": 6,
     "year": 2025,
     "createdAt": "2025-12-30T06:42:32.912Z",
