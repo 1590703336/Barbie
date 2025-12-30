@@ -311,6 +311,12 @@ services/
 - `GET /subscriptions/user/:id` - Get user's subscriptions
 - `GET /subscriptions/upcoming-renewals` - Get upcoming renewals
 
+### Budgets
+- `GET /budgets?month=<month>&year=<year>` - List all budgets for the authenticated user for the given month and year (both query params required)
+- `POST /budgets` - Create a new budget
+- `PUT /budgets/:id` - Update a budget by ID
+- `DELETE /budgets/:id` - Delete a budget by ID
+
 ### Data Science API (`/api/v1`)
 
 #### Analytics
