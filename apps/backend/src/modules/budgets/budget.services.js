@@ -5,14 +5,16 @@ export const getBudgetsByUserAndDate = async (userId, month, year) => {
   return await Budget.find({ user: userId, month, year });
 }
 
-// edit budget with a budget ID
-export const updateBudget = async (budgetId, updates) => {
-  return await Budget.findByIdAndUpdate(budgetId, updates, { new: true });
+// edit budget with a budget ID, scoped to owner unless admin
+export const updateBudget = async (budgetId, updates, userId, isAdmin = false) => {
+  const query = isAdmin ? { _id: budgetId } : { _id: budgetId, user: userId };
+  return await Budget.findOneAndUpdate(query, updates, { new: true });
 }
 
-// delete budget with a budget ID
-export const deleteBudget = async (budgetId) => {
-  return await Budget.findByIdAndDelete(budgetId);
+// delete budget with a budget ID, scoped to owner unless admin
+export const deleteBudget = async (budgetId, userId, isAdmin = false) => {
+  const query = isAdmin ? { _id: budgetId } : { _id: budgetId, user: userId };
+  return await Budget.findOneAndDelete(query);
 }
 
 // create a new budget with a budget object

@@ -1,6 +1,10 @@
 import { createExpense, getExpensesByUser, getExpense, updateExpense, deleteExpense } from "./expense.service.js";
 
-const isOwner = (expense, userId) => expense?.user?.toString() === userId.toString();
+const isOwnerOrAdmin = (expense, user) => {
+    if (!expense || !user) return false;
+    if (user.role === 'admin') return true;
+    return expense.user?.toString() === user._id.toString();
+};
 
 // Create an expense
 export const createExpenseController = async (req, res, next) => {
@@ -20,12 +24,13 @@ export const getExpensesController = async (req, res, next) => {
             if (!expense) {
                 return res.status(404).json({ message: "Expense not found" });
             }
-            if (!isOwner(expense, req.user._id)) {
+            if (!isOwnerOrAdmin(expense, req.user)) {
                 return res.status(403).json({ message: "You are not authorized to access this resource" });
             }
             res.json(expense);
         } else {
-            const expenses = await getExpensesByUser(req.user._id);
+            const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id;
+            const expenses = await getExpensesByUser(targetUserId);
             res.json(expenses);
         }
     } catch (err) {
@@ -40,7 +45,7 @@ export const updateExpenseController = async (req, res, next) => {
         if (!expense) {
             return res.status(404).json({ message: "Expense not found" });
         }
-        if (!isOwner(expense, req.user._id)) {
+        if (!isOwnerOrAdmin(expense, req.user)) {
             return res.status(403).json({ message: "You are not authorized to update this resource" });
         }
         const updatedExpense = await updateExpense(req.params.id, req.body);
@@ -57,7 +62,7 @@ export const deleteExpenseController = async (req, res, next) => {
         if (!expense) {
             return res.status(404).json({ message: "Expense not found" });
         }
-        if (!isOwner(expense, req.user._id)) {
+        if (!isOwnerOrAdmin(expense, req.user)) {
             return res.status(403).json({ message: "You are not authorized to delete this resource" });
         }
         await deleteExpense(req.params.id);

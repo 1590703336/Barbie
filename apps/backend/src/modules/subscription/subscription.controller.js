@@ -23,7 +23,7 @@ export const updateSubscription = async (req, res, next) => {
         const subscription = await subscriptionService.updateSubscription(
             req.params.id,
             req.body,
-            req.user.id
+            { id: req.user._id.toString(), role: req.user.role }
         );
         res.status(200).json({
             success: true,
@@ -39,7 +39,7 @@ export const deleteSubscription = async (req, res, next) => {
     try {
         const result = await subscriptionService.deleteSubscription(
             req.params.id,
-            req.user.id
+            { id: req.user._id.toString(), role: req.user.role }
         );
         res.status(200).json({
             success: true,
@@ -55,7 +55,7 @@ export const cancelSubscription = async (req, res, next) => {
     try {
         const subscription = await subscriptionService.cancelSubscription(
             req.params.id,
-            req.user.id
+            { id: req.user._id.toString(), role: req.user.role }
         );
         res.status(200).json({
             success: true,
@@ -69,7 +69,11 @@ export const cancelSubscription = async (req, res, next) => {
 
 export const getUpcomingRenewals = async (req, res, next) => {
     try {
-        const renewals = await subscriptionService.getUpcomingRenewals(req.user.id);
+        const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id.toString();
+        const renewals = await subscriptionService.getUpcomingRenewals(
+            targetUserId,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'Upcoming renewals fetched successfully',
@@ -82,8 +86,10 @@ export const getUpcomingRenewals = async (req, res, next) => {
 
 export const getSubscriptions = async (req, res, next) => {
     try {
-        // Service expects (userId, requesterId)
-        const subscriptions = await subscriptionService.getSubscriptions(req.params.id, req.user.id);
+        const subscriptions = await subscriptionService.getSubscriptions(
+            req.params.id,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'Subscriptions fetched successfully',
@@ -98,7 +104,10 @@ export const getSubscriptions = async (req, res, next) => {
 
 export const getSubscriptionById = async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.getSubscriptionById(req.params.id);
+        const subscription = await subscriptionService.getSubscriptionById(
+            req.params.id,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'Subscription fetched successfully',
@@ -113,7 +122,9 @@ export const getSubscriptionById = async (req, res, next) => {
 
 export const getAllSubscriptions = async (req, res, next) => {
     try {
-        const subscriptions = await subscriptionService.getAllSubscriptions();
+        const subscriptions = await subscriptionService.getAllSubscriptions(
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'Subscriptions fetched successfully',
