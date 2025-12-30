@@ -20,6 +20,7 @@ budgetRouter.put('/:id', validate(budgetSchema), budgetController.updateBudgetCo
 budgetRouter.delete('/:id', budgetController.deleteBudgetController);
 
 // summary route
+budgetRouter.get('/summary/categories', budgetController.getBudgetCategoriesSummaryController);
 budgetRouter.get('/summary/spending-summary', budgetController.getBudgetSummaryController);
 
 

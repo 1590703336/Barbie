@@ -12,7 +12,7 @@ export const getBudgetsController = async (req, res, next) => {
       }
   
       const budgets = await budgetService.getBudgetsByUserAndDate(req.user._id, month, year);
-      res.json(budgets);
+      res.json({ success: true, data: budgets});
 
     } catch (err) {
       next(err);
@@ -24,7 +24,7 @@ export const getBudgetsController = async (req, res, next) => {
 export const updateBudgetController = async (req, res, next) => {
     try {
         const updatedBudget = await budgetService.updateBudget(req.params.id, req.body);
-        res.json(updatedBudget);
+        res.json({ success: true, message: "Budget updated successfully", data: updatedBudget});
 
     } catch (err) {
         next(err);
@@ -35,7 +35,10 @@ export const updateBudgetController = async (req, res, next) => {
 export const deleteBudgetController = async (req, res, next) => {
     try {
         await budgetService.deleteBudget(req.params.id);
-        res.status(204).send();
+        res.status(204).send({
+            success: true,
+            message: "Budget deleted successfully"
+          });
 
     } catch (err) {
         next(err);
@@ -46,8 +49,25 @@ export const deleteBudgetController = async (req, res, next) => {
 export const createBudgetController = async (req, res, next) => {
     try {
         const budget = await budgetService.createBudget({ ...req.body, user: req.user._id });
-        res.status(201).json(budget);
+        res.status(201).json({ success: true, message: "Budget created successfully", data: budget});
         
+    } catch (err) {
+        next(err);
+    }
+}
+
+export const getBudgetCategoriesSummaryController = async (req, res, next) => {
+    try {
+        const month = parseInt(req.query.month, 10);
+        const year = parseInt(req.query.year, 10);
+  
+        if (!month || !year) {
+        return res.status(400).json({ message: "Month and year are required" });
+        }
+
+        const categories = await budgetService.getBudgetCategoriesByUserAndDate(req.user._id, month, year);
+        res.status(200).json({ success: true, data: categories});
+
     } catch (err) {
         next(err);
     }
@@ -91,11 +111,14 @@ export const getBudgetSummaryController = async (req, res, next) => {
         }
 
         // send the final summary response
-        res.json({
+        res.status(200).json({
+            success: true,
+            data: {
             totalBudget,
             totalExpenses,
             remainingBudget: totalBudget - totalExpenses,
             categoriesSummary
+            }
         });
 
     }

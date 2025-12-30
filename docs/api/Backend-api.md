@@ -600,6 +600,226 @@ Get subscriptions that are due for renewal soon.
 ```
 
 ---
+## Budgets API
+
+### Get All Budgets for a specific month and year for a user
+Retrieve all budgets for the authenticated user for a specific month and year. both month and year are required
+
+**Endpoint:** GET /budgets 
+**Authentication:** Required
+
+**Query Parameters:**
+- month (number, required)
+- year (number, required)
+
+**Success Response (200):**
+``` json
+{
+  "success": true,
+  "data": [
+    {
+      "category": "Food",
+      "limit": 500,
+      "month": 6,
+      "year": 2025,
+      "user": "507f1f77bcf86cd799439011",
+      "createdAt": "2025-06-01T00:00:00.000Z",
+      "updatedAt": "2025-06-01T00:00:00.000Z",
+      "id": "507f1f77bcf86cd799439020"
+    }
+  ]
+}
+```
+---
+
+
+### Create Budget
+
+Create a new budget for a category in a specific month and year.
+
+**Endpoint:** POST /budgets  
+**Authentication:** Required
+
+**Request Body:**
+``` json
+{
+  "category": "string (Food, Transport, Entertainment, Utilities, Rent, Health, Others)",
+  "limit": "number (>= 0, required)",
+  "month": "number (1–12, required)",
+  "year": "number (>= 2025, required)"
+}
+```
+
+**Example Request:**
+``` json
+{
+  "category": "Transport",
+  "limit": 500,
+  "month": 6,
+  "year": 2025
+}
+```
+
+**Success Response (201):**
+``` json
+{
+  "success": true,
+  "message": "Budget created successfully",
+  "data": {
+    "user": "507f1f77bcf86cd799439011",
+    "category": "Transport",
+    "limit": 500,
+    "month": 6,
+    "year": 2025,
+    "createdAt": "2025-06-01T00:00:00.000Z",
+    "updatedAt": "2025-12-30T06:42:32.912Z",
+    "id": "507f1f77bcf86cd799439021"
+  }
+}
+```
+---
+
+### Update Budget
+
+Update an existing budget.
+
+**Endpoint:** PUT /budgets/:id  
+**Authentication:** Required
+
+**URL Parameters:**
+- id (string, required) – Budget’s MongoDB ObjectId
+
+**Request Body (all fields optional):**
+``` json
+{
+  "category": "string",
+  "limit": "number",
+  "month": "number",
+  "year": "number"
+}
+```
+**Success Response (200):**
+``` json
+{
+  "success": true,
+  "message": "Budget updated successfully",
+  "data": {
+    "user": "69531ed5cf2358fa573d233d",
+    "category": "Others",
+    "limit": 300,
+    "month": 6,
+    "year": 2025,
+    "createdAt": "2025-12-30T06:42:32.912Z",
+    "updatedAt": "2025-12-30T06:44:56.115Z",
+    "id": "695374588d3353590f36afd6"
+  }
+}
+```
+---
+
+### Delete Budget
+
+Delete a budget permanently.
+
+**Endpoint:** DELETE /budgets/:id  
+**Authentication:** Required
+
+**URL Parameters:**
+- id (string, required) – Budget’s MongoDB ObjectId
+
+**Success Response (200):**
+``` json
+{
+  "success": true,
+  "message": "Budget deleted successfully"
+}
+```
+
+---
+
+### Get Budget Summary (Budget vs Expenses)
+
+Get a full spending summary comparing budgets and expenses.
+
+**Endpoint:** GET /budgets/summary/spending-summary  
+**Authentication:** Required
+
+**Query Parameters:**
+- month (number, required)
+- year (number, required)
+
+**Success Response (200):**
+``` json
+{
+  "success": true,
+  "data": {
+    "totalBudget": 1500,
+    "totalExpenses": 46.25,
+    "remainingBudget": 1453.75,
+    "categoriesSummary": [
+      {
+        "category": "Food",
+        "budget": 500,
+        "remainingBudget": 500,
+        "expenses": 0
+      },
+      {
+        "category": "Transport",
+        "budget": 500,
+        "remainingBudget": 472.25,
+        "expenses": 27.75
+      },
+      {
+        "category": "Entertainment",
+        "budget": 200,
+        "remainingBudget": 181.5,
+        "expenses": 18.5
+      },
+      {
+        "category": "Others",
+        "budget": 300,
+        "remainingBudget": 300,
+        "expenses": 0
+      }
+    ]
+  }
+} 
+```
+---
+
+### Get Budget Categories
+
+Retrieve all budget categories for a given month and year.
+
+**Endpoint:** GET /budgets/summary/categories  
+**Authentication:** Required
+
+**Query Parameters:**
+- month (number, required)
+- year (number, required)
+
+**Success Response (200):**
+``` json
+{
+  "success": true,
+  "data": [
+    "Food",
+    "Transport",
+    "Entertainment"
+  ]
+}
+```
+---
+
+Notes:
+- Budgets are unique per user + category + month + year
+- All endpoints require authentication
+- Designed for analytics dashboards and charts
+
+
+
+
+
 
 ## Error Responses
 
