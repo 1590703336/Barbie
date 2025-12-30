@@ -12,17 +12,17 @@ import {
 const expenseRouter = Router();
 
 // protecting all expense routes with authorization middleware
-expenseRouter.use(authorize);
+expenseRouter.use(authorize); // protect all expense routes with authorization middleware
 
-expenseRouter.post("/", validate(expenseSchema), createExpenseController);
+expenseRouter.post("/", validate(expenseSchema), createExpenseController); // create a new expense
 
-expenseRouter.get("/", getExpensesController);
+expenseRouter.get("/", getExpensesController); 
 
-expenseRouter.get("/:id", getExpensesController); 
+expenseRouter.get("/:id", getExpensesController);
 
-expenseRouter.put("/:id", validate(expenseSchema), updateExpenseController);
+expenseRouter.put("/:id", validate(expenseSchema), updateExpenseController); // update a single expense by id
 
-expenseRouter.delete("/:id", deleteExpenseController);
+expenseRouter.delete("/:id", deleteExpenseController); // delete a single expense by id
 
 
 export default expenseRouter;
