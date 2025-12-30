@@ -82,12 +82,12 @@ export const cancelSubscription = async (subscriptionId, requesterId) => {
         throw error;
     }
 
-    subscription.status = 'canceled';
+    subscription.status = 'cancelled';
     await subscription.save();
     return subscription;
 };
 
-export const getUpcomingRenewals = async (userId, daysAhead = 30) => {
+export const getUpcomingRenewals = async (userId, daysAhead = 30) => { // get upcoming renewals for the next 30 days
     const now = new Date();
     const cutoff = new Date();
     cutoff.setDate(now.getDate() + daysAhead);
@@ -95,6 +95,6 @@ export const getUpcomingRenewals = async (userId, daysAhead = 30) => {
     return await Subscription.find({
         user: userId,
         renewalDate: { $gte: now, $lte: cutoff },
-        status: { $ne: 'canceled' },
+        status: { $ne: 'cancelled' },
     }).sort({ renewalDate: 1 });
 };

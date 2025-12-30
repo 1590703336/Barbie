@@ -1,12 +1,22 @@
 import * as authService from './auth.service.js';
 
+const sanitizeUser = (user) => {
+    if (!user) return user;
+    const obj = user.toObject ? user.toObject() : { ...user };
+    delete obj.password;
+    return obj;
+};
+
 export const signUp = async (req, res, next) => {
     try {
         const result = await authService.signUp(req.body);
         res.status(201).json({
             success: true,
             message: 'User created successfully',
-            data: result,
+            data: {
+                user: sanitizeUser(result.user),
+                token: result.token,
+            },
         });
     } catch (error) {
         next(error);
@@ -20,7 +30,10 @@ export const signIn = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'User signed in successfully',
-            data: result,
+            data: {
+                user: sanitizeUser(result.user),
+                token: result.token,
+            },
         });
     } catch (error) {
         next(error);

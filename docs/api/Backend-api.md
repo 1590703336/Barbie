@@ -4,9 +4,7 @@ Complete API reference for the Subscription Tracker backend service.
 
 ## Base URL
 
-```
-http://localhost:5000/api/v1
-```
+默认：`http://localhost:<PORT>/api/v1`（`PORT` development: 5500, production: 5000）
 
 ## Authentication
 
@@ -53,7 +51,7 @@ Register a new user account.
 ```json
 {
   "success": true,
-  "message": "User registered successfully",
+  "message": "User created successfully",
   "data": {
     "user": {
       "_id": "507f1f77bcf86cd799439011",
@@ -100,7 +98,7 @@ Authenticate and obtain a JWT token.
 ```json
 {
   "success": true,
-  "message": "Login successful",
+  "message": "User signed in successfully",
   "data": {
     "user": {
       "_id": "507f1f77bcf86cd799439011",
@@ -158,15 +156,18 @@ Retrieve a list of all users.
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439011",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "createdAt": "2025-01-01T00:00:00.000Z",
-      "updatedAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
+  "message": "Users fetched successfully",
+  "data": {
+    "users": [
+      {
+        "_id": "507f1f77bcf86cd799439011",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "createdAt": "2025-01-01T00:00:00.000Z",
+        "updatedAt": "2025-01-01T00:00:00.000Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -187,12 +188,15 @@ Retrieve a specific user by their ID.
 ```json
 {
   "success": true,
+  "message": "User fetched successfully",
   "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "createdAt": "2025-01-01T00:00:00.000Z",
-    "updatedAt": "2025-01-01T00:00:00.000Z"
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
   }
 }
 ```
@@ -230,11 +234,13 @@ Create a new user (admin function).
   "success": true,
   "message": "User created successfully",
   "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "Jane Smith",
-    "email": "jane@example.com",
-    "createdAt": "2025-01-01T00:00:00.000Z",
-    "updatedAt": "2025-01-01T00:00:00.000Z"
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
   }
 }
 ```
@@ -266,10 +272,12 @@ Update user information.
   "success": true,
   "message": "User updated successfully",
   "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "John Updated",
-    "email": "johnupdated@example.com",
-    "updatedAt": "2025-01-02T00:00:00.000Z"
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "John Updated",
+      "email": "johnupdated@example.com",
+      "updatedAt": "2025-01-02T00:00:00.000Z"
+    }
   }
 }
 ```
@@ -291,7 +299,10 @@ Delete a user account.
 ```json
 {
   "success": true,
-  "message": "User deleted successfully"
+  "message": "User deleted successfully",
+  "data": {
+    "deleted": true
+  }
 }
 ```
 
@@ -301,11 +312,11 @@ Delete a user account.
 
 ### Get All Subscriptions
 
-Retrieve all subscriptions (public endpoint).
+Retrieve all subscriptions.
 
 **Endpoint:** `GET /subscriptions`
 
-**Authentication:** Not required
+**Authentication:** Required
 
 **Success Response (200):**
 ```json
@@ -339,7 +350,7 @@ Retrieve a specific subscription.
 
 **Endpoint:** `GET /subscriptions/:id`
 
-**Authentication:** Not required
+**Authentication:** Required
 
 **URL Parameters:**
 - `id` (string, required) - Subscription's MongoDB ObjectId
@@ -423,9 +434,9 @@ Create a new subscription.
 {
   "name": "string (2-100 characters, required)",
   "price": "number (>= 0, required)",
-  "currency": "string (USD, EUR, GBP, default: USD)",
+  "currency": "string (EUR, USD, CNY, AUD, default: USD)",
   "frequency": "string (daily, weekly, monthly, yearly, required)",
-  "category": "string (sports, news, entertainment, lifestyle, technology, finance, politics, other, required)",
+  "category": "string (sports, technology, other, entertainment, lifestyle, finance, required)",
   "startDate": "date (ISO 8601, required)",
   "paymentMethod": "string (required)",
   "status": "string (active, cancelled, expired, default: active)",
@@ -569,8 +580,7 @@ Get subscriptions that are due for renewal soon.
 
 **Authentication:** Required
 
-**Query Parameters:**
-- `days` (number, optional, default: 7) - Number of days to look ahead
+**Query Parameters:** （backend default: 7 - Number of days to look ahead）
 
 **Success Response (200):**
 ```json
@@ -593,37 +603,46 @@ Get subscriptions that are due for renewal soon.
 
 ## Error Responses
 
-### Common Error Codes
-
-| Status Code | Description |
-|-------------|-------------|
-| 400 | Bad Request - Invalid input data |
-| 401 | Unauthorized - Missing or invalid token |
-| 403 | Forbidden - Insufficient permissions |
-| 404 | Not Found - Resource doesn't exist |
-| 409 | Conflict - Resource already exists |
-| 500 | Internal Server Error |
-
-### Error Response Format
+统一格式（由全局错误处理中间件返回）：
 
 ```json
 {
   "success": false,
-  "message": "Error description",
-  "errors": ["Detailed error 1", "Detailed error 2"]
+  "message": "Error description"
 }
 ```
 
-### Validation Error Example
+Common Error Codes：400/401/403/404/409/500
 
+Validation Error Example：
 ```json
 {
   "success": false,
-  "message": "Validation error",
-  "errors": [
-    "\"price\" must be greater than or equal to 0",
-    "\"email\" must be a valid email"
-  ]
+  "message": "\"price\" must be greater than or equal to 0"
+}
+```
+
+示例（未授权）：
+```json
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+```
+
+示例（禁止访问）：
+```json
+{
+  "success": false,
+  "message": "Forbidden"
+}
+```
+
+示例（未找到）：
+```json
+{
+  "success": false,
+  "message": "Resource not found"
 }
 ```
 
@@ -675,6 +694,53 @@ curl -X POST http://localhost:5000/api/v1/subscriptions \
 curl -X GET http://localhost:5000/api/v1/subscriptions/user/507f1f77bcf86cd799439011 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
+
+#### Get Upcoming Renewals
+```bash
+curl -X GET http://localhost:5000/api/v1/subscriptions/upcoming-renewals \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Expenses API
+
+所有费用接口需要认证，且操作必须属于当前用户。
+
+#### Create Expense
+**POST** `/expenses`
+```json
+{
+  "title": "Coffee",
+  "amount": 4.5,
+  "category": "Food",
+  "date": "2025-01-01",
+  "notes": "latte"
+}
+```
+Response 201:
+```json
+{
+  "title": "Coffee",
+  "amount": 4.5,
+  "category": "Food",
+  "date": "2025-01-01T00:00:00.000Z",
+  "user": "507f1f77bcf86cd799439011",
+  "id": "65c...",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+#### List My Expenses
+**GET** `/expenses`
+
+#### Get Expense by ID (must be owner)
+**GET** `/expenses/:id`
+
+#### Update Expense (must be owner)
+**PUT** `/expenses/:id`
+
+#### Delete Expense (must be owner)
+**DELETE** `/expenses/:id`
 
 ### Using JavaScript (Axios)
 

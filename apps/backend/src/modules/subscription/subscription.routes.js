@@ -15,11 +15,11 @@ import {
 
 const subscriptionRouter = Router();
 
-subscriptionRouter.get('/', getAllSubscriptions);
+subscriptionRouter.get('/', authorize, getAllSubscriptions);
 
 subscriptionRouter.get('/upcoming-renewals', authorize, getUpcomingRenewals);
 
-subscriptionRouter.get('/:id', getSubscriptionById);
+subscriptionRouter.get('/:id', authorize, getSubscriptionById);
 
 subscriptionRouter.post('/', authorize, validate(subscriptionSchema), createSubscription);
 
