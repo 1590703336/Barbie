@@ -92,19 +92,19 @@ function Dashboard() {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Total budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.totalBudget ?? 0, 'CNY')}
+              {formatCurrency(budgetSummary.totalBudget ?? 0, 'USD')}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Total expenses</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.totalExpenses ?? 0, 'CNY')}
+              {formatCurrency(budgetSummary.totalExpenses ?? 0, 'USD')}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Remaining budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.remainingBudget ?? 0, 'CNY')}
+              {formatCurrency(budgetSummary.remainingBudget ?? 0, 'USD')}
             </p>
           </div>
           <div className="sm:col-span-3">
@@ -122,11 +122,11 @@ function Dashboard() {
                       {item.category}
                     </p>
                     <span className="text-sm text-slate-500">
-                      Budget {formatCurrency(item.budget ?? 0, 'CNY')}
+                      Budget {formatCurrency(item.budget ?? 0, 'USD')}
                     </span>
                   </div>
                   <p className="text-sm text-slate-600">
-                    Spent {formatCurrency(item.expenses ?? 0, 'CNY')} · Remaining{' '}
+                    Spent {formatCurrency(item.expenses ?? 0, 'USD')} · Remaining{' '}
                     <span
                       className={
                         item.budget > 0 &&
@@ -135,7 +135,7 @@ function Dashboard() {
                           : 'text-emerald-700'
                       }
                     >
-                      {formatCurrency(item.remainingBudget ?? 0, 'CNY')}
+                      {formatCurrency(item.remainingBudget ?? 0, 'USD')}
                     </span>
                   </p>
                 </div>

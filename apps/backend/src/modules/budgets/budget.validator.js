@@ -5,6 +5,9 @@ const budgetSchema = Joi.object({
     .valid('Food', 'Transport', 'Entertainment', 'Utilities', 'Rent', 'Health', 'Others')
     .default('Others')
     .trim(), 
+  currency: Joi.string()
+    .valid('EUR', 'USD', 'CNY', 'AUD')
+    .default('USD'),
   limit: Joi.number()
     .min(0)
     .max(1000000) 

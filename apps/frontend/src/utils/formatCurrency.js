@@ -1,6 +1,6 @@
-export function formatCurrency(value, currency = 'CNY') {
+export function formatCurrency(value, currency = 'USD') {
   try {
-    return new Intl.NumberFormat('zh-CN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
       maximumFractionDigits: 0,

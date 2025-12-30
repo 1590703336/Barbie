@@ -3,7 +3,7 @@ import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
 import { createBudget } from '../services/budgetService'
 
-const subscriptionCurrencies = ['USD', 'EUR', 'CNY', 'AUD']
+const currencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = [
   'Food',
@@ -43,6 +43,7 @@ const initialSubscription = {
 const initialExpense = {
   title: '',
   amount: '',
+  currency: 'USD',
   category: '',
   date: '',
   notes: '',
@@ -54,6 +55,7 @@ const initialBudget = {
   limit: '',
   month: today.getMonth() + 1,
   year: today.getFullYear(),
+  currency: 'USD',
 }
 
 function CreateEntries() {
@@ -194,7 +196,7 @@ function CreateEntries() {
               required
             >
               <option value="">Select currency</option>
-              {subscriptionCurrencies.map((option) => (
+              {currencies.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -303,6 +305,19 @@ function CreateEntries() {
                 </option>
               ))}
             </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={budgetForm.currency}
+              onChange={(e) => handleBudgetChange('currency', e.target.value)}
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               placeholder="Limit"
@@ -372,6 +387,19 @@ function CreateEntries() {
             >
               <option value="">Select category</option>
               {expenseCategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={expenseForm.currency}
+              onChange={(e) => handleExpenseChange('currency', e.target.value)}
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>

@@ -15,6 +15,11 @@ const expenseSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Expense amount is required"]
     },
+    currency: {
+      type: String,
+      enum: ['EUR', 'USD', 'CNY', 'AUD'],
+      default: 'USD',
+    },
     category: {
       type: String,
       enum: [

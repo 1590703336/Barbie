@@ -27,11 +27,14 @@ const expenseCategories = [
   'Others',
 ]
 
-const subscriptionCurrencies = ['USD', 'EUR', 'CNY', 'AUD']
+const currencies = ['USD', 'EUR', 'CNY', 'AUD']
+const subscriptionCurrencies = currencies
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = expenseCategories
 const subscriptionStatuses = ['active', 'cancelled', 'expired']
 const budgetCategories = expenseCategories
+const budgetCurrencies = currencies
+const expenseCurrencies = currencies
 
 const formatDateInput = (value) => {
   if (!value) return ''
@@ -88,6 +91,7 @@ function Records() {
                 {
                   title: item.title ?? '',
                   amount: item.amount ?? '',
+                  currency: item.currency ?? 'USD',
                   category: item.category ?? '',
                   date: formatDateInput(item.date),
                   notes: item.notes ?? '',
@@ -128,6 +132,7 @@ function Records() {
                   limit: item.limit ?? '',
                   month: item.month ?? month,
                   year: item.year ?? year,
+                  currency: item.currency ?? 'USD',
                 },
               ]
             }),
@@ -351,7 +356,10 @@ function Records() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-slate-900">
-                          {formatCurrency(budget.limit ?? 0, 'CNY')}
+                          {formatCurrency(
+                            budget.limit ?? 0,
+                            budget.currency ?? 'USD',
+                          )}
                         </p>
                       </div>
                     </div>
@@ -365,6 +373,20 @@ function Records() {
                       >
                         <option value="">Select category</option>
                         {budgetCategories.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        value={form.currency ?? ''}
+                        onChange={(e) =>
+                          handleBudgetChange(id, 'currency', e.target.value)
+                        }
+                      >
+                        <option value="">Select currency</option>
+                        {budgetCurrencies.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -455,7 +477,10 @@ function Records() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-slate-900">
-                          ¥{expense.amount}
+                          {formatCurrency(
+                            expense.amount ?? 0,
+                            expense.currency ?? 'USD',
+                          )}
                         </p>
                       </div>
                     </div>
@@ -486,6 +511,20 @@ function Records() {
                       >
                         <option value="">Select category</option>
                         {expenseCategories.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        value={form.currency ?? ''}
+                        onChange={(e) =>
+                          handleExpenseChange(id, 'currency', e.target.value)
+                        }
+                      >
+                        <option value="">Select currency</option>
+                        {expenseCurrencies.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
@@ -558,7 +597,10 @@ function Records() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-slate-900">
-                          {subscription.currency} {subscription.price}
+                          {formatCurrency(
+                            subscription.price ?? 0,
+                            subscription.currency ?? 'USD',
+                          )}
                         </p>
                         <p className="text-sm text-slate-500">
                           Status: {subscription.status}
