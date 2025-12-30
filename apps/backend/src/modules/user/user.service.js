@@ -1,47 +1,45 @@
 import User from './user.model.js';
+import { assertAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
 
-export const getUsers = async () => {
-    return await User.find();
+export const getUsers = async (requester) => {
+    assertAdmin(requester, 'access users list');
+    return await User.find().select('-password');
 };
 
-export const getUser = async (userId) => {
+export const getUser = async (userId, requester) => {
+    assertSameUserOrAdmin(userId, requester, 'access this user');
     const user = await User.findById(userId).select('-password');
     if(!user) {
-        const error = new Error('User not found');
-        error.statusCode = 404;
-        throw error;
+        throw buildError('User not found', 404);
     }
     return user;
 };
 
-export const createUser = async (userData) => {
+export const createUser = async (userData, requester) => {
+    assertAdmin(requester, 'create users');
     const existingUser = await User.findOne({ email: userData.email });
     if(existingUser){
-        const error = new Error('User already exists');
-        error.statusCode = 400;
-        throw error;
+        throw buildError('User already exists', 400);
     }
 
     const user = await User.create(userData);
     return user;
 };
 
-export const updateUser = async (userId, updateData) => {
+export const updateUser = async (userId, updateData, requester) => {
+    assertSameUserOrAdmin(userId, requester, 'update this user');
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true }).select('-password');
     if(!user) {
-        const error = new Error('User not found');
-        error.statusCode = 404;
-        throw error;
+        throw buildError('User not found', 404);
     }
     return user;
 };
 
-export const deleteUser = async (userId) => {
+export const deleteUser = async (userId, requester) => {
+    assertSameUserOrAdmin(userId, requester, 'delete this user');
     const user = await User.findById(userId);
     if(!user) {
-        const error = new Error('User not found');
-        error.statusCode = 404;
-        throw error;
+        throw buildError('User not found', 404);
     }
     await user.deleteOne();
     return { deleted: true };

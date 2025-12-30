@@ -2,10 +2,7 @@ import * as userService from './user.service.js';
 
 export const getUsers = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'You are not authorized to access this resource' });
-        }
-        const users = await userService.getUsers();
+        const users = await userService.getUsers({ id: req.user._id.toString(), role: req.user.role });
         console.log("users fetched: ", users);
         res.status(200).json({
             success: true,
@@ -21,10 +18,7 @@ export const getUsers = async (req, res, next) => {
 
 export const createUser = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'You are not authorized to create users' });
-        }
-        const user = await userService.createUser(req.body);
+        const user = await userService.createUser(req.body, { id: req.user._id.toString(), role: req.user.role });
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -37,10 +31,11 @@ export const createUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin' && req.user._id.toString() !== req.params.id) {
-            return res.status(403).json({ message: 'You are not authorized to update this user' });
-        }
-        const user = await userService.updateUser(req.params.id, req.body);
+        const user = await userService.updateUser(
+            req.params.id,
+            req.body,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'User updated successfully',
@@ -53,10 +48,10 @@ export const updateUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin' && req.user._id.toString() !== req.params.id) {
-            return res.status(403).json({ message: 'You are not authorized to delete this user' });
-        }
-        const result = await userService.deleteUser(req.params.id);
+        const result = await userService.deleteUser(
+            req.params.id,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         res.status(200).json({
             success: true,
             message: 'User deleted successfully',
@@ -69,10 +64,10 @@ export const deleteUser = async (req, res, next) => {
 
 export const getUser = async (req, res, next) => {
     try {
-        if (req.user.role !== 'admin' && req.user._id.toString() !== req.params.id) {
-            return res.status(403).json({ message: 'You are not authorized to access this user' });
-        }
-        const user = await userService.getUser(req.params.id);
+        const user = await userService.getUser(
+            req.params.id,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
         console.log("user fetched: ", user);
         res.status(200).json({
             success: true,

@@ -140,7 +140,9 @@ Log out the current user (client-side token removal).
 
 ## Users API
 
-All user endpoints require authentication.
+All user interfaces require authentication and follow roles/attributions:
+- admin: Can perform all user operations (list/create/read/update/delete any user)
+- Ordinary users: can only read/update/delete their own user records, cannot create other users, and cannot view the user list
 
 ### Get All Users
 
@@ -148,7 +150,8 @@ Retrieve a list of all users.
 
 **Endpoint:** `GET /users`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin only
 
 **Query Parameters:** None
 
@@ -179,7 +182,8 @@ Retrieve a specific user by their ID.
 
 **Endpoint:** `GET /users/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin 或本人（`:id` 等于当前用户）
 
 **URL Parameters:**
 - `id` (string, required) - User's MongoDB ObjectId
@@ -217,7 +221,8 @@ Create a new user (admin function).
 
 **Endpoint:** `POST /users`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin only
 
 **Request Body:**
 ```json
@@ -253,7 +258,8 @@ Update user information.
 
 **Endpoint:** `PUT /users/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin or own
 
 **URL Parameters:**
 - `id` (string, required) - User's MongoDB ObjectId
@@ -290,7 +296,8 @@ Delete a user account.
 
 **Endpoint:** `DELETE /users/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin or owner
 
 **URL Parameters:**
 - `id` (string, required) - User's MongoDB ObjectId
@@ -316,7 +323,8 @@ Retrieve all subscriptions.
 
 **Endpoint:** `GET /subscriptions`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin 可查看全部；普通用户仅查看自己的订阅
 
 **Success Response (200):**
 ```json
@@ -350,7 +358,8 @@ Retrieve a specific subscription.
 
 **Endpoint:** `GET /subscriptions/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin or owner
 
 **URL Parameters:**
 - `id` (string, required) - Subscription's MongoDB ObjectId
@@ -387,7 +396,8 @@ Retrieve all subscriptions for a specific user.
 
 **Endpoint:** `GET /subscriptions/user/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin 或 `:id` 等于当前用户
 
 **URL Parameters:**
 - `id` (string, required) - User's MongoDB ObjectId
@@ -427,7 +437,8 @@ Create a new subscription.
 
 **Endpoint:** `POST /subscriptions`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** 登录用户（自动绑定为当前用户；传入的 user 字段会被覆盖）
 
 **Request Body:**
 ```json
@@ -488,7 +499,8 @@ Update an existing subscription.
 
 **Endpoint:** `PUT /subscriptions/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin or Owner
 
 **URL Parameters:**
 - `id` (string, required) - Subscription's MongoDB ObjectId
@@ -530,7 +542,8 @@ Mark a subscription as cancelled.
 
 **Endpoint:** `PUT /subscriptions/:id/cancel`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** Owner or admin
 
 **URL Parameters:**
 - `id` (string, required) - Subscription's MongoDB ObjectId
@@ -557,7 +570,8 @@ Permanently delete a subscription.
 
 **Endpoint:** `DELETE /subscriptions/:id`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin 或订阅所属用户
 
 **URL Parameters:**
 - `id` (string, required) - Subscription's MongoDB ObjectId
@@ -578,7 +592,8 @@ Get subscriptions that are due for renewal soon.
 
 **Endpoint:** `GET /subscriptions/upcoming-renewals`
 
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** admin 可指定 `userId` 查询任意用户；普通用户仅能查询自己
 
 **Query Parameters:** （backend default: 7 - Number of days to look ahead）
 
@@ -605,12 +620,14 @@ Get subscriptions that are due for renewal soon.
 ### Get All Budgets for a specific month and year for a user
 Retrieve all budgets for the authenticated user for a specific month and year. both month and year are required
 
-**Endpoint:** GET /budgets 
-**Authentication:** Required
+**Endpoint:** GET /budgets  
+**Authentication:** Required  
+**Authorization:** admin 可通过 `?userId=` 查询任意用户；普通用户仅能查询自己的预算
 
 **Query Parameters:**
 - month (number, required)
 - year (number, required)
+- userId (string, optional, admin only — 指定目标用户)
 
 **Success Response (200):**
 ``` json
@@ -638,7 +655,8 @@ Retrieve all budgets for the authenticated user for a specific month and year. b
 Create a new budget for a category in a specific month and year.
 
 **Endpoint:** POST /budgets  
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** 登录用户（预算归属当前用户；传入 user 将被忽略，admin 也默认归属自己）
 
 **Request Body:**
 ``` json
@@ -684,7 +702,8 @@ Create a new budget for a category in a specific month and year.
 Update an existing budget.
 
 **Endpoint:** PUT /budgets/:id  
-**Authentication:** Required
+**Authentication:** Required  
+**Authorization:** (Must be owner or admin)
 
 **URL Parameters:**
 - id (string, required) – Budget’s MongoDB ObjectId
@@ -923,7 +942,9 @@ curl -X GET http://localhost:5000/api/v1/subscriptions/upcoming-renewals \
 
 ### Expenses API
 
-所有费用接口需要认证，且操作必须属于当前用户。
+All fee interfaces require authentication and follow roles/attributions:
+- admin: can access/manage any user fees; the list can be viewed by `?userId=` for specified users
+- Ordinary users: can only access/manage their own expenses
 
 #### Create Expense
 **POST** `/expenses`
@@ -950,16 +971,16 @@ Response 201:
 }
 ```
 
-#### List My Expenses
-**GET** `/expenses`
+#### List Expenses
+**GET** `/expenses`（admin can use `?userId=` specify user， Ordinary users ignore this parameter）
 
-#### Get Expense by ID (must be owner)
+#### Get Expense by ID (must be owner or admin)
 **GET** `/expenses/:id`
 
-#### Update Expense (must be owner)
+#### Update Expense (must be owner or admin)
 **PUT** `/expenses/:id`
 
-#### Delete Expense (must be owner)
+#### Delete Expense (must be owner or admin)
 **DELETE** `/expenses/:id`
 
 ### Using JavaScript (Axios)
