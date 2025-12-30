@@ -7,6 +7,7 @@ import errorMiddlewares from "./middlewares/error.middlewares.js";
 import cookieParser from "cookie-parser";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 
+// creating express app
 const app = express();
 
 app.use(express.json());

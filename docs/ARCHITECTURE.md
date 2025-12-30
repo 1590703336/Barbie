@@ -294,6 +294,13 @@ services/
 - `PUT /users/:id` - Update user
 - `DELETE /users/:id` - Delete user
 
+#### Expeneses
+- `GET    /expenses`           → Getting all user’s expenses
+- `GET    /expenses/:id`       → Get single expense details
+- `POST   /expenses`           → Create expense for logged in user
+- `PUT    /expenses/:id`       → Update expense
+- `DELETE /expenses/:id`       → Delete expense
+
 #### Subscriptions
 - `GET /subscriptions` - List all subscriptions
 - `GET /subscriptions/:id` - Get subscription by ID
