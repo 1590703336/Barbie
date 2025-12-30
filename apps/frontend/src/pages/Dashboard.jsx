@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getBudgetSummary } from '../services/budgetService'
+import { getTotalSubscription } from '../services/subscriptionService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
 
@@ -13,6 +14,7 @@ function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
   const [budgetSummary, setBudgetSummary] = useState(null)
+  const [subscriptionFee, setSubscriptionFee] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -22,8 +24,17 @@ function Dashboard() {
       setLoading(true)
       setError('')
       try {
-        const summaryData = await getBudgetSummary({ month, year })
+        const [summaryData, totalSubscription] = await Promise.all([
+          getBudgetSummary({ month, year }),
+          getTotalSubscription({ userId }),
+        ])
+
         setBudgetSummary(summaryData ?? null)
+        setSubscriptionFee(
+          typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
+            ? totalSubscription
+            : 0,
+        )
       } catch (err) {
         const message =
           err?.response?.data?.message ??
@@ -86,6 +97,17 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {subscriptionFee !== null ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Subscription fee in {year || new Date().getFullYear()}
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {formatCurrency(subscriptionFee ?? 0, 'USD')}
+          </p>
+        </div>
+      ) : null}
 
       {budgetSummary ? (
         <div className="grid gap-4 sm:grid-cols-3">

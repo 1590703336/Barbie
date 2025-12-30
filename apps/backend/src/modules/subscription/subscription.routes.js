@@ -10,26 +10,30 @@ import {
     updateSubscription,
     deleteSubscription,
     cancelSubscription,
-    getUpcomingRenewals
+    getUpcomingRenewals,
+    getTotalSubscription
 } from './subscription.controller.js';
 
 const subscriptionRouter = Router();
+subscriptionRouter.use(authorize); // protecting all subscription routes with authorization middleware
 
-subscriptionRouter.get('/', authorize, getAllSubscriptions);
+subscriptionRouter.get('/', getAllSubscriptions);
 
-subscriptionRouter.get('/upcoming-renewals', authorize, getUpcomingRenewals);
+subscriptionRouter.get('/upcoming-renewals', getUpcomingRenewals);
 
-subscriptionRouter.get('/:id', authorize, getSubscriptionById);
+subscriptionRouter.get('/total', getTotalSubscription);
 
-subscriptionRouter.post('/', authorize, validate(subscriptionSchema), createSubscription);
+subscriptionRouter.get('/:id', getSubscriptionById);
 
-subscriptionRouter.put('/:id', authorize, updateSubscription);
+subscriptionRouter.post('/', validate(subscriptionSchema), createSubscription);
 
-subscriptionRouter.delete('/:id', authorize, deleteSubscription);
+subscriptionRouter.put('/:id', updateSubscription);
 
-subscriptionRouter.get('/user/:id', authorize, getSubscriptions);
+subscriptionRouter.delete('/:id', deleteSubscription);
 
-subscriptionRouter.put('/:id/cancel', authorize, cancelSubscription);
+subscriptionRouter.get('/user/:id', getSubscriptions);
+
+subscriptionRouter.put('/:id/cancel', cancelSubscription);
 
 
 export default subscriptionRouter;

@@ -42,3 +42,10 @@ export async function getUpcomingRenewals(days = 7) {
   return response.data?.data?.renewals ?? []
 }
 
+export async function getTotalSubscription({ userId } = {}) {
+  const response = await api.get('/subscriptions/total', {
+    params: userId ? { userId } : {},
+  })
+  return response.data?.data?.total ?? 0
+}
+

@@ -84,6 +84,24 @@ export const getUpcomingRenewals = async (req, res, next) => {
     }
 };
 
+export const getTotalSubscription = async (req, res, next) => {
+    try {
+        const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id.toString();
+        const total = await subscriptionService.getTotalSubscription(
+            targetUserId,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Total subscription fetched successfully',
+            data: total,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getSubscriptions = async (req, res, next) => {
     try {
         const subscriptions = await subscriptionService.getSubscriptions(

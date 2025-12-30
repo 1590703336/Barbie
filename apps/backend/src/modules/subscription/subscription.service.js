@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Subscription from './subscription.model.js';
 import { assertAdmin, assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
 
@@ -74,4 +75,38 @@ export const getUpcomingRenewals = async (userId, requester, daysAhead = 30) => 
         renewalDate: { $gte: now, $lte: cutoff },
         status: { $ne: 'cancelled' },
     }).sort({ renewalDate: 1 });
+};
+
+export const getTotalSubscription = async (userId, requester) => {
+    assertSameUserOrAdmin(userId, requester, 'access total subscription');
+    const targetUserId = requester.role === 'admin' && userId ? userId : requester.id;
+
+    const frequencyMultipliers = {
+        daily: 365,
+        weekly: 52,
+        monthly: 12,
+        yearly: 1,
+    };
+
+    const totalsByFrequency = await Subscription.aggregate([
+        {
+            $match: {
+                user: new mongoose.Types.ObjectId(targetUserId),
+                status: 'active',
+            },
+        },
+        {
+            $group: {
+                _id: '$frequency',
+                total: { $sum: '$price' },
+            },
+        },
+    ]);
+
+    const total = totalsByFrequency.reduce(
+        (sum, item) => sum + (frequencyMultipliers[item._id] || 0) * item.total,
+        0,
+    );
+
+    return { total };
 };
