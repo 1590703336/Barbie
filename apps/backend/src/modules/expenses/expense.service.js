@@ -1,8 +1,14 @@
 import Expense from "./expense.model.js";
 import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from "../../utils/authorization.js";
+import { convertToUSD } from '../currency/currency.service.js';
 
 // Create expense
-export const createExpense = async (expense) => Expense.create(expense);
+export const createExpense = async (expense) => {
+  if (expense.amount && expense.currency) {
+    expense.amountUSD = await convertToUSD(expense.amount, expense.currency);
+  }
+  return Expense.create(expense);
+};
 
 // Get all expenses for a user
 export const getExpensesByUser = async (userId, requester) => {
@@ -22,7 +28,14 @@ export const getExpense = async (id, requester) => {
 
 // Update expense
 export const updateExpense = async (id, data, requester) => {
-  await getExpense(id, requester);
+  const expense = await getExpense(id, requester);
+
+  if (data.amount || data.currency) {
+    const amount = data.amount || expense.amount;
+    const currency = data.currency || expense.currency;
+    data.amountUSD = await convertToUSD(amount, currency);
+  }
+
   return Expense.findByIdAndUpdate(id, data, { new: true });
 };
 
@@ -35,15 +48,15 @@ export const deleteExpense = async (id, requester) => {
 // Get expenses by user and date (month and year)
 export const getTotalExpensesByUserAndDate = async (userId, month, year, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these expenses');
-  const start = new Date(year, month - 1, 1);           
-  const end = new Date(year, month, 0, 23, 59, 59, 999); 
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0, 23, 59, 59, 999);
 
   const expenses = await Expense.find({
     user: userId,
-    date: { $gte: start, $lte: end } 
+    date: { $gte: start, $lte: end }
   });
 
-  return expenses.reduce((total, expense) => total + expense.amount, 0);
+  return expenses.reduce((total, expense) => total + (expense.amountUSD || expense.amount), 0);
 };
 
 // total expense for a specific category, month, year and user
@@ -58,7 +71,7 @@ export const getTotalExpensesByCategoryAndDate = async (userId, category, month,
     date: { $gte: start, $lte: end }
   });
 
-  return expenses.reduce((total, expense) => total + expense.amount, 0);
+  return expenses.reduce((total, expense) => total + (expense.amountUSD || expense.amount), 0);
 };
 
 // check if an an user has a specific expense category

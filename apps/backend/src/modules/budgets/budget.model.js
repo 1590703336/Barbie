@@ -31,8 +31,11 @@ const budgetSchema = new mongoose.Schema(
       enum: ['EUR', 'USD', 'CNY', 'AUD'],
       default: 'USD',
     },
-
-    limit: {
+    amountUSD: {
+      type: Number,
+      required: false,
+    },
+    limit: { // limit is the amount in the user's currency
       type: Number,
       required: true,
       min: 0

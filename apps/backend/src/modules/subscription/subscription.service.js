@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
 import Subscription from './subscription.model.js';
 import { assertAdmin, assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
+import { convertToUSD } from '../currency/currency.service.js';
 
 export const createSubscription = async (subscriptionData) => {
+    if (subscriptionData.price && subscriptionData.currency) {
+        subscriptionData.amountUSD = await convertToUSD(subscriptionData.price, subscriptionData.currency);
+    }
     return await Subscription.create(subscriptionData);
 };
 
@@ -13,7 +17,7 @@ export const getSubscriptions = async (userId, requester) => {
 
 export const getSubscriptionById = async (subscriptionId, requester) => {
     const subscription = await Subscription.findById(subscriptionId);
-    if(!subscription) {
+    if (!subscription) {
         throw buildError('Subscription not found', 404);
     }
     assertOwnerOrAdmin(subscription.user, requester, 'access this subscription');
@@ -29,19 +33,27 @@ export const getAllSubscriptions = async (requester) => {
 
 export const updateSubscription = async (subscriptionId, updateData, requester) => {
     const subscription = await Subscription.findById(subscriptionId);
-    if(!subscription) {
+    if (!subscription) {
         throw buildError('Subscription not found', 404);
     }
     assertOwnerOrAdmin(subscription.user, requester, 'update this subscription');
 
     Object.assign(subscription, updateData);
+
+    // Recalculate if price or currency changed
+    if (updateData.price || updateData.currency) {
+        const price = updateData.price || subscription.price;
+        const currency = updateData.currency || subscription.currency;
+        subscription.amountUSD = await convertToUSD(price, currency);
+    }
+
     await subscription.save();
     return subscription;
 };
 
 export const deleteSubscription = async (subscriptionId, requester) => {
     const subscription = await Subscription.findById(subscriptionId);
-    if(!subscription) {
+    if (!subscription) {
         throw buildError('Subscription not found', 404);
     }
     assertOwnerOrAdmin(subscription.user, requester, 'delete this subscription');
@@ -52,7 +64,7 @@ export const deleteSubscription = async (subscriptionId, requester) => {
 
 export const cancelSubscription = async (subscriptionId, requester) => {
     const subscription = await Subscription.findById(subscriptionId);
-    if(!subscription) {
+    if (!subscription) {
         throw buildError('Subscription not found', 404);
     }
     assertOwnerOrAdmin(subscription.user, requester, 'cancel this subscription');
@@ -98,7 +110,7 @@ export const getTotalSubscription = async (userId, requester) => {
         {
             $group: {
                 _id: '$frequency',
-                total: { $sum: '$price' },
+                total: { $sum: { $ifNull: ['$amountUSD', '$price'] } },
             },
         },
     ]);

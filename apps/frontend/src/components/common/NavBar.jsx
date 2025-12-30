@@ -6,6 +6,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', protected: true },
   { to: '/create', label: 'New entries', protected: true },
   { to: '/records', label: 'Records', protected: true },
+  { to: '/rates', label: 'Exchange Rates', protected: true },
 ]
 
 function NavBar() {
@@ -27,10 +28,9 @@ function NavBar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg transition ${
-                    isActive
-                      ? 'bg-slate-900 text-white'
-                      : 'hover:bg-slate-100 hover:text-slate-900'
+                  `px-3 py-2 rounded-lg transition ${isActive
+                    ? 'bg-slate-900 text-white'
+                    : 'hover:bg-slate-100 hover:text-slate-900'
                   }`
                 }
                 style={({ isActive }) =>

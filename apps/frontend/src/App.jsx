@@ -8,6 +8,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import CreateEntries from './pages/CreateEntries'
 import Records from './pages/Records'
+import CurrencyRates from './pages/CurrencyRates'
 
 function App() {
   return (
@@ -39,6 +40,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Records />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rates"
+            element={
+              <ProtectedRoute>
+                <CurrencyRates />
               </ProtectedRoute>
             }
           />
