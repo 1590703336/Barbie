@@ -619,6 +619,39 @@ Get subscriptions that are due for renewal soon.
 ```
 
 ---
+
+### Get Total Subscription Cost
+
+Get the total yearly subscription cost for a user (calculated by multiplying subscription prices by their frequency).
+
+**Endpoint:** `GET /subscriptions/total`
+
+**Authentication:** Required  
+**Authorization:** admin 可指定 `userId` 查询任意用户；普通用户仅能查询自己
+
+**Query Parameters:**
+- `userId` (string, optional, admin only) - User's MongoDB ObjectId (admin can specify target user)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Total subscription fetched successfully",
+  "data": {
+    "total": 191.88
+  }
+}
+```
+
+**Notes:**
+- Only includes active subscriptions
+- Calculates yearly total by multiplying subscription prices by frequency multipliers:
+  - daily: × 365
+  - weekly: × 52
+  - monthly: × 12
+  - yearly: × 1
+
+---
 ## Budgets API
 
 ### Get All Budgets for a specific month and year for a user
