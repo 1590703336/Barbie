@@ -1,6 +1,8 @@
 import * as budgetService from './budget.services.js';
 import * as expenseService from '../expenses/expense.service.js';
 
+import { convertFromUSD } from '../currency/currency.service.js';
+
 // controller to get budgets for specific month and year and user
 export const getBudgetsController = async (req, res, next) => {
     try {
@@ -119,13 +121,13 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         }
 
         // calculate total budget and total expenses
-        const totalBudget = await budgetService.getTotalBudgetByUserAndDate(
+        const totalBudgetUSD = await budgetService.getTotalBudgetByUserAndDate(
             targetUserId,
             month,
             year,
             { id: req.user._id.toString(), role: req.user.role }
         );
-        const totalExpenses = await expenseService.getTotalExpensesByUserAndDate(
+        const totalExpensesUSD = await expenseService.getTotalExpensesByUserAndDate(
             targetUserId,
             month,
             year,
@@ -145,17 +147,19 @@ export const getBudgetStatisticsController = async (req, res, next) => {
             return expenseService.hasExpenseCategory(targetUserId, category);
         });
 
+        const userCurrency = req.user.defaultCurrency || 'USD';
+
         // prepare category-wise summary
         const categoriesSummary = [];
         for (const category of categoriesWithExpenses) {
-            const categoryBudget = await budgetService.getTotalBudgetByCategoryAndDate(
+            const categoryBudgetUSD = await budgetService.getTotalBudgetByCategoryAndDate(
                 targetUserId,
                 category,
                 month,
                 year,
                 { id: req.user._id.toString(), role: req.user.role }
             );
-            const categoryExpenses = await expenseService.getTotalExpensesByCategoryAndDate(
+            const categoryExpensesUSD = await expenseService.getTotalExpensesByCategoryAndDate(
                 targetUserId,
                 category,
                 month,
@@ -165,9 +169,9 @@ export const getBudgetStatisticsController = async (req, res, next) => {
 
             categoriesSummary.push({
                 category,
-                budget: categoryBudget,
-                remainingBudget: categoryBudget - categoryExpenses,
-                expenses: categoryExpenses
+                budget: await convertFromUSD(categoryBudgetUSD, userCurrency),
+                remainingBudget: await convertFromUSD(categoryBudgetUSD - categoryExpensesUSD, userCurrency),
+                expenses: await convertFromUSD(categoryExpensesUSD, userCurrency)
             });
         }
 
@@ -175,9 +179,9 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: {
-                totalBudget,
-                totalExpenses,
-                remainingBudget: totalBudget - totalExpenses,
+                totalBudget: await convertFromUSD(totalBudgetUSD, userCurrency),
+                totalExpenses: await convertFromUSD(totalExpensesUSD, userCurrency),
+                remainingBudget: await convertFromUSD(totalBudgetUSD - totalExpensesUSD, userCurrency),
                 categoriesSummary
             }
         });

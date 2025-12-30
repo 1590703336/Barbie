@@ -37,3 +37,18 @@ export const convertToUSD = async (amount, currencyCode) => {
     // Example: 100 EUR / 0.92 = 108.69 USD
     return Number((amount / rate).toFixed(2));
 };
+
+export const convertFromUSD = async (amountUSD, targetCurrency) => {
+    if (targetCurrency === 'USD') return amountUSD;
+
+    const rates = await getExchangeRates();
+    const rate = rates[targetCurrency];
+
+    if (!rate) {
+        throw new Error(`Currency code ${targetCurrency} not found`);
+    }
+
+    // Convert from USD: Amount * Rate
+    // Example: 100 USD * 0.92 = 92.00 EUR
+    return Number((amountUSD * rate).toFixed(2));
+};
