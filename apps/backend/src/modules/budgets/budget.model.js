@@ -35,7 +35,7 @@ const budgetSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
-    limit: {
+    limit: { // limit is the amount in the user's currency
       type: Number,
       required: true,
       min: 0

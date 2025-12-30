@@ -110,7 +110,7 @@ export const getTotalSubscription = async (userId, requester) => {
         {
             $group: {
                 _id: '$frequency',
-                total: { $sum: '$price' },
+                total: { $sum: { $ifNull: ['$amountUSD', '$price'] } },
             },
         },
     ]);

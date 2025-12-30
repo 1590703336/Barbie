@@ -4,27 +4,27 @@ import * as expenseService from '../expenses/expense.service.js';
 // controller to get budgets for specific month and year and user
 export const getBudgetsController = async (req, res, next) => {
     try {
-      const month = parseInt(req.query.month, 10);
-      const year = parseInt(req.query.year, 10);
-      const targetUserId = req.query.userId || req.user._id;
-  
-      if (!month || !year) {
-        return res.status(400).json({ message: "Month and year are required" });
-      }
-  
-      const budgets = await budgetService.getBudgetsByUserAndDate(
-        targetUserId,
-        month,
-        year,
-        { id: req.user._id.toString(), role: req.user.role }
-      );
-      res.json({ success: true, data: budgets});
+        const month = parseInt(req.query.month, 10);
+        const year = parseInt(req.query.year, 10);
+        const targetUserId = req.query.userId || req.user._id;
+
+        if (!month || !year) {
+            return res.status(400).json({ message: "Month and year are required" });
+        }
+
+        const budgets = await budgetService.getBudgetsByUserAndDate(
+            targetUserId,
+            month,
+            year,
+            { id: req.user._id.toString(), role: req.user.role }
+        );
+        res.json({ success: true, data: budgets });
 
     } catch (err) {
-      next(err);
+        next(err);
     }
-  };
-  
+};
+
 
 // controller to update budget by ID
 export const updateBudgetController = async (req, res, next) => {
@@ -34,7 +34,7 @@ export const updateBudgetController = async (req, res, next) => {
             req.body,
             { id: req.user._id.toString(), role: req.user.role }
         );
-        res.json({ success: true, message: "Budget updated successfully", data: updatedBudget});
+        res.json({ success: true, message: "Budget updated successfully", data: updatedBudget });
 
     } catch (err) {
         next(err);
@@ -51,7 +51,7 @@ export const deleteBudgetController = async (req, res, next) => {
         res.status(204).send({
             success: true,
             message: "Budget deleted successfully"
-          });
+        });
 
     } catch (err) {
         next(err);
@@ -62,8 +62,8 @@ export const deleteBudgetController = async (req, res, next) => {
 export const createBudgetController = async (req, res, next) => {
     try {
         const budget = await budgetService.createBudget({ ...req.body, user: req.user._id });
-        res.status(201).json({ success: true, message: "Budget created successfully", data: budget});
-        
+        res.status(201).json({ success: true, message: "Budget created successfully", data: budget });
+
     } catch (err) {
         next(err);
     }
@@ -74,9 +74,9 @@ export const getBudgetCategoriesSummaryController = async (req, res, next) => { 
         const month = parseInt(req.query.month, 10);
         const year = parseInt(req.query.year, 10);
         const targetUserId = req.query.userId || req.user._id; // if the requester is an admin, use the target user id, otherwise use the requester id
-  
+
         if (!month || !year) {
-        return res.status(400).json({ message: "Month and year are required" });
+            return res.status(400).json({ message: "Month and year are required" });
         }
 
         const categories = await budgetService.getBudgetCategoriesByUserAndDate( // get all budget categories for a specific month and year for a user
@@ -85,12 +85,26 @@ export const getBudgetCategoriesSummaryController = async (req, res, next) => { 
             year,
             { id: req.user._id.toString(), role: req.user.role }
         );
-        res.status(200).json({ success: true, data: categories});
+        res.status(200).json({ success: true, data: categories });
 
     } catch (err) {
         next(err);
     }
 }
+//example res:
+// {
+//     "success": true,
+//     "data": [
+//         "Food",
+//         "Transport",
+//         "Entertainment",
+//         "Shopping",
+//         "Health",
+//         "Education",
+//         "Utilities",
+//         "Others"
+//     ]
+// }
 
 // controller to get summary of budgets and expenses
 export const getBudgetStatisticsController = async (req, res, next) => {
@@ -161,10 +175,10 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: {
-            totalBudget,
-            totalExpenses,
-            remainingBudget: totalBudget - totalExpenses,
-            categoriesSummary
+                totalBudget,
+                totalExpenses,
+                remainingBudget: totalBudget - totalExpenses,
+                categoriesSummary
             }
         });
 
@@ -173,3 +187,44 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         next(err);
     }
 }
+// example res:
+// {
+//     "success": true,
+//     "data": {
+//         "totalBudget": 1000,
+//         "totalExpenses": 500,
+//         "remainingBudget": 500,
+//         "categoriesSummary": [
+//             {
+//                 "category": "Food",
+//                 "budget": 200,
+//                 "remainingBudget": 100,
+//                 "expenses": 100
+//             },
+//             {
+//                 "category": "Transport",
+//                 "budget": 100,
+//                 "remainingBudget": 50,
+//                 "expenses": 50
+//             },
+//             {
+//                 "category": "Education",
+//                 "budget": 100,
+//                 "remainingBudget": 50,
+//                 "expenses": 50
+//             },
+//             {
+//                 "category": "Utilities",
+//                 "budget": 100,
+//                 "remainingBudget": 50,
+//                 "expenses": 50
+//             },
+//             {
+//                 "category": "Others",
+//                 "budget": 100,
+//                 "remainingBudget": 50,
+//                 "expenses": 50
+//             }
+//         ]
+//     }
+// }

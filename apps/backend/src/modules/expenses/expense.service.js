@@ -56,7 +56,7 @@ export const getTotalExpensesByUserAndDate = async (userId, month, year, request
     date: { $gte: start, $lte: end }
   });
 
-  return expenses.reduce((total, expense) => total + expense.amount, 0);
+  return expenses.reduce((total, expense) => total + (expense.amountUSD || expense.amount), 0);
 };
 
 // total expense for a specific category, month, year and user
@@ -71,7 +71,7 @@ export const getTotalExpensesByCategoryAndDate = async (userId, category, month,
     date: { $gte: start, $lte: end }
   });
 
-  return expenses.reduce((total, expense) => total + expense.amount, 0);
+  return expenses.reduce((total, expense) => total + (expense.amountUSD || expense.amount), 0);
 };
 
 // check if an an user has a specific expense category

@@ -54,14 +54,14 @@ export const getBudgetById = async (budgetId) => {
 export const getTotalBudgetByUserAndDate = async (userId, month, year, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these budgets');
   const budgets = await Budget.find({ user: userId, month, year });
-  return budgets.reduce((total, budget) => total + budget.limit, 0);
+  return budgets.reduce((total, budget) => total + (budget.amountUSD || budget.limit), 0); // budget.amountUSD is the amount in USD, budget.limit is the amount in the user's currency
 };
 
 // total budget for a specific category, month, year and user
 export const getTotalBudgetByCategoryAndDate = async (userId, category, month, year, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these budgets');
   const budgets = await Budget.find({ user: userId, category, month, year });
-  return budgets.reduce((total, budget) => total + budget.limit, 0);
+  return budgets.reduce((total, budget) => total + (budget.amountUSD || budget.limit), 0); // budget.amountUSD is the amount in USD, budget.limit is the amount in the user's currency
 };
 
 // get all categories with budgets for a user in a specific month and year
