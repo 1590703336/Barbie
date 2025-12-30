@@ -19,6 +19,7 @@ function Home() {
         <Link
           to="/register"
           className="rounded-lg bg-slate-900 px-6 py-3 text-white hover:bg-slate-800"
+          style={{ color: 'rgba(255, 255, 255, 1)' }}
         >
           Create Account
         </Link>

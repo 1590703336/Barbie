@@ -32,6 +32,9 @@ function NavBar() {
                       : 'hover:bg-slate-100 hover:text-slate-900'
                   }`
                 }
+                style={({ isActive }) =>
+                  isActive ? { color: 'rgba(255, 255, 255, 1)' } : undefined
+                }
               >
                 {item.label}
               </NavLink>
@@ -59,6 +62,7 @@ function NavBar() {
               <Link
                 to="/register"
                 className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
+                style={{ color: 'rgba(255, 255, 255, 1)' }}
               >
                 Sign up
               </Link>
