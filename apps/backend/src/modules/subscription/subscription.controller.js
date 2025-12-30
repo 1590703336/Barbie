@@ -89,18 +89,19 @@ import { convertFromUSD } from '../currency/currency.service.js';
 export const getTotalSubscription = async (req, res, next) => {
     try {
         const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id.toString();
-        const totalUSD = await subscriptionService.getTotalSubscription(
+        const totalUSDObj = await subscriptionService.getTotalSubscription(
             targetUserId,
             { id: req.user._id.toString(), role: req.user.role }
         );
 
         const userCurrency = req.user.defaultCurrency || 'USD';
-        const total = await convertFromUSD(totalUSD, userCurrency);
+        // totalUSDObj is { total: number }
+        const convertedTotal = await convertFromUSD(totalUSDObj.total, userCurrency);
 
         res.status(200).json({
             success: true,
             message: 'Total subscription fetched successfully',
-            data: total,
+            data: { total: convertedTotal },
         });
     } catch (error) {
         next(error);
