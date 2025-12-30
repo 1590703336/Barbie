@@ -5,6 +5,7 @@ const navItems = [
   { to: '/', label: 'Home', protected: false },
   { to: '/dashboard', label: 'Dashboard', protected: true },
   { to: '/create', label: 'New entries', protected: true },
+  { to: '/records', label: 'Records', protected: true },
 ]
 
 function NavBar() {
