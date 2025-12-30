@@ -85,6 +85,7 @@ export const getBudgetSummaryController = async (req, res, next) => {
             categoriesSummary.push({
                 category,
                 budget: categoryBudget,
+                remainingBudget: categoryBudget - categoryExpenses,
                 expenses: categoryExpenses
             });
         }
@@ -93,6 +94,7 @@ export const getBudgetSummaryController = async (req, res, next) => {
         res.json({
             totalBudget,
             totalExpenses,
+            remainingBudget: totalBudget - totalExpenses,
             categoriesSummary
         });
 
