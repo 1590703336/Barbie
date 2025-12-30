@@ -1,5 +1,6 @@
 import Budget from "./budget.model.js";
 import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from "../../utils/authorization.js";
+import { convertToUSD } from '../currency/currency.service.js';
 
 // function to get budget for specific month and year and user with authorization
 export const getBudgetsByUserAndDate = async (userId, month, year, requester) => {
@@ -14,6 +15,14 @@ export const updateBudget = async (budgetId, updates, requester) => {
     throw buildError('Budget not found', 404);
   }
   assertOwnerOrAdmin(budget.user, requester, 'update this budget');
+
+
+  if (updates.limit || updates.currency) {
+    const limit = updates.limit || budget.limit;
+    const currency = updates.currency || budget.currency;
+    updates.amountUSD = await convertToUSD(limit, currency);
+  }
+
   return await Budget.findByIdAndUpdate(budgetId, updates, { new: true });
 };
 
@@ -28,7 +37,11 @@ export const deleteBudget = async (budgetId, requester) => {
 };
 
 // create a new budget with a budget object
+
 export const createBudget = async (budget) => {
+  if (budget.limit && budget.currency) {
+    budget.amountUSD = await convertToUSD(budget.limit, budget.currency);
+  }
   return await Budget.create(budget);
 };
 

@@ -85,6 +85,7 @@ function CreateEntries() {
       await createSubscription({
         ...subscriptionForm,
         price: Number(subscriptionForm.price),
+        renewalDate: subscriptionForm.renewalDate || undefined,
       })
       setMessage('Subscription created successfully')
       setSubscriptionForm(initialSubscription)

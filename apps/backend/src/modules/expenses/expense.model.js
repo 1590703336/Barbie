@@ -5,11 +5,11 @@ const expenseSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,         
+      required: true,
     },
     title: {
       type: String,
-      required: [true, "Expense title is required"]        
+      required: [true, "Expense title is required"]
     },
     amount: {
       type: Number,
@@ -19,6 +19,10 @@ const expenseSchema = new mongoose.Schema(
       type: String,
       enum: ['EUR', 'USD', 'CNY', 'AUD'],
       default: 'USD',
+    },
+    amountUSD: {
+      type: Number,
+      required: false,
     },
     category: {
       type: String,
@@ -35,23 +39,23 @@ const expenseSchema = new mongoose.Schema(
     },
     date: {
       type: Date,
-      default: Date.now,    
+      default: Date.now,
     },
     notes: {
       type: String,
     },
   },
-  { timestamps: true }   
+  { timestamps: true }
 );
 
 expenseSchema.set("toJSON", {
-    virtuals: true,
-    transform(_, ret) {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-    }
-  });
-  
+  virtuals: true,
+  transform(_, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+  }
+});
+
 
 export default mongoose.model("Expense", expenseSchema);
