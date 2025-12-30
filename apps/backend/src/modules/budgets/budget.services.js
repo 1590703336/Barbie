@@ -24,3 +24,21 @@ export const createBudget = async (budget) => {
 export const getBudgetById = async (budgetId) => {
   return await Budget.findById(budgetId);
 }
+
+// total budget in for a specific month and year and user
+export const getTotalBudgetByUserAndDate = async (userId, month, year) => {
+  const budgets = await Budget.find({ user: userId, month, year });
+  return budgets.reduce((total, budget) => total + budget.limit, 0);
+}
+
+// total budget for a specific category, month, year and user
+export const getTotalBudgetByCategoryAndDate = async (userId, category, month, year) => {
+  const budgets = await Budget.find({ user: userId, category, month, year });
+  return budgets.reduce((total, budget) => total + budget.limit, 0);
+}
+
+// get all categories with budgets for a user in a specific month and year
+export const getBudgetCategoriesByUserAndDate = async (userId, month, year) => {
+  const budgets = await Budget.find({ user: userId, month, year });
+  return budgets.map(budget => budget.category);
+}

@@ -19,4 +19,8 @@ budgetRouter.put('/:id', validate(budgetSchema), budgetController.updateBudgetCo
 
 budgetRouter.delete('/:id', budgetController.deleteBudgetController);
 
+// summary route
+budgetRouter.get('/summary/spending-summary', budgetController.getBudgetSummaryController);
+
+
 export default budgetRouter;

@@ -316,6 +316,7 @@ services/
 - `POST /budgets` - Create a new budget
 - `PUT /budgets/:id` - Update a budget by ID
 - `DELETE /budgets/:id` - Delete a budget by ID
+- `GET /budgets/summary/spending-summary?month=<month>&year=<year>` - Returns total expenses and budget and also for each indivual budget  category for the authorized user 
 
 ### Data Science API (`/api/v1`)
 

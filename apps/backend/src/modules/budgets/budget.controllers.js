@@ -1,4 +1,5 @@
 import * as budgetService from './budget.services.js';
+import * as expenseService from '../expenses/expense.service.js';
 
 // controller to get budgets for specific month and year and user
 export const getBudgetsController = async (req, res, next) => {
@@ -48,6 +49,55 @@ export const createBudgetController = async (req, res, next) => {
         res.status(201).json(budget);
         
     } catch (err) {
+        next(err);
+    }
+}
+
+// controller to get summary of budgets and expenses
+export const getBudgetSummaryController = async (req, res, next) => {
+    try {
+        // extract the month and year from query parameters
+        const month = parseInt(req.query.month, 10);
+        const year = parseInt(req.query.year, 10);
+
+        if (!month || !year) {
+            return res.status(400).json({ message: "Month and year are required" });
+        }
+
+        // calculate total budget and total expenses
+        const totalBudget = await budgetService.getTotalBudgetByUserAndDate(req.user._id, month, year);
+        const totalExpenses = await expenseService.getTotalExpensesByUserAndDate(req.user._id, month, year);
+
+        // getting all categories with budgets for the user in the specified month and year
+        const categories = await budgetService.getBudgetCategoriesByUserAndDate(req.user._id, month, year);
+
+        // filter to check if category exists in expenses
+        const categoriesWithExpenses = categories.filter(category => {
+            return expenseService.hasExpenseCategory(req.user._id, category);
+        });
+
+        // prepare category-wise summary
+        const categoriesSummary = [];
+        for (const category of categoriesWithExpenses) {
+            const categoryBudget = await budgetService.getTotalBudgetByCategoryAndDate(req.user._id, category, month, year);
+            const categoryExpenses = await expenseService.getTotalExpensesByCategoryAndDate(req.user._id, category, month, year);
+
+            categoriesSummary.push({
+                category,
+                budget: categoryBudget,
+                expenses: categoryExpenses
+            });
+        }
+
+        // send the final summary response
+        res.json({
+            totalBudget,
+            totalExpenses,
+            categoriesSummary
+        });
+
+    }
+    catch (err) {
         next(err);
     }
 }
