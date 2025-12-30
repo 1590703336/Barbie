@@ -11,17 +11,17 @@ const budgetRouter = Router();
 budgetRouter.use(authorize);
 
 // Core Routes
-budgetRouter.get('/', budgetController.getBudgetsController);
+budgetRouter.get('/', budgetController.getBudgetsController); // get all budgets for a specific month and year for a user
 
-budgetRouter.post('/', validate(budgetSchema), budgetController.createBudgetController);
+budgetRouter.post('/', validate(budgetSchema), budgetController.createBudgetController); // create a new budget
 
-budgetRouter.put('/:id', validate(budgetSchema), budgetController.updateBudgetController);
+budgetRouter.put('/:id', validate(budgetSchema), budgetController.updateBudgetController); // update a budget
 
-budgetRouter.delete('/:id', budgetController.deleteBudgetController);
+budgetRouter.delete('/:id', budgetController.deleteBudgetController); // delete a budget
 
 // summary route
-budgetRouter.get('/summary/categories', budgetController.getBudgetCategoriesSummaryController);
-budgetRouter.get('/summary/spending-summary', budgetController.getBudgetSummaryController);
+budgetRouter.get('/summary/categories', budgetController.getBudgetCategoriesSummaryController); // get all budget categories for a specific month and year for a user
+budgetRouter.get('/summary/spending-summary', budgetController.getBudgetStatisticsController); // get a full spending summary comparing budgets and expenses
 
 
 export default budgetRouter;

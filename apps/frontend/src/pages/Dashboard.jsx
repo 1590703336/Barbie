@@ -9,6 +9,13 @@ import {
   getUserSubscriptions,
   updateSubscription,
 } from '../services/subscriptionService'
+import {
+  deleteBudget,
+  getBudgetSummary,
+  listBudgets,
+  updateBudget,
+} from '../services/budgetService'
+import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
 
 const expenseCategories = [
@@ -24,14 +31,16 @@ const expenseCategories = [
 const subscriptionCurrencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = [
-  'sports',
-  'technology',
-  'other',
-  'entertainment',
-  'lifestyle',
-  'finance',
+  'Food',
+  'Transport',
+  'Entertainment',
+  'Utilities',
+  'Rent',
+  'Health',
+  'Others',
 ]
 const subscriptionStatuses = ['active', 'cancelled', 'expired']
+const budgetCategories = expenseCategories
 
 const formatDateInput = (value) => {
   if (!value) return ''
@@ -47,30 +56,42 @@ function Dashboard() {
     [user],
   )
 
+  const [month, setMonth] = useState(new Date().getMonth() + 1)
+  const [year, setYear] = useState(new Date().getFullYear())
   const [expenses, setExpenses] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
+  const [budgets, setBudgets] = useState([])
+  const [budgetSummary, setBudgetSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expenseEdits, setExpenseEdits] = useState({})
   const [subscriptionEdits, setSubscriptionEdits] = useState({})
+  const [budgetEdits, setBudgetEdits] = useState({})
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!userId) return
+      if (!userId || !month || !year) return
       setLoading(true)
       setError('')
       try {
-        const [expenseData, subscriptionData] = await Promise.all([
-          listExpenses(),
-          getUserSubscriptions(userId),
-        ])
+        const [expenseData, subscriptionData, budgetData, summaryData] =
+          await Promise.all([
+            listExpenses(),
+            getUserSubscriptions(userId),
+            listBudgets({ month, year, userId }),
+            getBudgetSummary({ month, year }),
+          ])
         const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
         const normalizedSubscriptions = Array.isArray(subscriptionData)
           ? subscriptionData
           : []
+        const normalizedBudgets = Array.isArray(budgetData) ? budgetData : []
 
         setExpenses(normalizedExpenses)
         setSubscriptions(normalizedSubscriptions)
+        setBudgets(normalizedBudgets)
+        setBudgetSummary(summaryData ?? null)
+
         setExpenseEdits(
           Object.fromEntries(
             normalizedExpenses.map((item) => {
@@ -109,6 +130,22 @@ function Dashboard() {
             }),
           ),
         )
+        setBudgetEdits(
+          Object.fromEntries(
+            normalizedBudgets.map((item) => {
+              const id = item.id || item._id
+              return [
+                id,
+                {
+                  category: item.category ?? '',
+                  limit: item.limit ?? '',
+                  month: item.month ?? month,
+                  year: item.year ?? year,
+                },
+              ]
+            }),
+          ),
+        )
       } catch (err) {
         const message =
           err?.response?.data?.message ??
@@ -121,7 +158,7 @@ function Dashboard() {
     }
 
     fetchData()
-  }, [userId])
+  }, [userId, month, year])
 
   const handleExpenseChange = (id, field, value) => {
     setExpenseEdits((prev) => ({
@@ -132,6 +169,13 @@ function Dashboard() {
 
   const handleSubscriptionChange = (id, field, value) => {
     setSubscriptionEdits((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] ?? {}), [field]: value },
+    }))
+  }
+
+  const handleBudgetChange = (id, field, value) => {
+    setBudgetEdits((prev) => ({
       ...prev,
       [id]: { ...(prev[id] ?? {}), [field]: value },
     }))
@@ -202,24 +246,250 @@ function Dashboard() {
     }
   }
 
+  const handleUpdateBudget = async (id) => {
+    const payload = budgetEdits[id]
+    if (!payload) return
+    try {
+      const updated = await updateBudget(id, {
+        ...payload,
+        limit: Number(payload.limit),
+        month: Number(payload.month),
+        year: Number(payload.year),
+      })
+      const updatedBudget = updated?.data ?? updated
+      setBudgets((prev) =>
+        prev.map((item) =>
+          item.id === id || item._id === id ? updatedBudget : item,
+        ),
+      )
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ?? err?.message ?? 'Update failed'
+      setError(message)
+    }
+  }
+
+  const handleDeleteBudget = async (id) => {
+    try {
+      await deleteBudget(id)
+      setBudgets((prev) =>
+        prev.filter((item) => item.id !== id && item._id !== id),
+      )
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ?? err?.message ?? 'Delete failed'
+      setError(message)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-sm font-semibold text-slate-600">My bills</p>
         <h1 className="text-3xl font-bold text-slate-900">
           Welcome back, {user?.name ?? user?.email ?? 'friend'}
         </h1>
         <p className="text-sm text-slate-600">
-          Your expenses and subscriptions are shown below. Update or delete them directly.
+          Your budgets, expenses, and subscriptions are shown below. Update or delete them directly.
         </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-700">Budget month & year</p>
+            <p className="text-xs text-slate-500">
+              控制预算列表和统计的月份/年份，修改后自动刷新。
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              Month
+              <input
+                className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                type="number"
+                min={1}
+                max={12}
+                value={month}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setMonth(value === '' ? '' : Number(value))
+                }}
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              Year
+              <input
+                className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                type="number"
+                min={2024}
+                value={year}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setYear(value === '' ? '' : Number(value))
+                }}
+              />
+            </label>
+          </div>
+        </div>
       </div>
+
+      {budgetSummary ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Total budget</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">
+              {formatCurrency(budgetSummary.totalBudget ?? 0, 'CNY')}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Total expenses</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">
+              {formatCurrency(budgetSummary.totalExpenses ?? 0, 'CNY')}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Remaining budget</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">
+              {formatCurrency(budgetSummary.remainingBudget ?? 0, 'CNY')}
+            </p>
+          </div>
+          <div className="sm:col-span-3">
+            <h3 className="mb-2 text-sm font-semibold text-slate-700">
+              Category breakdown
+            </h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(budgetSummary.categoriesSummary ?? []).map((item) => (
+                <div
+                  key={item.category}
+                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-semibold text-slate-900">
+                      {item.category}
+                    </p>
+                    <span className="text-sm text-slate-500">
+                      Budget {formatCurrency(item.budget ?? 0, 'CNY')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Spent {formatCurrency(item.expenses ?? 0, 'CNY')} · Remaining{' '}
+                    {formatCurrency(item.remainingBudget ?? 0, 'CNY')}
+                  </p>
+                </div>
+              ))}
+              {(budgetSummary.categoriesSummary ?? []).length === 0 ? (
+                <p className="text-sm text-slate-500">No budget categories yet</p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {loading ? (
         <p className="text-slate-600">Loading...</p>
       ) : error ? (
         <p className="text-rose-600">{error}</p>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">Budgets</h2>
+              <span className="text-sm text-slate-500">
+                {budgets.length} for {month}/{year}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {budgets.map((budget) => {
+                const id = budget.id || budget._id
+                const form = budgetEdits[id] ?? {}
+                return (
+                  <div
+                    key={id}
+                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-base font-semibold text-slate-900">
+                          {budget.category}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          {budget.month}/{budget.year}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-slate-900">
+                          {formatCurrency(budget.limit ?? 0, 'CNY')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <select
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        value={form.category ?? ''}
+                        onChange={(e) =>
+                          handleBudgetChange(id, 'category', e.target.value)
+                        }
+                      >
+                        <option value="">Select category</option>
+                        {budgetCategories.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        type="number"
+                        min={0}
+                        value={form.limit ?? ''}
+                        onChange={(e) =>
+                          handleBudgetChange(id, 'limit', e.target.value)
+                        }
+                        placeholder="Limit"
+                      />
+                      <input
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        type="number"
+                        min={1}
+                        max={12}
+                        value={form.month ?? ''}
+                        onChange={(e) =>
+                          handleBudgetChange(id, 'month', e.target.value)
+                        }
+                        placeholder="Month"
+                      />
+                      <input
+                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                        type="number"
+                        min={2024}
+                        value={form.year ?? ''}
+                        onChange={(e) =>
+                          handleBudgetChange(id, 'year', e.target.value)
+                        }
+                        placeholder="Year"
+                      />
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
+                        onClick={() => handleUpdateBudget(id)}
+                      >
+                        Update
+                      </button>
+                      <button
+                        className="rounded-lg border border-rose-200 px-3 py-2 text-rose-700 hover:bg-rose-50"
+                        onClick={() => handleDeleteBudget(id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+              {budgets.length === 0 ? (
+                <p className="text-sm text-slate-500">No budgets yet</p>
+              ) : null}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Expenses</h2>

@@ -317,6 +317,10 @@ Delete a user account.
 
 ## Subscriptions API
 
+Authorization rules (service has been verified with common helper):
+- admin: can access/manage any subscription; `/upcoming-renewals` is available `?userId=` specifies the user
+- Ordinary users: can only access/manage their own subscriptions
+
 ### Get All Subscriptions
 
 Retrieve all subscriptions.
@@ -337,7 +341,7 @@ Retrieve all subscriptions.
       "price": 15.99,
       "currency": "USD",
       "frequency": "monthly",
-      "category": "entertainment",
+      "category": "Entertainment",
       "startDate": "2025-01-01T00:00:00.000Z",
       "renewalDate": "2025-02-01T00:00:00.000Z",
       "status": "active",
@@ -374,7 +378,7 @@ Retrieve a specific subscription.
     "price": 15.99,
     "currency": "USD",
     "frequency": "monthly",
-    "category": "entertainment",
+    "category": "Entertainment",
     "startDate": "2025-01-01T00:00:00.000Z",
     "renewalDate": "2025-02-01T00:00:00.000Z",
     "status": "active",
@@ -413,7 +417,7 @@ Retrieve all subscriptions for a specific user.
       "price": 15.99,
       "currency": "USD",
       "frequency": "monthly",
-      "category": "entertainment",
+      "category": "Entertainment",
       "status": "active"
     },
     {
@@ -422,7 +426,7 @@ Retrieve all subscriptions for a specific user.
       "price": 9.99,
       "currency": "USD",
       "frequency": "monthly",
-      "category": "entertainment",
+      "category": "Entertainment",
       "status": "active"
     }
   ]
@@ -447,7 +451,7 @@ Create a new subscription.
   "price": "number (>= 0, required)",
   "currency": "string (EUR, USD, CNY, AUD, default: USD)",
   "frequency": "string (daily, weekly, monthly, yearly, required)",
-  "category": "string (sports, technology, other, entertainment, lifestyle, finance, required)",
+  "category": "string (Food, Transport, Entertainment, Utilities, Rent, Health, Others, required)",
   "startDate": "date (ISO 8601, required)",
   "paymentMethod": "string (required)",
   "status": "string (active, cancelled, expired, default: active)",
@@ -463,7 +467,7 @@ Create a new subscription.
   "price": 19.99,
   "currency": "USD",
   "frequency": "monthly",
-  "category": "entertainment",
+  "category": "Entertainment",
   "startDate": "2025-01-01",
   "paymentMethod": "Credit Card"
 }
@@ -480,7 +484,7 @@ Create a new subscription.
     "price": 19.99,
     "currency": "USD",
     "frequency": "monthly",
-    "category": "entertainment",
+    "category": "Entertainment",
     "startDate": "2025-01-01T00:00:00.000Z",
     "renewalDate": "2025-02-01T00:00:00.000Z",
     "status": "active",
@@ -922,7 +926,7 @@ curl -X POST http://localhost:5000/api/v1/subscriptions \
     "price": 15.99,
     "currency": "USD",
     "frequency": "monthly",
-    "category": "entertainment",
+    "category": "Entertainment",
     "startDate": "2025-01-01",
     "paymentMethod": "Credit Card"
   }'
@@ -1085,8 +1089,8 @@ interface Subscription {
   price: number;            // >= 0
   currency: 'USD' | 'EUR' | 'GBP';
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  category: 'sports' | 'news' | 'entertainment' | 'lifestyle' | 
-            'technology' | 'finance' | 'politics' | 'other';
+  category: 'Food' | 'Transport' | 'Entertainment' | 'Utilities' | 
+            'Rent' | 'Health' | 'Others';
   startDate: Date;
   renewalDate: Date;        // Auto-calculated based on frequency
   status: 'active' | 'cancelled' | 'expired';

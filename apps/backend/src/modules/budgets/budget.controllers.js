@@ -69,17 +69,17 @@ export const createBudgetController = async (req, res, next) => {
     }
 }
 
-export const getBudgetCategoriesSummaryController = async (req, res, next) => {
+export const getBudgetCategoriesSummaryController = async (req, res, next) => { // controller to get all budget categories for a specific month and year for a user
     try {
         const month = parseInt(req.query.month, 10);
         const year = parseInt(req.query.year, 10);
-        const targetUserId = req.query.userId || req.user._id;
+        const targetUserId = req.query.userId || req.user._id; // if the requester is an admin, use the target user id, otherwise use the requester id
   
         if (!month || !year) {
         return res.status(400).json({ message: "Month and year are required" });
         }
 
-        const categories = await budgetService.getBudgetCategoriesByUserAndDate(
+        const categories = await budgetService.getBudgetCategoriesByUserAndDate( // get all budget categories for a specific month and year for a user
             targetUserId,
             month,
             year,
@@ -93,7 +93,7 @@ export const getBudgetCategoriesSummaryController = async (req, res, next) => {
 }
 
 // controller to get summary of budgets and expenses
-export const getBudgetSummaryController = async (req, res, next) => {
+export const getBudgetStatisticsController = async (req, res, next) => {
     try {
         // extract the month and year from query parameters
         const month = parseInt(req.query.month, 10);
