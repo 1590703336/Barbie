@@ -1,17 +1,26 @@
-import aj from '../config/arcjet.config.js';
+import aj from "../config/arcjet.config.js";
 
 const arcjetMiddleware = async (req, res, next) => {
     try {
-        const decision = await aj.protect(req, { requested: 1 });
-        if(decision.isDenied){
-            if(decision.reason.isRateLimit()) return res.status(429).json({ error: 'Rate limited exceeded' });
-            if(decision.reason.isBot()) return res.status(403).json({ error: 'Bot detected' });
-            if(decision.reason.isShield()) return res.status(403).json({ error: 'Shielded' });
-            return res.status(403).json({ error: 'Access denied' });
+        const decision = await aj.protect(req, {requested: 1});
+
+        if (decision.isDenied()) {
+            if (decision.reason.isRateLimit()) {
+                return res.status(429).json({
+                    error: "Arcjet rate limit exceeded",
+                });
+            }
+
+            if (decision.reason.isBot()) {
+                return res.status(403).json({
+                    error: "Arcjet bot detected",
+                });
+            }
         }
+
         next();
     } catch (error) {
-        console.error("error in arcjet middleware: ", error);
+        console.log(`Arcjet middleware error: ${error}`);
         next(error);
     }
 }
