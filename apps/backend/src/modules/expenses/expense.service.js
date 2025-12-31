@@ -35,8 +35,10 @@ export const deleteExpense = async (id, requester) => {
 // Get expenses by user and date (month and year)
 export const getTotalExpensesByUserAndDate = async (userId, month, year, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these expenses');
-  const start = new Date(year, month - 1, 1);           
-  const end = new Date(year, month, 0, 23, 59, 59, 999); 
+  // Start: first day of month at 00:00:00
+  const start = new Date(year, month - 1, 1);
+  // End: last day of month at 23:59:59.999
+  const end = new Date(year, month, 0, 23, 59, 59, 999);
 
   const expenses = await Expense.find({
     user: userId,
@@ -49,7 +51,9 @@ export const getTotalExpensesByUserAndDate = async (userId, month, year, request
 // total expense for a specific category, month, year and user
 export const getTotalExpensesByCategoryAndDate = async (userId, category, month, year, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these expenses');
+  // Start: first day of month at 00:00:00
   const start = new Date(year, month - 1, 1);
+  // End: last day of month at 23:59:59.999
   const end = new Date(year, month, 0, 23, 59, 59, 999);
 
   const expenses = await Expense.find({

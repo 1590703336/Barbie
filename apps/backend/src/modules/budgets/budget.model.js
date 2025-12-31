@@ -49,6 +49,21 @@ const budgetSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 2000
+    },
+
+    // Budget alert system
+    thresholds: {
+    type: [Number],
+    default: [80, 100]
+    },
+
+    alertsTriggered: {
+      type: Map,
+      of: Boolean,
+      default: {
+        80: false,
+        100: false
+      }
     }
   },
   {

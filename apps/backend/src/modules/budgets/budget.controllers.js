@@ -1,5 +1,7 @@
 import * as budgetService from './budget.services.js';
 import * as expenseService from '../expenses/expense.service.js';
+import Expense from '../expenses/expense.model.js';
+import mongoose from 'mongoose';
 
 // controller to get budgets for specific month and year and user
 export const getBudgetsController = async (req, res, next) => {
@@ -68,7 +70,7 @@ export const createBudgetController = async (req, res, next) => {
         next(err);
     }
 }
-
+// controller to get all budget categories for a specific month and year for a user
 export const getBudgetCategoriesSummaryController = async (req, res, next) => { // controller to get all budget categories for a specific month and year for a user
     try {
         const month = parseInt(req.query.month, 10);
@@ -127,10 +129,18 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         );
 
         // filter to check if category exists in expenses
-        const categoriesWithExpenses = categories.filter(category => {
-            return expenseService.hasExpenseCategory(targetUserId, category);
-        });
+        const categoriesWithExpenses = [];
 
+        for (const category of categories) {
+            const hasExpenses = await expenseService.hasExpenseCategory(
+                targetUserId,
+                category
+            );
+
+            if (hasExpenses) {
+                categoriesWithExpenses.push(category);
+            }
+        }
         // prepare category-wise summary
         const categoriesSummary = [];
         for (const category of categoriesWithExpenses) {
@@ -156,8 +166,7 @@ export const getBudgetStatisticsController = async (req, res, next) => {
                 expenses: categoryExpenses
             });
         }
-
-        // send the final summary response
+        
         res.status(200).json({
             success: true,
             data: {
@@ -173,3 +182,4 @@ export const getBudgetStatisticsController = async (req, res, next) => {
         next(err);
     }
 }
+

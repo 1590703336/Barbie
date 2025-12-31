@@ -1,10 +1,24 @@
 import { createExpense, getExpensesByUser, getExpense, updateExpense, deleteExpense } from "./expense.service.js";
-
+import { checkBudgetAlerts } from "../budgets/budgetAlertService.js";
 // Create an expense
 export const createExpenseController = async (req, res, next) => {
     try {
         const expense = await createExpense({ ...req.body, user: req.user._id });
-        res.status(201).json(expense);
+
+        let alerts = [];
+
+        const alertResult = await checkBudgetAlerts({
+            userId: req.user._id.toString(),
+            category: expense.category,
+            month: expense.date.getMonth() + 1,
+            year: expense.date.getFullYear()
+        });
+
+        if (alertResult && alertResult.alerts.length > 0) {
+            alerts = alertResult.alerts;
+        }
+
+        res.status(201).json({ success: true, message: "Expense created successfully", data: expense, alerts });
     } catch (err) {
         next(err);
     }
