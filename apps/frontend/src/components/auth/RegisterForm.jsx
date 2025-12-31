@@ -4,10 +4,11 @@ function RegisterForm({ onSubmit, loading }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [defaultCurrency, setDefaultCurrency] = useState('USD')
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    onSubmit?.({ email, password, name })
+    onSubmit?.({ email, password, name, defaultCurrency })
   }
 
   return (
@@ -47,6 +48,19 @@ function RegisterForm({ onSubmit, loading }) {
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
           placeholder="At least 8 characters"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700">Default Currency</label>
+        <select
+          value={defaultCurrency}
+          onChange={(e) => setDefaultCurrency(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+        >
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="CNY">CNY (¥)</option>
+          <option value="AUD">AUD ($)</option>
+        </select>
       </div>
       <button
         type="submit"

@@ -26,10 +26,15 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
+    },
+    defaultCurrency: {
+        type: String,
+        enum: ['EUR', 'USD', 'CNY', 'AUD'],
+        default: 'USD',
     }
 }, { timestamps: true });
 
 const User = mongoose.model('User', UserSchema);
 export default User;
 
-// { name: 'John Doe', email: 'johnny@email.com', password: 'password' }
+// { name: 'John Doe', email: 'johnny@email.com', password: 'password', defaultCurrency: 'CNY' }

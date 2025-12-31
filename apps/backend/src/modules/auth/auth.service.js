@@ -9,10 +9,10 @@ export const signUp = async (userData) => {
     session.startTransaction();
 
     try {
-        const { name, email, password } = userData;
+        const { name, email, password, defaultCurrency } = userData;
 
         const existingUser = await User.findOne({ email });
-        if(existingUser){
+        if (existingUser) {
             const error = new Error('User already exists');
             error.statusCode = 400;
             throw error;
@@ -21,7 +21,12 @@ export const signUp = async (userData) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create([{ name, email, password: hashedPassword }], { session });
+        const newUser = await User.create([{
+            name,
+            email,
+            password: hashedPassword,
+            defaultCurrency: defaultCurrency || 'USD'
+        }], { session });
 
         const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
@@ -38,14 +43,14 @@ export const signUp = async (userData) => {
 
 export const signIn = async (email, password) => {
     const user = await User.findOne({ email });
-    if(!user){
+    if (!user) {
         const error = new Error('User not found');
         error.statusCode = 404;
         throw error;
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if(!isPasswordCorrect){
+    if (!isPasswordCorrect) {
         const error = new Error('Invalid password');
         error.statusCode = 401;
         throw error;

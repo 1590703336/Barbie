@@ -13,6 +13,7 @@ function Dashboard() {
 
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(new Date().getFullYear())
+  const currency = user?.defaultCurrency || 'USD'
   const [budgetSummary, setBudgetSummary] = useState(null)
   const [subscriptionFee, setSubscriptionFee] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -104,7 +105,7 @@ function Dashboard() {
             Subscription fee in {year || new Date().getFullYear()}
           </p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {formatCurrency(subscriptionFee ?? 0, 'USD')}
+            {formatCurrency(subscriptionFee ?? 0, currency)}
           </p>
         </div>
       ) : null}
@@ -114,19 +115,19 @@ function Dashboard() {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Total budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.totalBudget ?? 0, 'USD')}
+              {formatCurrency(budgetSummary.totalBudget ?? 0, currency)}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Total expenses</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.totalExpenses ?? 0, 'USD')}
+              {formatCurrency(budgetSummary.totalExpenses ?? 0, currency)}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">Remaining budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {formatCurrency(budgetSummary.remainingBudget ?? 0, 'USD')}
+              {formatCurrency(budgetSummary.remainingBudget ?? 0, currency)}
             </p>
           </div>
           <div className="sm:col-span-3">
@@ -144,20 +145,20 @@ function Dashboard() {
                       {item.category}
                     </p>
                     <span className="text-sm text-slate-500">
-                      Budget {formatCurrency(item.budget ?? 0, 'USD')}
+                      Budget {formatCurrency(item.budget ?? 0, currency)}
                     </span>
                   </div>
                   <p className="text-sm text-slate-600">
-                    Spent {formatCurrency(item.expenses ?? 0, 'USD')} · Remaining{' '}
+                    Spent {formatCurrency(item.expenses ?? 0, currency)} · Remaining{' '}
                     <span
                       className={
                         item.budget > 0 &&
-                        item.remainingBudget / item.budget < 0.1
+                          item.remainingBudget / item.budget < 0.1
                           ? 'text-rose-600 font-semibold'
                           : 'text-emerald-700'
                       }
                     >
-                      {formatCurrency(item.remainingBudget ?? 0, 'USD')}
+                      {formatCurrency(item.remainingBudget ?? 0, currency)}
                     </span>
                   </p>
                 </div>
