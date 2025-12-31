@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Budget from "./budget.model.js";
 import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from "../../utils/authorization.js";
 import { convertToUSD } from '../currency/currency.service.js';
@@ -69,4 +70,25 @@ export const getBudgetCategoriesByUserAndDate = async (userId, month, year, requ
   assertSameUserOrAdmin(userId, requester, 'access these budgets');
   const budgets = await Budget.find({ user: userId, month, year });
   return budgets.map(budget => budget.category);
+};
+
+// Get monthly budget stats aggregated by category
+export const getMonthlyBudgetStats = async (userId, month, year, requester) => {
+  assertSameUserOrAdmin(userId, requester, 'access these budgets');
+
+  return await Budget.aggregate([
+    {
+      $match: {
+        user: new mongoose.Types.ObjectId(userId),
+        month: month,
+        year: year
+      }
+    },
+    {
+      $group: {
+        _id: "$category",
+        totalBudgetUSD: { $sum: { $ifNull: ["$amountUSD", "$limit"] } } // fallback to limit if amountUSD is missing
+      }
+    }
+  ]);
 };

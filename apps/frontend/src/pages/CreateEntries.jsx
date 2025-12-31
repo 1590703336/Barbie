@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
-import { createBudget } from '../services/budgetService'
+import { createBudget, listBudgets } from '../services/budgetService'
+import useStore from '../store/store'
 
 const currencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
@@ -59,10 +60,17 @@ const initialBudget = {
 }
 
 function CreateEntries() {
+  const user = useStore((state) => state.user)
+  const userId = useMemo(
+    () => user?._id || user?.id || user?.userId || null,
+    [user],
+  )
   const [subscriptionForm, setSubscriptionForm] = useState(initialSubscription)
   const [expenseForm, setExpenseForm] = useState(initialExpense)
   const [budgetForm, setBudgetForm] = useState(initialBudget)
   const [message, setMessage] = useState('')
+  const [isError, setIsError] = useState(false)
+  const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
 
   const handleSubscriptionChange = (field, value) => {
@@ -81,6 +89,7 @@ function CreateEntries() {
     event.preventDefault()
     setLoading(true)
     setMessage('')
+    setIsError(false)
     try {
       await createSubscription({
         ...subscriptionForm,
@@ -88,11 +97,13 @@ function CreateEntries() {
         renewalDate: subscriptionForm.renewalDate || undefined,
       })
       setMessage('Subscription created successfully')
+      setIsError(false)
       setSubscriptionForm(initialSubscription)
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create subscription'
       setMessage(msg)
+      setIsError(true)
     } finally {
       setLoading(false)
     }
@@ -102,6 +113,7 @@ function CreateEntries() {
     event.preventDefault()
     setLoading(true)
     setMessage('')
+    setIsError(false)
     try {
       await createBudget({
         ...budgetForm,
@@ -110,11 +122,13 @@ function CreateEntries() {
         year: Number(budgetForm.year),
       })
       setMessage('Budget created successfully')
+      setIsError(false)
       setBudgetForm(initialBudget)
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create budget'
       setMessage(msg)
+      setIsError(true)
     } finally {
       setLoading(false)
     }
@@ -124,17 +138,62 @@ function CreateEntries() {
     event.preventDefault()
     setLoading(true)
     setMessage('')
+    setIsError(false)
+
+    if (!expenseForm.date || !expenseForm.category) {
+      setMessage('Please select a date and category')
+      setIsError(true)
+      return
+    }
+
+    setLoading(true)
     try {
-      await createExpense({
+      // Parse date string (YYYY-MM-DD) directly to avoid timezone issues of "new Date(string)"
+      // which defaults to UTC for hyphenated strings, causing day shifts in local time.
+      const [y, m] = expenseForm.date.split('-')
+      const year = Number(y)
+      const month = Number(m)
+
+      // Check if budget exists for this category and month/year
+      const budgets = await listBudgets({ month, year, userId })
+      const budgetExists = budgets.some(
+        (b) => b.category === expenseForm.category
+      )
+
+      if (!budgetExists) {
+        setMessage(
+          `Please set a budget for ${expenseForm.category} before creating an expense.`
+        )
+        setIsError(true)
+        setLoading(false)
+        return
+      }
+
+      const response = await createExpense({
         ...expenseForm,
         amount: Number(expenseForm.amount),
       })
+
       setMessage('Expense created successfully')
+
+      if (response && response.alerts && response.alerts.length > 0) {
+        setAlerts(
+          response.alerts.map(
+            (a) => `Alert: You have reached ${a.threshold}% of your ${a.category} budget (Usage: ${a.usage}%).`
+          )
+        )
+      } else {
+        setAlerts([])
+      }
+
+      setIsError(false)
       setExpenseForm(initialExpense)
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create expense'
       setMessage(msg)
+      setIsError(true)
+      setAlerts([])
     } finally {
       setLoading(false)
     }
@@ -150,7 +209,23 @@ function CreateEntries() {
         <p className="text-sm text-slate-600">
           Fill in the details and submit; successful records attach to the current signed-in user.
         </p>
-        {message ? <p className="text-sm text-slate-700">{message}</p> : null}
+        {message ? (
+          <p
+            className={`text-sm ${isError ? 'text-rose-600' : 'text-emerald-600'
+              }`}
+          >
+            {message}
+          </p>
+        ) : null}
+        {alerts.length > 0 && (
+          <div className="space-y-1">
+            {alerts.map((alert, idx) => (
+              <p key={idx} className="text-sm text-rose-600 font-medium">
+                {alert}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">

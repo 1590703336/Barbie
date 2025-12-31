@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Expense from "./expense.model.js";
 import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from "../../utils/authorization.js";
 import { convertToUSD } from '../currency/currency.service.js';
@@ -78,4 +79,27 @@ export const getTotalExpensesByCategoryAndDate = async (userId, category, month,
 export const hasExpenseCategory = async (userId, category) => {
   const expenses = await Expense.find({ user: userId, category });
   return expenses.length > 0;
+};
+
+// Get monthly expense stats aggregated by category
+export const getMonthlyExpenseStats = async (userId, month, year, requester) => {
+  assertSameUserOrAdmin(userId, requester, 'access these expenses');
+
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+  return await Expense.aggregate([
+    {
+      $match: {
+        user: new mongoose.Types.ObjectId(userId),
+        date: { $gte: start, $lte: end }
+      }
+    },
+    {
+      $group: {
+        _id: "$category",
+        totalExpensesUSD: { $sum: { $ifNull: ["$amountUSD", "$amount"] } } // fallback to amount if amountUSD is missing
+      }
+    }
+  ]);
 };

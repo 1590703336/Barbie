@@ -1,4 +1,4 @@
-import { convertFromUSD } from './src/modules/currency/currency.service.js';
+import { convertFromUSD } from '../src/modules/currency/currency.service.js';
 
 async function testCurrency() {
     console.log('Testing convertFromUSD...');
