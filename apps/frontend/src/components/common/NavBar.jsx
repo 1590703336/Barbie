@@ -7,6 +7,7 @@ const navItems = [
   { to: '/create', label: 'New entries', protected: true },
   { to: '/records', label: 'Records', protected: true },
   { to: '/rates', label: 'Exchange Rates', protected: true },
+  { to: '/profile', label: 'Profile', protected: true },
 ]
 
 function NavBar() {

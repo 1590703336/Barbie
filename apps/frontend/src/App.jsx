@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import CreateEntries from './pages/CreateEntries'
 import Records from './pages/Records'
 import CurrencyRates from './pages/CurrencyRates'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -48,6 +49,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CurrencyRates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

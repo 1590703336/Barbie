@@ -1,4 +1,5 @@
 import User from './user.model.js';
+import bcrypt from 'bcryptjs';
 import { assertAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
 
 export const getUsers = async (requester) => {
@@ -9,16 +10,16 @@ export const getUsers = async (requester) => {
 export const getUser = async (userId, requester) => {
     assertSameUserOrAdmin(userId, requester, 'access this user');
     const user = await User.findById(userId).select('-password');
-    if(!user) {
+    if (!user) {
         throw buildError('User not found', 404);
     }
     return user;
 };
 
 export const createUser = async (userData, requester) => {
-    assertAdmin(requester, 'create users');
+    assertAdmin(requester, 'create users'); // only admin can create users
     const existingUser = await User.findOne({ email: userData.email });
-    if(existingUser){
+    if (existingUser) {
         throw buildError('User already exists', 400);
     }
 
@@ -28,8 +29,14 @@ export const createUser = async (userData, requester) => {
 
 export const updateUser = async (userId, updateData, requester) => {
     assertSameUserOrAdmin(userId, requester, 'update this user');
+
+    if (updateData.password) {
+        const salt = await bcrypt.genSalt(10);
+        updateData.password = await bcrypt.hash(updateData.password, salt);
+    }
+
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true }).select('-password');
-    if(!user) {
+    if (!user) {
         throw buildError('User not found', 404);
     }
     return user;
@@ -38,7 +45,7 @@ export const updateUser = async (userId, updateData, requester) => {
 export const deleteUser = async (userId, requester) => {
     assertSameUserOrAdmin(userId, requester, 'delete this user');
     const user = await User.findById(userId);
-    if(!user) {
+    if (!user) {
         throw buildError('User not found', 404);
     }
     await user.deleteOne();
