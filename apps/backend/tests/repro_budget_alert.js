@@ -53,13 +53,8 @@ async function verifyBudgetAlerts(userId, expenseDetails) {
 }
 
 // User to provide these values:
-const USER_ID_TO_TEST = '6954625134956c5fa5e18c84';
+const USER_ID_TO_TEST = '';
 // EDGE CASE: 1st of month, early morning UTC
-const EXPENSE_TO_TEST = {
-    category: 'Transport',
-    dateStr: '2025-12-01T05:00:00.000Z',
-    amount: 20,
-    amountUSD: 23.5
-};
+const EXPENSE_TO_TEST = {};
 
 verifyBudgetAlerts(USER_ID_TO_TEST, EXPENSE_TO_TEST);

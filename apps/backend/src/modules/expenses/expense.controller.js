@@ -12,7 +12,7 @@ export const createExpenseController = async (req, res, next) => {
         const alertResult = await checkBudgetAlerts({
             userId: req.user._id.toString(),
             category: expense.category,
-            month: expense.date.getUTCMonth() + 1,
+            month: expense.date.getUTCMonth() + 1, //getUTCMonth() returns 0-11
             year: expense.date.getUTCFullYear()
         });
 

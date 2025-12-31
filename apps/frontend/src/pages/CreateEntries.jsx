@@ -61,7 +61,7 @@ const initialBudget = {
 
 function CreateEntries() {
   const user = useStore((state) => state.user)
-  const userId = useMemo(
+  const userId = useMemo(  //useMemo is used to prevent the userId from being re-rendered
     () => user?._id || user?.id || user?.userId || null,
     [user],
   )
