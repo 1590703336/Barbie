@@ -43,6 +43,17 @@ const formatDateInput = (value) => {
   return date.toISOString().slice(0, 10)
 }
 
+const formatDateForDisplay = (value) => {
+  if (!value) return 'No date'
+  const date = new Date(value)
+  // Adjust for timezone offset to display UTC date as local date
+  const userTimezoneOffset = date.getTimezoneOffset() * 60000
+  const adjustedDate = new Date(date.getTime() + userTimezoneOffset)
+  return adjustedDate.toLocaleDateString()
+}
+
+
+
 function Records() {
   const user = useStore((state) => state.user)
   const userId = useMemo(
@@ -176,6 +187,54 @@ function Records() {
   const handleUpdateExpense = async (id) => {
     const payload = expenseEdits[id]
     if (!payload) return
+
+    // Budget check
+    if (payload.date && payload.category) {
+      // Parse date string (YYYY-MM-DD) directly to avoid timezone issues
+      let expMonth, expYear
+      // Handle partial date strings or full ISO strings if they occur (though payload.date is usually YYYY-MM-DD from input)
+      if (payload.date.includes('T')) {
+        const d = new Date(payload.date)
+        expMonth = d.getMonth() + 1
+        expYear = d.getFullYear()
+      } else {
+        const [y, m] = payload.date.split('-')
+        expYear = Number(y)
+        expMonth = Number(m)
+      }
+
+      let relevantBudgets = []
+      // If the expense date falls in the currently viewed month/year, we can use the local state
+      if (expMonth === month && expYear === year) {
+        relevantBudgets = budgets
+      } else {
+        // Otherwise we need to fetch the budgets for that time period
+        try {
+          relevantBudgets = await listBudgets({
+            month: expMonth,
+            year: expYear,
+            userId,
+          })
+        } catch (e) {
+          // If fetch fails, we can't verify, so we might choose to block or warn. 
+          // For now let's assume empty to result in blocking to be safe?
+          // Or strictly follow requirements: "ask them to set a budget first" -> implies blocking.
+          relevantBudgets = []
+        }
+      }
+
+      const budgetExists = relevantBudgets.some(
+        (b) => b.category === payload.category
+      )
+
+      if (!budgetExists) {
+        setError(
+          `Please set a budget for ${payload.category} before updating this expense.`
+        )
+        return
+      }
+    }
+
     try {
       const updated = await updateExpense(id, {
         ...payload,
@@ -470,9 +529,7 @@ function Records() {
                         </p>
                         <p className="text-sm text-slate-500">
                           {expense.category} ·{' '}
-                          {expense.date
-                            ? new Date(expense.date).toLocaleDateString()
-                            : 'No date'}
+                          {formatDateForDisplay(expense.date)}
                         </p>
                       </div>
                       <div className="text-right">

@@ -120,60 +120,41 @@ export const getBudgetStatisticsController = async (req, res, next) => {
             return res.status(400).json({ message: "Month and year are required" });
         }
 
-        // calculate total budget and total expenses
-        const totalBudgetUSD = await budgetService.getTotalBudgetByUserAndDate(
-            targetUserId,
-            month,
-            year,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
-        const totalExpensesUSD = await expenseService.getTotalExpensesByUserAndDate(
-            targetUserId,
-            month,
-            year,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
-
-        // getting all categories with budgets for the user in the specified month and year
-        const categories = await budgetService.getBudgetCategoriesByUserAndDate(
-            targetUserId,
-            month,
-            year,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
-
-        // filter to check if category exists in expenses
-        const categoriesWithExpenses = categories.filter(category => {
-            return expenseService.hasExpenseCategory(targetUserId, category);
-        });
+        // Fetch aggregated stats
+        const [budgetStats, expenseStats] = await Promise.all([
+            budgetService.getMonthlyBudgetStats(targetUserId, month, year, { id: req.user._id.toString(), role: req.user.role }),
+            expenseService.getMonthlyExpenseStats(targetUserId, month, year, { id: req.user._id.toString(), role: req.user.role })
+        ]);
 
         const userCurrency = req.user.defaultCurrency || 'USD';
 
-        // prepare category-wise summary
+        // Helper to find stat by category
+        const findStat = (stats, category) => stats.find(s => s._id === category);
+
+        // Calculate totals
+        const totalBudgetUSD = budgetStats.reduce((sum, item) => sum + item.totalBudgetUSD, 0);
+        const totalExpensesUSD = expenseStats.reduce((sum, item) => sum + item.totalExpensesUSD, 0);
+
+        // Prepare category summary
         const categoriesSummary = [];
-        for (const category of categoriesWithExpenses) {
-            const categoryBudgetUSD = await budgetService.getTotalBudgetByCategoryAndDate(
-                targetUserId,
-                category,
-                month,
-                year,
-                { id: req.user._id.toString(), role: req.user.role }
-            );
-            const categoryExpensesUSD = await expenseService.getTotalExpensesByCategoryAndDate(
-                targetUserId,
-                category,
-                month,
-                year,
-                { id: req.user._id.toString(), role: req.user.role }
-            );
+
+        // Iterate through all budget categories
+        for (const bStat of budgetStats) {
+            const category = bStat._id;
+            const budgetUSD = bStat.totalBudgetUSD;
+            const eStat = findStat(expenseStats, category);
+            const expensesUSD = eStat ? eStat.totalExpensesUSD : 0;
+
 
             categoriesSummary.push({
                 category,
-                budget: await convertFromUSD(categoryBudgetUSD, userCurrency),
-                remainingBudget: await convertFromUSD(categoryBudgetUSD - categoryExpensesUSD, userCurrency),
-                expenses: await convertFromUSD(categoryExpensesUSD, userCurrency)
+                budget: await convertFromUSD(budgetUSD, userCurrency),
+                remainingBudget: await convertFromUSD(budgetUSD - expensesUSD, userCurrency),
+                expenses: await convertFromUSD(expensesUSD, userCurrency)
             });
         }
+
+
 
         // send the final summary response
         res.status(200).json({

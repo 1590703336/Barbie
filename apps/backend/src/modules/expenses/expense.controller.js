@@ -4,7 +4,23 @@ import { createExpense, getExpensesByUser, getExpense, updateExpense, deleteExpe
 export const createExpenseController = async (req, res, next) => {
     try {
         const expense = await createExpense({ ...req.body, user: req.user._id });
-        res.status(201).json(expense);
+
+        // Check budget alerts
+        const { checkBudgetAlerts } = await import("../budgets/budgetAlertService.js");
+        let alerts = [];
+
+        const alertResult = await checkBudgetAlerts({
+            userId: req.user._id.toString(),
+            category: expense.category,
+            month: expense.date.getUTCMonth() + 1,
+            year: expense.date.getUTCFullYear()
+        });
+
+        if (alertResult && alertResult.alerts.length > 0) {
+            alerts = alertResult.alerts;
+        }
+
+        res.status(201).json({ ...expense.toJSON(), alerts });
     } catch (err) {
         next(err);
     }
