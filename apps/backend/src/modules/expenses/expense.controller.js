@@ -33,9 +33,15 @@ export const getExpensesController = async (req, res, next) => {
             const expense = await getExpense(req.params.id, { id: req.user._id.toString(), role: req.user.role });
             res.json(expense);
         } else {
+            console.log('Query params:', req.query);
             const targetUserId = req.query.userId || req.user._id;
+            const filters = {
+                month: req.query.month,
+                year: req.query.year
+            };
             const expenses = await getExpensesByUser(
                 targetUserId,
+                filters,
                 { id: req.user._id.toString(), role: req.user.role }
             );
             res.json(expenses);

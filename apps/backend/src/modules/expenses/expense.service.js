@@ -11,10 +11,27 @@ export const createExpense = async (expense) => {
   return Expense.create(expense);
 };
 
-// Get all expenses for a user
-export const getExpensesByUser = async (userId, requester) => {
+// Get all expenses for a user with optional filters
+export const getExpensesByUser = async (userId, filters = {}, requester) => {
   assertSameUserOrAdmin(userId, requester, 'access these expenses');
-  return Expense.find({ user: userId });
+
+  const query = { user: userId };
+
+  if (filters.month && filters.year) {
+    const year = Number(filters.year);
+    const month = Number(filters.month);
+
+    // Construct UTC date range for the entire month
+    const start = new Date(Date.UTC(year, month - 1, 1));
+    const end = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+    query.date = {
+      $gte: start,
+      $lte: end
+    };
+  }
+
+  return Expense.find(query);
 };
 
 // Get a single expense

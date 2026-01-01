@@ -5,8 +5,10 @@ export async function createExpense(payload) {
   return response.data ?? {}
 }
 
-export async function listExpenses() {
-  const response = await api.get('/expenses')
+export async function listExpenses(params) {
+  const response = await api.get('/expenses', {
+    params,
+  })
   return response.data ?? []
 }
 

@@ -79,7 +79,7 @@ function Records() {
       setError('')
       try {
         const [expenseData, subscriptionData, budgetData] = await Promise.all([
-          listExpenses(),
+          listExpenses({ month, year, userId }),
           getUserSubscriptions(userId),
           listBudgets({ month, year, userId }),
         ])
