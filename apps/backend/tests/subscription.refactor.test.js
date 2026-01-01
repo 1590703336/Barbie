@@ -19,7 +19,11 @@ const mockSubscriptionService = {
 const mockAuthorization = {
     assertOwnerOrAdmin: jest.fn(),
     assertSameUserOrAdmin: jest.fn(),
-    buildError: jest.fn((msg, code) => new Error(msg))
+    buildError: jest.fn((msg, code) => {
+        const err = new Error(msg);
+        err.statusCode = code;
+        return err;
+    })
 };
 
 // Mock Imports
@@ -147,6 +151,20 @@ describe('Subscription Controller (Refactored)', () => {
             expect(mockSubscriptionRepository.update).toHaveBeenCalledWith('s1', prepared);
             console.log('--- TEST PASSED ---');
         });
+
+        it('should handle update failure (Subscription not found)', async () => {
+            console.log('\n--- TEST: updateSubscription (Not Found) ---');
+            req.params.id = 'nonexistent';
+            req.body = { price: 20 };
+
+            mockSubscriptionRepository.findById.mockResolvedValue(null);
+
+            await updateSubscription(req, res, next);
+
+            expect(mockSubscriptionRepository.findById).toHaveBeenCalledWith('nonexistent');
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404, message: 'Subscription not found' }));
+            console.log('--- TEST PASSED ---');
+        });
     });
 
     describe('deleteSubscription', () => {
@@ -160,6 +178,19 @@ describe('Subscription Controller (Refactored)', () => {
 
             console.log(`Actual Output (res.json):`, JSON.stringify(res.json.mock.calls[0][0], null, 2));
             expect(mockSubscriptionRepository.deleteById).toHaveBeenCalledWith('s1');
+            console.log('--- TEST PASSED ---');
+        });
+
+        it('should handle delete failure (Subscription not found)', async () => {
+            console.log('\n--- TEST: deleteSubscription (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            mockSubscriptionRepository.findById.mockResolvedValue(null);
+
+            await deleteSubscription(req, res, next);
+
+            expect(mockSubscriptionRepository.findById).toHaveBeenCalledWith('nonexistent');
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404, message: 'Subscription not found' }));
             console.log('--- TEST PASSED ---');
         });
     });

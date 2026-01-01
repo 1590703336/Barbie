@@ -26,7 +26,11 @@ const mockExpenseService = {
 const mockAuthorization = {
     assertOwnerOrAdmin: jest.fn(),
     assertSameUserOrAdmin: jest.fn(),
-    buildError: jest.fn((msg, code) => new Error(msg))
+    buildError: jest.fn((msg, code) => {
+        const err = new Error(msg);
+        err.statusCode = code;
+        return err;
+    })
 };
 
 // Mock Imports
@@ -175,6 +179,23 @@ describe('Budget Controller (Refactored)', () => {
             expect(mockBudgetRepository.update).toHaveBeenCalledWith('b1', preparedData);
             console.log('--- TEST PASSED ---');
         });
+
+        it('should handle update failure (Budget not found)', async () => {
+            console.log('\n--- TEST: updateBudgetController (Not Found) ---');
+            req.params.id = 'nonexistent';
+            req.body = { limit: 200 };
+
+            mockBudgetRepository.findById.mockResolvedValue(null);
+
+            await updateBudgetController(req, res, next);
+
+            expect(mockBudgetRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Budget not found');
+            expect(error.statusCode).toBe(404);
+            console.log('--- TEST PASSED ---');
+        });
     });
 
     describe('deleteBudgetController', () => {
@@ -195,6 +216,22 @@ describe('Budget Controller (Refactored)', () => {
             expect(mockAuthorization.assertOwnerOrAdmin).toHaveBeenCalled();
             expect(mockBudgetRepository.deleteById).toHaveBeenCalledWith('b1');
             expect(res.status).toHaveBeenCalledWith(204);
+            console.log('--- TEST PASSED ---');
+        });
+
+        it('should handle delete failure (Budget not found)', async () => {
+            console.log('\n--- TEST: deleteBudgetController (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            mockBudgetRepository.findById.mockResolvedValue(null);
+
+            await deleteBudgetController(req, res, next);
+
+            expect(mockBudgetRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Budget not found');
+            expect(error.statusCode).toBe(404);
             console.log('--- TEST PASSED ---');
         });
     });

@@ -16,7 +16,11 @@ const mockExpenseService = {
 const mockAuthorization = {
     assertOwnerOrAdmin: jest.fn(),
     assertSameUserOrAdmin: jest.fn(),
-    buildError: jest.fn((msg, code) => new Error(msg))
+    buildError: jest.fn((msg, code) => {
+        const err = new Error(msg);
+        err.statusCode = code;
+        return err;
+    })
 };
 
 // Mock Imports
@@ -174,6 +178,22 @@ describe('Expense Controller (Refactored)', () => {
             expect(res.json).toHaveBeenCalledWith(updatedExpense);
             console.log('--- TEST PASSED ---\n');
         });
+
+        it('should handle update failure (Expense not found)', async () => {
+            console.log('\n--- TEST: updateExpenseController (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            mockExpenseRepository.findById.mockResolvedValue(null);
+
+            await updateExpenseController(req, res, next);
+
+            expect(mockExpenseRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Expense not found');
+            expect(error.statusCode).toBe(404);
+            console.log('--- TEST PASSED ---\n');
+        });
     });
 
     describe('deleteExpenseController', () => {
@@ -208,6 +228,22 @@ describe('Expense Controller (Refactored)', () => {
 
             expect(res.status).toHaveBeenCalledWith(204);
             expect(res.send).toHaveBeenCalled();
+            console.log('--- TEST PASSED ---\n');
+        });
+
+        it('should handle delete failure (Expense not found)', async () => {
+            console.log('\n--- TEST: deleteExpenseController (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            mockExpenseRepository.findById.mockResolvedValue(null);
+
+            await deleteExpenseController(req, res, next);
+
+            expect(mockExpenseRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Expense not found');
+            expect(error.statusCode).toBe(404);
             console.log('--- TEST PASSED ---\n');
         });
     });
