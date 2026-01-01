@@ -1,14 +1,19 @@
-import { createExpense, getExpensesByUser, getExpense, updateExpense, deleteExpense } from "./expense.service.js";
+import * as expenseRepository from './expense.repository.js';
+import * as expenseService from './expense.service.js';
+import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from "../../utils/authorization.js";
 
 // Create an expense
 export const createExpenseController = async (req, res, next) => {
     try {
-        const expense = await createExpense({ ...req.body, user: req.user._id });
+        const processedData = await expenseService.prepareExpenseData({ ...req.body, user: req.user._id });
+        const expense = await expenseRepository.create(processedData);
 
         // Check budget alerts
         const { checkBudgetAlerts } = await import("../budgets/budgetAlertService.js");
         let alerts = [];
 
+        // Note: For budget alerts, we still rely on the expense object having a date method or property.
+        // If expense is a Mongoose document, it has .date which is a Date object.
         const alertResult = await checkBudgetAlerts({
             userId: req.user._id.toString(),
             category: expense.category,
@@ -29,21 +34,29 @@ export const createExpenseController = async (req, res, next) => {
 // Get expenses
 export const getExpensesController = async (req, res, next) => {
     try {
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
         if (req.params.id) {
-            const expense = await getExpense(req.params.id, { id: req.user._id.toString(), role: req.user.role });
+            // Get Single Expense
+            const expense = await expenseRepository.findById(req.params.id);
+            if (!expense) {
+                throw buildError('Expense not found', 404);
+            }
+            assertOwnerOrAdmin(expense.user, requester, 'access this expense');
             res.json(expense);
         } else {
-            console.log('Query params:', req.query);
+            // Get List of Expenses
             const targetUserId = req.query.userId || req.user._id;
+
+            assertSameUserOrAdmin(targetUserId, requester, 'access these expenses');
+
             const filters = {
                 month: req.query.month,
-                year: req.query.year
+                year: req.query.year,
+                category: req.query.category
             };
-            const expenses = await getExpensesByUser(
-                targetUserId,
-                filters,
-                { id: req.user._id.toString(), role: req.user.role }
-            );
+
+            const expenses = await expenseRepository.findByUser(targetUserId, filters);
             res.json(expenses);
         }
     } catch (err) {
@@ -51,14 +64,21 @@ export const getExpensesController = async (req, res, next) => {
     }
 }
 
-// Update an expense`   
+// Update an expense
 export const updateExpenseController = async (req, res, next) => {
     try {
-        const updatedExpense = await updateExpense(
-            req.params.id,
-            req.body,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingExpense = await expenseRepository.findById(req.params.id);
+        if (!existingExpense) {
+            throw buildError('Expense not found', 404);
+        }
+
+        assertOwnerOrAdmin(existingExpense.user, requester, 'update this expense');
+
+        const processedData = await expenseService.prepareExpenseData(req.body, existingExpense);
+        const updatedExpense = await expenseRepository.update(req.params.id, processedData);
+
         res.json(updatedExpense);
     } catch (err) {
         next(err);
@@ -68,10 +88,17 @@ export const updateExpenseController = async (req, res, next) => {
 // Delete an expense
 export const deleteExpenseController = async (req, res, next) => {
     try {
-        await deleteExpense(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingExpense = await expenseRepository.findById(req.params.id);
+        if (!existingExpense) {
+            throw buildError('Expense not found', 404);
+        }
+
+        assertOwnerOrAdmin(existingExpense.user, requester, 'delete this expense');
+
+        await expenseRepository.deleteById(req.params.id);
+
         res.status(204).send({
             message: "Expense deleted successfully"
         });
