@@ -46,16 +46,6 @@ export const signUp = async (userData) => {
 };
 
 export const signIn = async (email, password) => {
-    // Need password to compare, repository findOne typically selects -password from current plan?
-    // UserRepo.findOne doesn't exclude password by default in my implementation above (it was User.findOne(filter)).
-    // Wait, let me check user.repository.js implementation.
-    // implementation: findOne = async (filter) => { return await User.findOne(filter); };
-    // Mongoose findOne DOES include password unless excluded in schema or query.
-    // However, if schema has select: false, then we need to explicitly select it.
-    // Assuming standard schema where password is select: true or default.
-
-    // BUT, usually we want to return user WITHOUT password.
-    // So let's fetch user, compare, then return sanitized user.
 
     const user = await userRepository.findOne({ email });
     if (!user) {
