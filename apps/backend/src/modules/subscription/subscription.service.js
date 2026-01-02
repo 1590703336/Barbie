@@ -1,109 +1,56 @@
-import mongoose from 'mongoose';
-import Subscription from './subscription.model.js';
-import { assertAdmin, assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
 import { convertToUSD } from '../currency/currency.service.js';
+import mongoose from 'mongoose'; // Only for Types.ObjectId if needed for pipeline construction
 
-export const createSubscription = async (subscriptionData) => {
-    if (subscriptionData.price && subscriptionData.currency) {
-        subscriptionData.amountUSD = await convertToUSD(subscriptionData.price, subscriptionData.currency);
-    }
-    return await Subscription.create(subscriptionData);
-};
+/**
+ * Prepares subscription data for creation/update.
+ * Handles currency conversion and renewal date calculation.
+ */
+export const prepareSubscriptionData = async (data, existingData = {}) => {
+    const processedData = { ...data };
 
-export const getSubscriptions = async (userId, requester) => {
-    assertSameUserOrAdmin(userId, requester, 'access these subscriptions');
-    return await Subscription.find({ user: userId });
-};
+    // 1. Handle Currency Conversion
+    if (processedData.price || processedData.currency) {
+        const price = processedData.price !== undefined ? processedData.price : existingData.price;
+        const currency = processedData.currency || existingData.currency;
 
-export const getSubscriptionById = async (subscriptionId, requester) => {
-    const subscription = await Subscription.findById(subscriptionId);
-    if (!subscription) {
-        throw buildError('Subscription not found', 404);
-    }
-    assertOwnerOrAdmin(subscription.user, requester, 'access this subscription');
-    return subscription;
-};
-
-export const getAllSubscriptions = async (requester) => {
-    if (requester.role === 'admin') {
-        return await Subscription.find();
-    }
-    return await Subscription.find({ user: requester.id });
-};
-
-export const updateSubscription = async (subscriptionId, updateData, requester) => {
-    const subscription = await Subscription.findById(subscriptionId);
-    if (!subscription) {
-        throw buildError('Subscription not found', 404);
-    }
-    assertOwnerOrAdmin(subscription.user, requester, 'update this subscription');
-
-    Object.assign(subscription, updateData);
-
-    // Recalculate if price or currency changed
-    if (updateData.price || updateData.currency) {
-        const price = updateData.price || subscription.price;
-        const currency = updateData.currency || subscription.currency;
-        subscription.amountUSD = await convertToUSD(price, currency);
+        if (price !== undefined && currency) {
+            processedData.amountUSD = await convertToUSD(price, currency);
+        }
     }
 
-    await subscription.save();
-    return subscription;
-};
+    // 2. Handle Renewal Date Calculation logic (Migration from Model Pre-save)
+    // If startDate or frequency changes, or if it's new and no renewalDate provided
+    const startDate = processedData.startDate ? new Date(processedData.startDate) : (existingData.startDate ? new Date(existingData.startDate) : null);
+    const frequency = processedData.frequency || existingData.frequency;
 
-export const deleteSubscription = async (subscriptionId, requester) => {
-    const subscription = await Subscription.findById(subscriptionId);
-    if (!subscription) {
-        throw buildError('Subscription not found', 404);
+    if (startDate && frequency && (!processedData.renewalDate && !existingData.renewalDate)) {
+        const renewalPeriods = {
+            daily: 1,
+            weekly: 7,
+            monthly: 30,
+            yearly: 365,
+        };
+        const period = renewalPeriods[frequency] || 0;
+        const renewalDate = new Date(startDate);
+        renewalDate.setDate(renewalDate.getDate() + period);
+        processedData.renewalDate = renewalDate;
     }
-    assertOwnerOrAdmin(subscription.user, requester, 'delete this subscription');
 
-    await subscription.deleteOne();
-    return { deleted: true };
-};
-
-export const cancelSubscription = async (subscriptionId, requester) => {
-    const subscription = await Subscription.findById(subscriptionId);
-    if (!subscription) {
-        throw buildError('Subscription not found', 404);
+    // 3. Handle Status Update (Expired)
+    const effectiveRenewalDate = processedData.renewalDate ? new Date(processedData.renewalDate) : (existingData.renewalDate ? new Date(existingData.renewalDate) : null);
+    if (effectiveRenewalDate && effectiveRenewalDate < new Date()) {
+        processedData.status = 'expired';
     }
-    assertOwnerOrAdmin(subscription.user, requester, 'cancel this subscription');
 
-    subscription.status = 'cancelled';
-    await subscription.save();
-    return subscription;
+    return processedData;
 };
 
-export const getUpcomingRenewals = async (userId, requester, daysAhead = 30) => { // get upcoming renewals for the next 30 days
-    assertSameUserOrAdmin(userId, requester, 'access these renewals');
-
-    const targetUserId = requester.role === 'admin' && userId ? userId : requester.id; // if the requester is an admin, use the target user id, otherwise use the requester id
-    const now = new Date();
-    const cutoff = new Date();
-    cutoff.setDate(now.getDate() + daysAhead);
-
-    return await Subscription.find({
-        user: targetUserId,
-        renewalDate: { $gte: now, $lte: cutoff },
-        status: { $ne: 'cancelled' },
-    }).sort({ renewalDate: 1 });
-};
-
-export const getTotalSubscription = async (userId, requester) => {
-    assertSameUserOrAdmin(userId, requester, 'access total subscription');
-    const targetUserId = requester.role === 'admin' && userId ? userId : requester.id;
-
-    const frequencyMultipliers = {
-        daily: 365,
-        weekly: 52,
-        monthly: 12,
-        yearly: 1,
-    };
-
-    const totalsByFrequency = await Subscription.aggregate([
+// Builder for Total Subscription Aggregation
+export const buildTotalSubscriptionPipeline = (userId) => {
+    return [
         {
             $match: {
-                user: new mongoose.Types.ObjectId(targetUserId),
+                user: new mongoose.Types.ObjectId(userId),
                 status: 'active',
             },
         },
@@ -113,12 +60,31 @@ export const getTotalSubscription = async (userId, requester) => {
                 total: { $sum: { $ifNull: ['$amountUSD', '$price'] } },
             },
         },
-    ]);
+    ];
+};
 
-    const total = totalsByFrequency.reduce(
+// Logic to calculate total annual cost from frequency stats
+export const calculateTotalFromStats = (stats) => {
+    const frequencyMultipliers = {
+        daily: 365,
+        weekly: 52,
+        monthly: 12,
+        yearly: 1,
+    };
+
+    return stats.reduce(
         (sum, item) => sum + (frequencyMultipliers[item._id] || 0) * item.total,
         0,
     );
-
-    return { total };
 };
+
+/*
+    NOTE:
+    Previous data access methods have been moved to subscription.repository.js:
+    - createSubscription -> subscriptionRepository.create
+    - getSubscriptions -> subscriptionRepository.find
+    - getSubscriptionById -> subscriptionRepository.findById
+    - updateSubscription -> subscriptionRepository.update
+    - deleteSubscription -> subscriptionRepository.deleteById
+    - cancelSubscription -> subscriptionRepository.update
+*/

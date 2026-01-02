@@ -1,53 +1,59 @@
-import User from './user.model.js';
 import bcrypt from 'bcryptjs';
-import { assertAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
+import * as userRepository from './user.repository.js';
+import { buildError } from '../../utils/authorization.js';
 
-export const getUsers = async (requester) => {
-    assertAdmin(requester, 'access users list');
-    return await User.find().select('-password');
+export const getUsers = async (filter = {}) => {
+    // Business logic: just return data, controller handles auth
+    return await userRepository.find(filter);
 };
 
-export const getUser = async (userId, requester) => {
-    assertSameUserOrAdmin(userId, requester, 'access this user');
-    const user = await User.findById(userId).select('-password');
+export const getUser = async (userId) => {
+    // Controller handles auth
+    const user = await userRepository.findById(userId);
     if (!user) {
         throw buildError('User not found', 404);
     }
     return user;
 };
 
-export const createUser = async (userData, requester) => {
-    assertAdmin(requester, 'create users'); // only admin can create users
-    const existingUser = await User.findOne({ email: userData.email });
+export const prepareUserData = async (userData) => {
+    const processedData = { ...userData };
+
+    // Hash password if present
+    if (processedData.password) {
+        const salt = await bcrypt.genSalt(10);
+        processedData.password = await bcrypt.hash(processedData.password, salt);
+    }
+
+    return processedData;
+};
+
+export const createUser = async (userData) => {
+    const existingUser = await userRepository.findOne({ email: userData.email });
     if (existingUser) {
         throw buildError('User already exists', 400);
     }
 
-    const user = await User.create(userData);
-    return user;
+    // Hash password before saving
+    const dataToSave = await prepareUserData(userData);
+    return await userRepository.create(dataToSave);
 };
 
-export const updateUser = async (userId, updateData, requester) => {
-    assertSameUserOrAdmin(userId, requester, 'update this user');
+export const updateUser = async (userId, updateData) => {
+    // Prepare data (hashing if needed)
+    const dataToSave = await prepareUserData(updateData);
 
-    if (updateData.password) {
-        const salt = await bcrypt.genSalt(10);
-        updateData.password = await bcrypt.hash(updateData.password, salt);
-    }
-
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true }).select('-password');
+    const user = await userRepository.update(userId, dataToSave);
     if (!user) {
         throw buildError('User not found', 404);
     }
     return user;
 };
 
-export const deleteUser = async (userId, requester) => {
-    assertSameUserOrAdmin(userId, requester, 'delete this user');
-    const user = await User.findById(userId);
-    if (!user) {
+export const deleteUser = async (userId) => {
+    const result = await userRepository.deleteById(userId);
+    if (!result) {
         throw buildError('User not found', 404);
     }
-    await user.deleteOne();
     return { deleted: true };
 };

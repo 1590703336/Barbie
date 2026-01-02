@@ -1,8 +1,12 @@
 import * as userService from './user.service.js';
+import { assertAdmin, assertSameUserOrAdmin } from '../../utils/authorization.js';
 
 export const getUsers = async (req, res, next) => {
     try {
-        const users = await userService.getUsers({ id: req.user._id.toString(), role: req.user.role });
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertAdmin(requester, 'access users list');
+
+        const users = await userService.getUsers();
         console.log("users fetched: ", users);
         res.status(200).json({
             success: true,
@@ -18,7 +22,10 @@ export const getUsers = async (req, res, next) => {
 
 export const createUser = async (req, res, next) => {
     try {
-        const user = await userService.createUser(req.body, { id: req.user._id.toString(), role: req.user.role });
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertAdmin(requester, 'create users');
+
+        const user = await userService.createUser(req.body);
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -31,11 +38,11 @@ export const createUser = async (req, res, next) => {
 
 export const updateUser = async (req, res, next) => {
     try {
-        const user = await userService.updateUser(
-            req.params.id,
-            req.body,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const targetUserId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'update this user');
+
+        const user = await userService.updateUser(targetUserId, req.body);
         res.status(200).json({
             success: true,
             message: 'User updated successfully',
@@ -48,10 +55,11 @@ export const updateUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
     try {
-        const result = await userService.deleteUser(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const targetUserId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'delete this user');
+
+        const result = await userService.deleteUser(targetUserId);
         res.status(200).json({
             success: true,
             message: 'User deleted successfully',
@@ -64,10 +72,11 @@ export const deleteUser = async (req, res, next) => {
 
 export const getUser = async (req, res, next) => {
     try {
-        const user = await userService.getUser(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const targetUserId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access this user');
+
+        const user = await userService.getUser(targetUserId);
         console.log("user fetched: ", user);
         res.status(200).json({
             success: true,

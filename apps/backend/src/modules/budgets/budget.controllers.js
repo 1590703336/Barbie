@@ -1,5 +1,8 @@
 import * as budgetService from './budget.services.js';
+import * as budgetRepository from './budget.repository.js';
 import * as expenseService from '../expenses/expense.service.js';
+import * as expenseRepository from '../expenses/expense.repository.js';
+import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
 
 import { convertFromUSD } from '../currency/currency.service.js';
 
@@ -14,12 +17,10 @@ export const getBudgetsController = async (req, res, next) => {
             return res.status(400).json({ message: "Month and year are required" });
         }
 
-        const budgets = await budgetService.getBudgetsByUserAndDate(
-            targetUserId,
-            month,
-            year,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access these budgets');
+
+        const budgets = await budgetRepository.find({ user: targetUserId, month, year });
         res.json({ success: true, data: budgets });
 
     } catch (err) {
@@ -31,11 +32,19 @@ export const getBudgetsController = async (req, res, next) => {
 // controller to update budget by ID
 export const updateBudgetController = async (req, res, next) => {
     try {
-        const updatedBudget = await budgetService.updateBudget(
-            req.params.id,
-            req.body,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const budgetId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingBudget = await budgetRepository.findById(budgetId);
+        if (!existingBudget) {
+            throw buildError('Budget not found', 404);
+        }
+
+        assertOwnerOrAdmin(existingBudget.user, requester, 'update this budget');
+
+        const updates = await budgetService.prepareBudgetData(req.body, existingBudget);
+        const updatedBudget = await budgetRepository.update(budgetId, updates);
+
         res.json({ success: true, message: "Budget updated successfully", data: updatedBudget });
 
     } catch (err) {
@@ -46,10 +55,17 @@ export const updateBudgetController = async (req, res, next) => {
 // controller to delete budget by ID
 export const deleteBudgetController = async (req, res, next) => {
     try {
-        await budgetService.deleteBudget(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const budgetId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingBudget = await budgetRepository.findById(budgetId);
+        if (!existingBudget) {
+            throw buildError('Budget not found', 404);
+        }
+
+        assertOwnerOrAdmin(existingBudget.user, requester, 'delete this budget');
+        await budgetRepository.deleteById(budgetId);
+
         res.status(204).send({
             success: true,
             message: "Budget deleted successfully"
@@ -63,7 +79,8 @@ export const deleteBudgetController = async (req, res, next) => {
 // controller to create a new budget
 export const createBudgetController = async (req, res, next) => {
     try {
-        const budget = await budgetService.createBudget({ ...req.body, user: req.user._id });
+        const budgetData = await budgetService.prepareBudgetData({ ...req.body, user: req.user._id });
+        const budget = await budgetRepository.create(budgetData);
         res.status(201).json({ success: true, message: "Budget created successfully", data: budget });
 
     } catch (err) {
@@ -81,32 +98,18 @@ export const getBudgetCategoriesSummaryController = async (req, res, next) => { 
             return res.status(400).json({ message: "Month and year are required" });
         }
 
-        const categories = await budgetService.getBudgetCategoriesByUserAndDate( // get all budget categories for a specific month and year for a user
-            targetUserId,
-            month,
-            year,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access these budgets');
+
+        const budgets = await budgetRepository.find({ user: targetUserId, month, year });
+        const categories = budgets.map(b => b.category);
+
         res.status(200).json({ success: true, data: categories });
 
     } catch (err) {
         next(err);
     }
 }
-//example res:
-// {
-//     "success": true,
-//     "data": [
-//         "Food",
-//         "Transport",
-//         "Entertainment",
-//         "Shopping",
-//         "Health",
-//         "Education",
-//         "Utilities",
-//         "Others"
-//     ]
-// }
 
 // controller to get summary of budgets and expenses
 export const getBudgetStatisticsController = async (req, res, next) => {
@@ -120,10 +123,17 @@ export const getBudgetStatisticsController = async (req, res, next) => {
             return res.status(400).json({ message: "Month and year are required" });
         }
 
-        // Fetch aggregated stats
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access these stats');
+
+        // Build Pipelines
+        const budgetPipeline = budgetService.buildMonthlyStatsPipeline(targetUserId, month, year);
+        const expensePipeline = expenseService.buildMonthlyStatsPipeline(targetUserId, month, year);
+
+        // Fetch aggregated stats via Repositories
         const [budgetStats, expenseStats] = await Promise.all([
-            budgetService.getMonthlyBudgetStats(targetUserId, month, year, { id: req.user._id.toString(), role: req.user.role }),
-            expenseService.getMonthlyExpenseStats(targetUserId, month, year, { id: req.user._id.toString(), role: req.user.role })
+            budgetRepository.aggregate(budgetPipeline),
+            expenseRepository.aggregate(expensePipeline)
         ]);
 
         const userCurrency = req.user.defaultCurrency || 'USD';
@@ -153,8 +163,6 @@ export const getBudgetStatisticsController = async (req, res, next) => {
                 expenses: await convertFromUSD(expensesUSD, userCurrency)
             });
         }
-
-
 
         // send the final summary response
         res.status(200).json({

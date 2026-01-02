@@ -1,11 +1,16 @@
 import * as subscriptionService from './subscription.service.js';
+import * as subscriptionRepository from './subscription.repository.js';
+import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
+import { convertFromUSD } from '../currency/currency.service.js';
 
 export const createSubscription = async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.createSubscription({
+        const subscriptionData = await subscriptionService.prepareSubscriptionData({
             ...req.body,
             user: req.user._id,
         });
+        const subscription = await subscriptionRepository.create(subscriptionData);
+
         res.status(201).json({
             success: true,
             message: 'Subscription created successfully',
@@ -20,11 +25,18 @@ export const createSubscription = async (req, res, next) => {
 
 export const updateSubscription = async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.updateSubscription(
-            req.params.id,
-            req.body,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const subscriptionId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingSubscription = await subscriptionRepository.findById(subscriptionId);
+        if (!existingSubscription) {
+            throw buildError('Subscription not found', 404);
+        }
+        assertOwnerOrAdmin(existingSubscription.user, requester, 'update this subscription');
+
+        const updateData = await subscriptionService.prepareSubscriptionData(req.body, existingSubscription);
+        const subscription = await subscriptionRepository.update(subscriptionId, updateData);
+
         res.status(200).json({
             success: true,
             message: 'Subscription updated successfully',
@@ -37,14 +49,21 @@ export const updateSubscription = async (req, res, next) => {
 
 export const deleteSubscription = async (req, res, next) => {
     try {
-        const result = await subscriptionService.deleteSubscription(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const subscriptionId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingSubscription = await subscriptionRepository.findById(subscriptionId);
+        if (!existingSubscription) {
+            throw buildError('Subscription not found', 404);
+        }
+        assertOwnerOrAdmin(existingSubscription.user, requester, 'delete this subscription');
+
+        await subscriptionRepository.deleteById(subscriptionId);
+
         res.status(200).json({
             success: true,
             message: 'Subscription deleted successfully',
-            data: result,
+            data: { deleted: true },
         });
     } catch (error) {
         next(error);
@@ -53,10 +72,17 @@ export const deleteSubscription = async (req, res, next) => {
 
 export const cancelSubscription = async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.cancelSubscription(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const subscriptionId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const existingSubscription = await subscriptionRepository.findById(subscriptionId);
+        if (!existingSubscription) {
+            throw buildError('Subscription not found', 404);
+        }
+        assertOwnerOrAdmin(existingSubscription.user, requester, 'cancel this subscription');
+
+        const subscription = await subscriptionRepository.update(subscriptionId, { status: 'cancelled' });
+
         res.status(200).json({
             success: true,
             message: 'Subscription canceled successfully',
@@ -70,10 +96,25 @@ export const cancelSubscription = async (req, res, next) => {
 export const getUpcomingRenewals = async (req, res, next) => {
     try {
         const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id.toString();
-        const renewals = await subscriptionService.getUpcomingRenewals(
-            targetUserId,
-            { id: req.user._id.toString(), role: req.user.role }
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        assertSameUserOrAdmin(targetUserId, requester, 'access these renewals');
+
+        // Logic for date range (moved from service to keep service pure if strictly needed, or implied logic)
+        const daysAhead = 30;
+        const now = new Date();
+        const cutoff = new Date();
+        cutoff.setDate(now.getDate() + daysAhead);
+
+        const renewals = await subscriptionRepository.find(
+            {
+                user: targetUserId,
+                renewalDate: { $gte: now, $lte: cutoff },
+                status: { $ne: 'cancelled' },
+            },
+            { renewalDate: 1 } // Sort
         );
+
         res.status(200).json({
             success: true,
             message: 'Upcoming renewals fetched successfully',
@@ -84,19 +125,20 @@ export const getUpcomingRenewals = async (req, res, next) => {
     }
 };
 
-import { convertFromUSD } from '../currency/currency.service.js';
 
 export const getTotalSubscription = async (req, res, next) => {
     try {
         const targetUserId = req.user.role === 'admin' && req.query.userId ? req.query.userId : req.user._id.toString();
-        const totalUSDObj = await subscriptionService.getTotalSubscription(
-            targetUserId,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        assertSameUserOrAdmin(targetUserId, requester, 'access total subscription');
+
+        const pipeline = subscriptionService.buildTotalSubscriptionPipeline(targetUserId);
+        const stats = await subscriptionRepository.aggregate(pipeline);
+        const totalUSD = subscriptionService.calculateTotalFromStats(stats);
 
         const userCurrency = req.user.defaultCurrency || 'USD';
-        // totalUSDObj is { total: number }
-        const convertedTotal = await convertFromUSD(totalUSDObj.total, userCurrency);
+        const convertedTotal = await convertFromUSD(totalUSD, userCurrency);
 
         res.status(200).json({
             success: true,
@@ -110,10 +152,12 @@ export const getTotalSubscription = async (req, res, next) => {
 
 export const getSubscriptions = async (req, res, next) => {
     try {
-        const subscriptions = await subscriptionService.getSubscriptions(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const targetUserId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access these subscriptions');
+
+        const subscriptions = await subscriptionRepository.find({ user: targetUserId });
+
         res.status(200).json({
             success: true,
             message: 'Subscriptions fetched successfully',
@@ -128,10 +172,15 @@ export const getSubscriptions = async (req, res, next) => {
 
 export const getSubscriptionById = async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.getSubscriptionById(
-            req.params.id,
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const subscriptionId = req.params.id;
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        const subscription = await subscriptionRepository.findById(subscriptionId);
+        if (!subscription) {
+            throw buildError('Subscription not found', 404);
+        }
+        assertOwnerOrAdmin(subscription.user, requester, 'access this subscription');
+
         res.status(200).json({
             success: true,
             message: 'Subscription fetched successfully',
@@ -146,9 +195,15 @@ export const getSubscriptionById = async (req, res, next) => {
 
 export const getAllSubscriptions = async (req, res, next) => {
     try {
-        const subscriptions = await subscriptionService.getAllSubscriptions(
-            { id: req.user._id.toString(), role: req.user.role }
-        );
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+
+        let subscriptions;
+        if (requester.role === 'admin') {
+            subscriptions = await subscriptionRepository.find({});
+        } else {
+            subscriptions = await subscriptionRepository.find({ user: requester.id });
+        }
+
         res.status(200).json({
             success: true,
             message: 'Subscriptions fetched successfully',
