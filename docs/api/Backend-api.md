@@ -871,6 +871,32 @@ Retrieve all budget categories for a given month and year.
   ]
 }
 ```
+```
+---
+
+### Currency API
+
+### Get Exchange Rates
+
+Get live currency exchange rates.
+
+**Endpoint:** `GET /currencies`
+
+**Authentication:** Not required
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "JPY": 110.5,
+    "CNY": 7.2
+  }
+}
+```
+
 ---
 
 Notes:
@@ -1015,7 +1041,13 @@ Response 201:
 ```
 
 #### List Expenses
-**GET** `/expenses`（admin can use `?userId=` specify user， Ordinary users ignore this parameter）
+**GET** `/expenses`
+
+**Query Parameters:**
+- `userId` (string, optional, admin only) - Specify user
+- `month` (number, optional) - Filter by month (1-12)
+- `year` (number, optional) - Filter by year
+- `category` (string, optional) - Filter by category
 
 #### Get Expense by ID (must be owner or admin)
 **GET** `/expenses/:id`
