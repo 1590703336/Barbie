@@ -248,136 +248,6 @@ function CreateEntries() {
             hidden: { opacity: 0, y: 20 },
             show: { opacity: 1, y: 0 },
           }}
-          onSubmit={handleCreateSubscription}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              Submit
-            </motion.button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Name"
-              value={subscriptionForm.name}
-              onChange={(e) =>
-                handleSubscriptionChange('name', e.target.value)
-              }
-              required
-            />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Price"
-              type="number"
-              value={subscriptionForm.price}
-              onChange={(e) =>
-                handleSubscriptionChange('price', e.target.value)
-              }
-              required
-            />
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={subscriptionForm.currency}
-              onChange={(e) =>
-                handleSubscriptionChange('currency', e.target.value)
-              }
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={subscriptionForm.frequency}
-              onChange={(e) =>
-                handleSubscriptionChange('frequency', e.target.value)
-              }
-              required
-            >
-              <option value="">Select frequency</option>
-              {subscriptionFrequencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={subscriptionForm.category}
-              onChange={(e) =>
-                handleSubscriptionChange('category', e.target.value)
-              }
-              required
-            >
-              <option value="">Select category</option>
-              {subscriptionCategories.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Payment method"
-              value={subscriptionForm.paymentMethod}
-              onChange={(e) =>
-                handleSubscriptionChange('paymentMethod', e.target.value)
-              }
-              required
-            />
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={subscriptionForm.status}
-              onChange={(e) =>
-                handleSubscriptionChange('status', e.target.value)
-              }
-            >
-              <option value="">Select status</option>
-              {subscriptionStatuses.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              type="date"
-              placeholder="Start date"
-              value={subscriptionForm.startDate}
-              onChange={(e) =>
-                handleSubscriptionChange('startDate', e.target.value)
-              }
-              required
-            />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              type="date"
-              placeholder="Renewal date"
-              value={subscriptionForm.renewalDate}
-              onChange={(e) =>
-                handleSubscriptionChange('renewalDate', e.target.value)
-              }
-            />
-          </div>
-        </motion.form>
-
-        <motion.form
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            show: { opacity: 1, y: 0 },
-          }}
           onSubmit={handleCreateBudget}
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
@@ -526,6 +396,136 @@ function CreateEntries() {
               placeholder="Notes"
               value={expenseForm.notes}
               onChange={(e) => handleExpenseChange('notes', e.target.value)}
+            />
+          </div>
+        </motion.form>
+
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+          onSubmit={handleCreateSubscription}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              Submit
+            </motion.button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Name"
+              value={subscriptionForm.name}
+              onChange={(e) =>
+                handleSubscriptionChange('name', e.target.value)
+              }
+              required
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Price"
+              type="number"
+              value={subscriptionForm.price}
+              onChange={(e) =>
+                handleSubscriptionChange('price', e.target.value)
+              }
+              required
+            />
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={subscriptionForm.currency}
+              onChange={(e) =>
+                handleSubscriptionChange('currency', e.target.value)
+              }
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={subscriptionForm.frequency}
+              onChange={(e) =>
+                handleSubscriptionChange('frequency', e.target.value)
+              }
+              required
+            >
+              <option value="">Select frequency</option>
+              {subscriptionFrequencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={subscriptionForm.category}
+              onChange={(e) =>
+                handleSubscriptionChange('category', e.target.value)
+              }
+              required
+            >
+              <option value="">Select category</option>
+              {subscriptionCategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Payment method"
+              value={subscriptionForm.paymentMethod}
+              onChange={(e) =>
+                handleSubscriptionChange('paymentMethod', e.target.value)
+              }
+              required
+            />
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={subscriptionForm.status}
+              onChange={(e) =>
+                handleSubscriptionChange('status', e.target.value)
+              }
+            >
+              <option value="">Select status</option>
+              {subscriptionStatuses.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              type="date"
+              placeholder="Start date"
+              value={subscriptionForm.startDate}
+              onChange={(e) =>
+                handleSubscriptionChange('startDate', e.target.value)
+              }
+              required
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              type="date"
+              placeholder="Renewal date"
+              value={subscriptionForm.renewalDate}
+              onChange={(e) =>
+                handleSubscriptionChange('renewalDate', e.target.value)
+              }
             />
           </div>
         </motion.form>

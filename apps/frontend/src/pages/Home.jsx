@@ -58,6 +58,7 @@ function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="rounded-xl bg-slate-900 px-8 py-4 text-white font-semibold shadow-lg hover:bg-slate-800 hover:shadow-xl transition-all"
+                  style={{ color: '#ffffff' }}
                 >
                   Get Started Free
                 </MotionLink>
