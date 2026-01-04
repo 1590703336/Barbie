@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
 import { createBudget, listBudgets } from '../services/budgetService'
@@ -228,20 +229,39 @@ function CreateEntries() {
         )}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <form
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+            },
+          },
+        }}
+        className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3"
+      >
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
           onSubmit={handleCreateSubscription}
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
               className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               Submit
-            </button>
+            </motion.button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -351,21 +371,27 @@ function CreateEntries() {
               }
             />
           </div>
-        </form>
+        </motion.form>
 
-        <form
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
           onSubmit={handleCreateBudget}
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create budget</h2>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
               className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               Submit
-            </button>
+            </motion.button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <select
@@ -423,21 +449,27 @@ function CreateEntries() {
               required
             />
           </div>
-        </form>
+        </motion.form>
 
-        <form
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
           onSubmit={handleCreateExpense}
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create expense</h2>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
               className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               Submit
-            </button>
+            </motion.button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -496,8 +528,8 @@ function CreateEntries() {
               onChange={(e) => handleExpenseChange('notes', e.target.value)}
             />
           </div>
-        </form>
-      </div>
+        </motion.form>
+      </motion.div>
     </div>
   )
 }

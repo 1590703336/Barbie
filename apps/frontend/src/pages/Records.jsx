@@ -215,7 +215,7 @@ function Records() {
             year: expYear,
             userId,
           })
-        } catch (e) {
+        } catch {
           // If fetch fails, we can't verify, so we might choose to block or warn. 
           // For now let's assume empty to result in blocking to be safe?
           // Or strictly follow requirements: "ask them to set a budget first" -> implies blocking.

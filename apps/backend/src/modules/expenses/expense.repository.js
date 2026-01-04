@@ -15,8 +15,8 @@ export const findByUser = async (userId, filters = {}) => {
     const query = { user: userId };
 
     if (filters.month && filters.year) {
-        const start = new Date(filters.year, filters.month - 1, 1);
-        const end = new Date(filters.year, filters.month, 0, 23, 59, 59, 999);
+        const start = new Date(Date.UTC(filters.year, filters.month - 1, 1));
+        const end = new Date(Date.UTC(filters.year, filters.month, 0, 23, 59, 59, 999));
         query.date = { $gte: start, $lte: end };
     }
 

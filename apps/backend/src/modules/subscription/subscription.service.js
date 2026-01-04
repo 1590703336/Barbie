@@ -1,4 +1,5 @@
 import { convertToUSD } from '../currency/currency.service.js';
+import { buildError } from '../../utils/authorization.js';
 import mongoose from 'mongoose'; // Only for Types.ObjectId if needed for pipeline construction
 
 /**
@@ -38,6 +39,12 @@ export const prepareSubscriptionData = async (data, existingData = {}) => {
 
     // 3. Handle Status Update (Expired)
     const effectiveRenewalDate = processedData.renewalDate ? new Date(processedData.renewalDate) : (existingData.renewalDate ? new Date(existingData.renewalDate) : null);
+
+    // Validation: Renew date must be after start date
+    if (startDate && effectiveRenewalDate && effectiveRenewalDate <= startDate) {
+        throw buildError('Renew date must be after the start date', 400);
+    }
+
     if (effectiveRenewalDate && effectiveRenewalDate < new Date()) {
         processedData.status = 'expired';
     }
