@@ -21,20 +21,31 @@ export const prepareSubscriptionData = async (data, existingData = {}) => {
 
     // 2. Handle Renewal Date Calculation logic (Migration from Model Pre-save)
     // If startDate or frequency changes, or if it's new and no renewalDate provided
+    // 2. Handle Renewal Date Calculation
+    // Logic:
+    // - IF renewalDate is explicitly provided in update -> Use it.
+    // - ELSE IF (New Subscription OR Frequency Changed OR StartDate Changed) -> Auto-calculate.
+
     const startDate = processedData.startDate ? new Date(processedData.startDate) : (existingData.startDate ? new Date(existingData.startDate) : null);
     const frequency = processedData.frequency || existingData.frequency;
 
-    if (startDate && frequency && (!processedData.renewalDate && !existingData.renewalDate)) {
-        const renewalPeriods = {
-            daily: 1,
-            weekly: 7,
-            monthly: 30,
-            yearly: 365,
-        };
-        const period = renewalPeriods[frequency] || 0;
-        const renewalDate = new Date(startDate);
-        renewalDate.setDate(renewalDate.getDate() + period);
-        processedData.renewalDate = renewalDate;
+    const isRenewalExplicitlyProvided = !!processedData.renewalDate;
+    const isNewSubscription = !existingData._id; // Check if it's a new record (no ID from DB)
+    const isInputChangingParams = processedData.startDate || processedData.frequency;
+
+    if (!isRenewalExplicitlyProvided && (isNewSubscription || isInputChangingParams)) {
+        if (startDate && frequency) {
+            const renewalPeriods = {
+                daily: 1,
+                weekly: 7,
+                monthly: 30,
+                yearly: 365,
+            };
+            const period = renewalPeriods[frequency] || 0;
+            const renewalDate = new Date(startDate);
+            renewalDate.setDate(renewalDate.getDate() + period);
+            processedData.renewalDate = renewalDate;
+        }
     }
 
     // 3. Handle Status Update (Expired)
