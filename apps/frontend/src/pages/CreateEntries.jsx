@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { ActionButton } from '../components/common/ActionButton'
 import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
 import { createBudget, listBudgets } from '../services/budgetService'
@@ -87,7 +88,7 @@ function CreateEntries() {
   }
 
   const handleCreateSubscription = async (event) => {
-    event.preventDefault()
+    if (event) event.preventDefault()
     setLoading(true)
     setMessage('')
     setIsError(false)
@@ -105,13 +106,14 @@ function CreateEntries() {
         err?.response?.data?.message ?? err?.message ?? 'Failed to create subscription'
       setMessage(msg)
       setIsError(true)
+      throw err // Re-throw to trigger button error state
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateBudget = async (event) => {
-    event.preventDefault()
+    if (event) event.preventDefault()
     setLoading(true)
     setMessage('')
     setIsError(false)
@@ -130,13 +132,14 @@ function CreateEntries() {
         err?.response?.data?.message ?? err?.message ?? 'Failed to create budget'
       setMessage(msg)
       setIsError(true)
+      throw err
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateExpense = async (event) => {
-    event.preventDefault()
+    if (event) event.preventDefault()
     setLoading(true)
     setMessage('')
     setIsError(false)
@@ -144,7 +147,7 @@ function CreateEntries() {
     if (!expenseForm.date || !expenseForm.category) {
       setMessage('Please select a date and category')
       setIsError(true)
-      return
+      throw new Error('Validation failed')
     }
 
     setLoading(true)
@@ -167,7 +170,7 @@ function CreateEntries() {
         )
         setIsError(true)
         setLoading(false)
-        return
+        throw new Error('Budget missing')
       }
 
       const response = await createExpense({
@@ -195,6 +198,7 @@ function CreateEntries() {
       setMessage(msg)
       setIsError(true)
       setAlerts([])
+      throw err
     } finally {
       setLoading(false)
     }
@@ -253,15 +257,13 @@ function CreateEntries() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create budget</h2>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
+            <ActionButton
+              onClick={handleCreateBudget}
               disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              successText="Created!"
             >
               Submit
-            </motion.button>
+            </ActionButton>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <select
@@ -331,15 +333,13 @@ function CreateEntries() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create expense</h2>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
+            <ActionButton
+              onClick={handleCreateExpense}
               disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              successText="Created!"
             >
               Submit
-            </motion.button>
+            </ActionButton>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -410,15 +410,13 @@ function CreateEntries() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
+            <ActionButton
+              onClick={handleCreateSubscription}
               disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              successText="Created!"
             >
               Submit
-            </motion.button>
+            </ActionButton>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
