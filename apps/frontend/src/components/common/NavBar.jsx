@@ -26,7 +26,10 @@ function NavBar() {
         </Link>
         <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
           {navItems
-            .filter((item) => (item.protected ? isAuthenticated : true))
+            .filter((item) => {
+              if (isAuthenticated && item.to === '/') return false
+              return item.protected ? isAuthenticated : true
+            })
             .map((item) => (
               <NavLink
                 key={item.to}
