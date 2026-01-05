@@ -563,7 +563,7 @@ function Records() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <CategoryIcon category={expense.category} className="h-12 w-12" />
+                          <CategoryIcon category={expense.category} name={expense.title} className="h-12 w-12" />
                           <div>
                             <p className="text-base font-semibold text-slate-900">
                               {expense.title}
@@ -690,7 +690,7 @@ function Records() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <CategoryIcon category={subscription.category} className="h-12 w-12" />
+                          <CategoryIcon category={subscription.category} name={subscription.name} className="h-12 w-12" />
                           <div>
                             <p className="text-base font-semibold text-slate-900">
                               {subscription.name}
