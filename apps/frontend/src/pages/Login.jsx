@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion as Motion } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import LoginForm from '../components/auth/LoginForm'
 import { signIn as signInService } from '../services/authService'
@@ -38,7 +39,11 @@ function Login() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 md:flex-row md:items-start">
-      <div className="flex-1 space-y-4">
+      <Motion.div
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex-1 space-y-4"
+      >
         <p className="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
           Authentication
         </p>
@@ -54,9 +59,13 @@ function Login() {
             <li>API calls are wrapped in services/authService</li>
           </ul>
         </div>
-      </div>
+      </Motion.div>
 
-      <div className="w-full max-w-md space-y-3">
+      <Motion.div
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="w-full max-w-md space-y-3"
+      >
         <LoginForm onSubmit={handleLogin} loading={loading} />
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         <p className="text-sm text-slate-600">
@@ -65,7 +74,7 @@ function Login() {
             Go to register
           </Link>
         </p>
-      </div>
+      </Motion.div>
     </div>
   )
 }

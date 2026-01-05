@@ -1,5 +1,8 @@
 import { Link, NavLink } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import useStore from '../../store/store'
+
+const MotionLink = motion(Link)
 
 const navItems = [
   { to: '/', label: 'Home', protected: false },
@@ -29,16 +32,21 @@ function NavBar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg transition ${isActive
-                    ? 'bg-slate-900 text-white'
-                    : 'hover:bg-slate-100 hover:text-slate-900'
-                  }`
-                }
-                style={({ isActive }) =>
-                  isActive ? { color: 'rgba(255, 255, 255, 1)' } : undefined
+                  `relative px-3 py-2 rounded-lg transition text-slate-900 hover:text-slate-600`
                 }
               >
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <span className="relative">{item.label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-active"
+                        className="absolute inset-0 bg-white rounded-lg mix-blend-difference"
+                        transition={{ type: 'spring', duration: 0.6 }}
+                      />
+                    )}
+                  </>
+                )}
               </NavLink>
             ))}
         </nav>
@@ -46,12 +54,14 @@ function NavBar() {
           {isAuthenticated ? (
             <>
               <span className="text-slate-700">Hi, {user?.email ?? 'User'}</span>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
                 onClick={logout}
               >
                 Logout
-              </button>
+              </motion.button>
             </>
           ) : (
             <>
@@ -61,13 +71,15 @@ function NavBar() {
               >
                 Log in
               </Link>
-              <Link
+              <MotionLink
                 to="/register"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
                 style={{ color: 'rgba(255, 255, 255, 1)' }}
               >
                 Sign up
-              </Link>
+              </MotionLink>
             </>
           )}
         </div>

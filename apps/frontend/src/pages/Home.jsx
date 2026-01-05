@@ -1,38 +1,243 @@
 import { Link } from 'react-router-dom'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import heroImg from '../assets/hero.png'
+import subImg from '../assets/subscriptions.png'
+import analyticsImg from '../assets/analytics.png'
+
+const MotionLink = motion(Link)
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.6, ease: "easeOut" }
+}
+
+const fadeInLeft = {
+  initial: { opacity: 0, x: -50 },
+  whileInView: { opacity: 1, x: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.7, ease: "easeOut" }
+}
+
+const fadeInRight = {
+  initial: { opacity: 0, x: 50 },
+  whileInView: { opacity: 1, x: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.7, ease: "easeOut" }
+}
 
 function Home() {
-  return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-16 text-center">
-      <div className="space-y-4">
-        <p className="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
-          Subscription & Expense Manager
-        </p>
-        <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
-          Sign up or log in to manage your subscriptions and expenses
-        </h1>
-        <p className="text-base text-slate-600">
-          DA/DS modules are hidden for now. Log in to view, update, and delete your expenses and subscriptions.
-        </p>
-      </div>
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
 
-      <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Link
-          to="/register"
-          className="rounded-lg bg-slate-900 px-6 py-3 text-white hover:bg-slate-800"
-          style={{ color: 'rgba(255, 255, 255, 1)' }}
-        >
-          Create Account
-        </Link>
-        <Link
-          to="/login"
-          className="rounded-lg border border-slate-200 px-6 py-3 text-slate-800 hover:border-slate-300"
-        >
-          Already have an account? Log in
-        </Link>
-      </div>
+  return (
+    <div className="overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-32 lg:pt-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="flex-1 text-center lg:text-left"
+            >
+              <span className="inline-block rounded-full bg-slate-900/10 px-4 py-1.5 text-sm font-semibold text-slate-900 mb-6">
+                Smart Financial Management
+              </span>
+              <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl mb-6">
+                Master your <span className="text-blue-600">Subscriptions</span> & <span className="text-purple-600">Expenses</span>
+              </h1>
+              <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0">
+                Stop losing money to forgotten subscriptions. take control of your monthly spend with automated tracking, smart alerts, and beautiful analytics.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <MotionLink
+                  to="/register"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-xl bg-slate-900 px-8 py-4 text-white font-semibold shadow-lg hover:bg-slate-800 hover:shadow-xl transition-all"
+                  style={{ color: '#ffffff' }}
+                >
+                  Get Started Free
+                </MotionLink>
+                <MotionLink
+                  to="/login"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-xl border border-slate-200 px-8 py-4 text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all"
+                >
+                  Log In
+                </MotionLink>
+              </div>
+            </motion.div>
+
+            <motion.div
+              style={{ y: heroY }}
+              initial={{ opacity: 0, scale: 0.9, rotateY: 30 }}
+              animate={{ opacity: 1, scale: 1, rotateY: -10 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="flex-1 perspective-1000"
+            >
+              <img
+                src={heroImg}
+                alt="Dashboard Mockup"
+                className="w-full h-auto rounded-2xl shadow-2xl transform rotate-y-12 hover:rotate-y-0 transition-transform duration-700 ease-out"
+              />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 1: Subscriptions */}
+      <section className="py-24 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <motion.div
+              {...fadeInLeft}
+              className="flex-1 order-2 lg:order-1"
+            >
+              <div className="bg-white p-2 rounded-2xl shadow-xl">
+                <img
+                  src={subImg}
+                  alt="Subscription Tracking"
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            </motion.div>
+            <motion.div
+              {...fadeInRight}
+              className="flex-1 order-1 lg:order-2"
+            >
+              <div className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-xl mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Never Miss a Renewal</h2>
+              <p className="text-lg text-slate-600 mb-6">
+                Keep track of all your recurring payments in one organized dashboard. Set custom alerts to remind you before payments occur, giving you the chance to cancel unwanted services in time.
+              </p>
+              <ul className="space-y-3">
+                {['Automatic Renewal Tracking', 'Custom Notification Alerts', 'Cancellation Reminders'].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-slate-700">
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 2: Budgeting */}
+      <section className="py-24 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <motion.div
+              {...fadeInLeft}
+              className="flex-1"
+            >
+              <div className="inline-flex items-center justify-center p-3 bg-green-100 rounded-xl mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Visualize Your Growth</h2>
+              <p className="text-lg text-slate-600 mb-6">
+                Set comprehensive monthly budgets and visualize your spending habits. Our intuitive charts show you exactly where your money goes, helping you save more for what truly matters.
+              </p>
+              <ul className="space-y-3">
+                {['Visual Spending Breakdown', 'Monthly Budget Goals', 'Smart Savings Insights'].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-slate-700">
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+            <motion.div
+              {...fadeInRight}
+              className="flex-1"
+            >
+              <div className="bg-white p-2 rounded-2xl shadow-xl">
+                <img
+                  src={analyticsImg}
+                  alt="Budget Analytics"
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 3: Security / Benefits Grid */}
+      <section className="py-24 bg-slate-900 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <motion.div
+            {...fadeInUp}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl font-bold mb-4">Designed for security and privacy</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">
+              We prioritize your data security so you can manage your finances with peace of mind.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.1 }}
+              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+            >
+              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+                🔒
+              </div>
+              <h3 className="text-xl font-bold mb-3">Bank-Grade Encryption</h3>
+              <p className="text-slate-400">
+                Your data is encrypted at rest and in transit using industry-standard protocols.
+              </p>
+            </motion.div>
+
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.2 }}
+              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+            >
+              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+                🛡️
+              </div>
+              <h3 className="text-xl font-bold mb-3">Private By Default</h3>
+              <p className="text-slate-400">
+                We don't sell your data. Your financial information belongs to you and only you.
+              </p>
+            </motion.div>
+
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.3 }}
+              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+            >
+              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+                ⚡
+              </div>
+              <h3 className="text-xl font-bold mb-3">Real-time Sync</h3>
+              <p className="text-slate-400">
+                Access your data from any device. Updates are synced instantly for seamless management.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
 
 export default Home
-

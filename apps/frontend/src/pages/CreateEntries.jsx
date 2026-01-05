@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { ActionButton } from '../components/common/ActionButton'
 import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
 import { createBudget, listBudgets } from '../services/budgetService'
@@ -86,10 +88,18 @@ function CreateEntries() {
   }
 
   const handleCreateSubscription = async (event) => {
-    event.preventDefault()
+    if (event) event.preventDefault()
     setLoading(true)
     setMessage('')
     setIsError(false)
+
+    if (subscriptionForm.price === '') {
+      setMessage('Please provide a price')
+      setIsError(true)
+      setLoading(false)
+      throw new Error('Validation failed')
+    }
+
     try {
       await createSubscription({
         ...subscriptionForm,
@@ -104,16 +114,25 @@ function CreateEntries() {
         err?.response?.data?.message ?? err?.message ?? 'Failed to create subscription'
       setMessage(msg)
       setIsError(true)
+      throw err // Re-throw to trigger button error state
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateBudget = async (event) => {
-    event.preventDefault()
+    if (event) event.preventDefault()
     setLoading(true)
     setMessage('')
     setIsError(false)
+
+    if (budgetForm.limit === '') {
+      setMessage('Please provide a limit')
+      setIsError(true)
+      setLoading(false)
+      throw new Error('Validation failed')
+    }
+
     try {
       await createBudget({
         ...budgetForm,
@@ -129,21 +148,27 @@ function CreateEntries() {
         err?.response?.data?.message ?? err?.message ?? 'Failed to create budget'
       setMessage(msg)
       setIsError(true)
+      throw err
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateExpense = async (event) => {
-    event.preventDefault()
-    setLoading(true)
+    if (event) event.preventDefault()
     setMessage('')
     setIsError(false)
 
     if (!expenseForm.date || !expenseForm.category) {
       setMessage('Please select a date and category')
       setIsError(true)
-      return
+      throw new Error('Validation failed')
+    }
+
+    if (expenseForm.amount === '') {
+      setMessage('Please provide an amount')
+      setIsError(true)
+      throw new Error('Validation failed')
     }
 
     setLoading(true)
@@ -161,12 +186,11 @@ function CreateEntries() {
       )
 
       if (!budgetExists) {
-        setMessage(
-          `Please set a budget for ${expenseForm.category} before creating an expense.`
-        )
+        const errorMsg = `Please set a budget for ${expenseForm.category} before creating an expense.`
+        setMessage(errorMsg)
         setIsError(true)
         setLoading(false)
-        return
+        throw new Error(errorMsg)
       }
 
       const response = await createExpense({
@@ -194,6 +218,7 @@ function CreateEntries() {
       setMessage(msg)
       setIsError(true)
       setAlerts([])
+      throw err
     } finally {
       setLoading(false)
     }
@@ -228,20 +253,190 @@ function CreateEntries() {
         )}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <form
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+            },
+          },
+        }}
+        className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3"
+      >
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+          onSubmit={handleCreateBudget}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Create budget</h2>
+            <ActionButton
+              onClick={handleCreateBudget}
+              disabled={loading}
+              successText="Created!"
+            >
+              Submit
+            </ActionButton>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={budgetForm.category}
+              onChange={(e) => handleBudgetChange('category', e.target.value)}
+              required
+            >
+              <option value="">Select category</option>
+              {budgetCategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={budgetForm.currency}
+              onChange={(e) => handleBudgetChange('currency', e.target.value)}
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Limit"
+              type="number"
+              min={0}
+              value={budgetForm.limit}
+              onChange={(e) => handleBudgetChange('limit', e.target.value)}
+              required
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Month (1-12)"
+              type="number"
+              min={1}
+              max={12}
+              value={budgetForm.month}
+              onChange={(e) => handleBudgetChange('month', e.target.value)}
+              required
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Year"
+              type="number"
+              min={2024}
+              value={budgetForm.year}
+              onChange={(e) => handleBudgetChange('year', e.target.value)}
+              required
+            />
+          </div>
+        </motion.form>
+
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+          onSubmit={handleCreateExpense}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Create expense</h2>
+            <ActionButton
+              onClick={handleCreateExpense}
+              disabled={loading}
+              successText="Created!"
+            >
+              Submit
+            </ActionButton>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Title"
+              value={expenseForm.title}
+              onChange={(e) => handleExpenseChange('title', e.target.value)}
+              required
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Amount"
+              type="number"
+              value={expenseForm.amount}
+              onChange={(e) => handleExpenseChange('amount', e.target.value)}
+              required
+            />
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={expenseForm.category}
+              onChange={(e) => handleExpenseChange('category', e.target.value)}
+              required
+            >
+              <option value="">Select category</option>
+              {expenseCategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={expenseForm.currency}
+              onChange={(e) => handleExpenseChange('currency', e.target.value)}
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              type="date"
+              placeholder="Date"
+              value={expenseForm.date}
+              onChange={(e) => handleExpenseChange('date', e.target.value)}
+              required
+            />
+            <textarea
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+              placeholder="Notes"
+              value={expenseForm.notes}
+              onChange={(e) => handleExpenseChange('notes', e.target.value)}
+            />
+          </div>
+        </motion.form>
+
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
           onSubmit={handleCreateSubscription}
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
-            <button
-              type="submit"
+            <ActionButton
+              onClick={handleCreateSubscription}
               disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              successText="Created!"
             >
               Submit
-            </button>
+            </ActionButton>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -351,153 +546,8 @@ function CreateEntries() {
               }
             />
           </div>
-        </form>
-
-        <form
-          onSubmit={handleCreateBudget}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create budget</h2>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              Submit
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={budgetForm.category}
-              onChange={(e) => handleBudgetChange('category', e.target.value)}
-              required
-            >
-              <option value="">Select category</option>
-              {budgetCategories.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={budgetForm.currency}
-              onChange={(e) => handleBudgetChange('currency', e.target.value)}
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Limit"
-              type="number"
-              min={0}
-              value={budgetForm.limit}
-              onChange={(e) => handleBudgetChange('limit', e.target.value)}
-              required
-            />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Month (1-12)"
-              type="number"
-              min={1}
-              max={12}
-              value={budgetForm.month}
-              onChange={(e) => handleBudgetChange('month', e.target.value)}
-              required
-            />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Year"
-              type="number"
-              min={2024}
-              value={budgetForm.year}
-              onChange={(e) => handleBudgetChange('year', e.target.value)}
-              required
-            />
-          </div>
-        </form>
-
-        <form
-          onSubmit={handleCreateExpense}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create expense</h2>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              Submit
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Title"
-              value={expenseForm.title}
-              onChange={(e) => handleExpenseChange('title', e.target.value)}
-              required
-            />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Amount"
-              type="number"
-              value={expenseForm.amount}
-              onChange={(e) => handleExpenseChange('amount', e.target.value)}
-              required
-            />
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={expenseForm.category}
-              onChange={(e) => handleExpenseChange('category', e.target.value)}
-              required
-            >
-              <option value="">Select category</option>
-              {expenseCategories.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={expenseForm.currency}
-              onChange={(e) => handleExpenseChange('currency', e.target.value)}
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              type="date"
-              placeholder="Date"
-              value={expenseForm.date}
-              onChange={(e) => handleExpenseChange('date', e.target.value)}
-              required
-            />
-            <textarea
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
-              placeholder="Notes"
-              value={expenseForm.notes}
-              onChange={(e) => handleExpenseChange('notes', e.target.value)}
-            />
-          </div>
-        </form>
-      </div>
+        </motion.form>
+      </motion.div>
     </div>
   )
 }

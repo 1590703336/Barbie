@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { motion as Motion } from 'framer-motion'
 import { getBudgetSummary } from '../services/budgetService'
 import { getTotalSubscription } from '../services/subscriptionService'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -52,7 +53,11 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
-      <div className="space-y-3">
+      <Motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-3"
+      >
         <p className="text-sm font-semibold text-slate-600">My bills</p>
         <h1 className="text-3xl font-bold text-slate-900">
           Welcome back, {user?.name ?? user?.email ?? 'friend'}
@@ -97,47 +102,69 @@ function Dashboard() {
             </label>
           </div>
         </div>
-      </div>
+      </Motion.div>
 
       {subscriptionFee !== null ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <Motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        >
           <p className="text-sm text-slate-500">
             Subscription fee in {year || new Date().getFullYear()}
           </p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
             {formatCurrency(subscriptionFee ?? 0, currency)}
           </p>
-        </div>
+        </Motion.div>
       ) : null}
 
       {budgetSummary ? (
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <Motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
             <p className="text-sm text-slate-500">Total budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
               {formatCurrency(budgetSummary.totalBudget ?? 0, currency)}
             </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          </Motion.div>
+          <Motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
             <p className="text-sm text-slate-500">Total expenses</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
               {formatCurrency(budgetSummary.totalExpenses ?? 0, currency)}
             </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          </Motion.div>
+          <Motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
             <p className="text-sm text-slate-500">Remaining budget</p>
             <p className="mt-2 text-2xl font-semibold text-slate-900">
               {formatCurrency(budgetSummary.remainingBudget ?? 0, currency)}
             </p>
-          </div>
+          </Motion.div>
           <div className="sm:col-span-3">
             <h3 className="mb-2 text-sm font-semibold text-slate-700">
               Category breakdown
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
-              {(budgetSummary.categoriesSummary ?? []).map((item) => (
-                <div
+              {(budgetSummary.categoriesSummary ?? []).map((item, idx) => (
+                <Motion.div
                   key={item.category}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * idx }}
                   className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
@@ -161,7 +188,7 @@ function Dashboard() {
                       {formatCurrency(item.remainingBudget ?? 0, currency)}
                     </span>
                   </p>
-                </div>
+                </Motion.div>
               ))}
               {(budgetSummary.categoriesSummary ?? []).length === 0 ? (
                 <p className="text-sm text-slate-500">No budget categories yet</p>
@@ -185,4 +212,3 @@ function Dashboard() {
 }
 
 export default Dashboard
-
