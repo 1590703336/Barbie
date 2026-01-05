@@ -170,9 +170,7 @@ function Dashboard() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-slate-100 p-2 text-slate-600">
-                        <CategoryIcon category={item.category} className="h-5 w-5" />
-                      </div>
+                      <CategoryIcon category={item.category} className="h-10 w-10" />
                       <p className="text-base font-semibold text-slate-900">
                         {item.category}
                       </p>

@@ -2,95 +2,96 @@ import React from 'react'
 
 const icons = {
     Food: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
             <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                fillRule="evenodd"
+                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                clipRule="evenodd"
+                className="opacity-0" // Hidden spacer if needed, or just replace with Burger path 
             />
+            {/* Burger / Fast Food Icon */}
+            <path
+                fillRule="evenodd"
+                d="M10 2a6 6 0 00-6 6v1h12V8a6 6 0 00-6-6zM4 11a1 1 0 00-1 1v1a3 3 0 003 3h8a3 3 0 003-3v-1a1 1 0 00-1-1H4z"
+            />
+            <path d="M4 17a1 1 0 011-1h10a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z" />
         </svg>
     ),
     Transport: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* Car Icon */}
+            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
             <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                fillRule="evenodd"
+                d="M2 9.75A2.75 2.75 0 014.75 7h.653c.66 0 1.258-.337 1.6-1.02L7.29 4.39a3.256 3.256 0 012.898-1.89h.095c.983 0 1.956.36 2.73.99l1.761 1.488c.618.52 1.396.822 2.203.822h.273A2.75 2.75 0 0120 8.5v3.25a.75.75 0 01-1.5 0v-1h-17v1a.75.75 0 01-1.5 0V9.75z"
+                clipRule="evenodd"
             />
         </svg>
     ),
     Entertainment: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* Ticket Icon */}
+            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
             <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                fillRule="evenodd"
+                d="M5 2a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7.414A2 2 0 0016.414 6L13 2.586A2 2 0 0011.586 2H5zm5 6a1 1 0 10-2 0 1 1 0 002 0zm-5 4a1 1 0 011-1h2a1 1 0 110 2H6a1 1 0 01-1-1zm6-1a1 1 0 100 2 1 1 0 000-2z"
+                clipRule="evenodd"
             />
         </svg>
     ),
     Utilities: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* Lightning Icon */}
             <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
+                fillRule="evenodd"
+                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                clipRule="evenodd"
             />
         </svg>
     ),
     Rent: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* House Icon */}
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
         </svg>
     ),
     Health: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* Heart Icon */}
             <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                fillRule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                clipRule="evenodd"
             />
         </svg>
     ),
     Others: (props) => (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+        <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
+            {/* Dots/Star Icon */}
+            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
     ),
 }
 
-export const CategoryIcon = ({ category, className = 'w-5 h-5' }) => {
+const gradients = {
+    Food: 'from-orange-400 to-red-500 shadow-orange-200',
+    Transport: 'from-blue-400 to-indigo-600 shadow-blue-200',
+    Entertainment: 'from-purple-400 to-pink-500 shadow-pink-200',
+    Utilities: 'from-amber-300 to-yellow-500 shadow-yellow-200',
+    Rent: 'from-emerald-400 to-teal-500 shadow-emerald-200',
+    Health: 'from-rose-400 to-red-600 shadow-rose-200',
+    Others: 'from-slate-400 to-slate-600 shadow-slate-200',
+}
+
+export const CategoryIcon = ({ category, className = 'w-10 h-10' }) => {
     const Icon = icons[category] || icons.Others
-    // If specific icons for Transport/Entertainment are generic (using arrows/video above), 
-    // we could refine them later. Using generic logical matches for now.
-    // Actually, 'Transport' above is arrows (Exchange?), let's swap it to a generic Car if possible or just keep it abstract.
-    // The 'Transport' path above is actually 'Switch Horizontal' (arrows). 
-    // Let's replace 'Transport' with a Car-like or simple Wheel path if we want accuracy, 
-    // but for rapid prototype, generic is fine. User asked for "different icon". These are different.
+    const gradientClass = gradients[category] || gradients.Others
 
-    // Customizing colors based on category could also be nice, but user just asked for icons.
-    // We'll apply the class passed in.
-
-    // Let's update Transport to a simple "Car/Bus" or "Map Pin" style if needed, 
-    // or just use the current one as an abstraction.
-    // Actually, let's make Transport look more like a car/bus front:
-    // d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" is definitely arrows.
-    // Let's use a "Truck" or "Car" path. 
-    // d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" (Wheels) ...
-
-    return <Icon className={className} />
+    return (
+        <div
+            className={`flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-md ${gradientClass} ${className}`}
+        >
+            <Icon className="h-3/5 w-3/5 text-white drop-shadow-sm" />
+        </div>
+    )
 }

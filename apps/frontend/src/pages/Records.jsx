@@ -439,9 +439,7 @@ function Records() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-slate-100 p-2 text-slate-600">
-                            <CategoryIcon category={budget.category} className="h-5 w-5" />
-                          </div>
+                          <CategoryIcon category={budget.category} className="h-12 w-12" />
                           <div>
                             <p className="text-base font-semibold text-slate-900">
                               {budget.category}
@@ -565,9 +563,7 @@ function Records() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-slate-100 p-2 text-slate-600">
-                            <CategoryIcon category={expense.category} className="h-5 w-5" />
-                          </div>
+                          <CategoryIcon category={expense.category} className="h-12 w-12" />
                           <div>
                             <p className="text-base font-semibold text-slate-900">
                               {expense.title}
@@ -694,9 +690,7 @@ function Records() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-slate-100 p-2 text-slate-600">
-                            <CategoryIcon category={subscription.category} className="h-5 w-5" />
-                          </div>
+                          <CategoryIcon category={subscription.category} className="h-12 w-12" />
                           <div>
                             <p className="text-base font-semibold text-slate-900">
                               {subscription.name}
