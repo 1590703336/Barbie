@@ -186,6 +186,7 @@ function Records() {
   }
 
   const handleUpdateExpense = async (id) => {
+    setError('')
     const payload = expenseEdits[id]
     if (!payload) return
 
@@ -274,6 +275,7 @@ function Records() {
   }
 
   const handleUpdateSubscription = async (id) => {
+    setError('')
     const payload = subscriptionEdits[id]
     if (!payload) return
 
@@ -317,6 +319,7 @@ function Records() {
   }
 
   const handleUpdateBudget = async (id) => {
+    setError('')
     const payload = budgetEdits[id]
     if (!payload) return
 

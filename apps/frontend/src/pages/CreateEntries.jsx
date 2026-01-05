@@ -156,7 +156,6 @@ function CreateEntries() {
 
   const handleCreateExpense = async (event) => {
     if (event) event.preventDefault()
-    setLoading(true)
     setMessage('')
     setIsError(false)
 
