@@ -92,6 +92,14 @@ function CreateEntries() {
     setLoading(true)
     setMessage('')
     setIsError(false)
+
+    if (subscriptionForm.price === '') {
+      setMessage('Please provide a price')
+      setIsError(true)
+      setLoading(false)
+      throw new Error('Validation failed')
+    }
+
     try {
       await createSubscription({
         ...subscriptionForm,
@@ -117,6 +125,14 @@ function CreateEntries() {
     setLoading(true)
     setMessage('')
     setIsError(false)
+
+    if (budgetForm.limit === '') {
+      setMessage('Please provide a limit')
+      setIsError(true)
+      setLoading(false)
+      throw new Error('Validation failed')
+    }
+
     try {
       await createBudget({
         ...budgetForm,
@@ -150,6 +166,12 @@ function CreateEntries() {
       throw new Error('Validation failed')
     }
 
+    if (expenseForm.amount === '') {
+      setMessage('Please provide an amount')
+      setIsError(true)
+      throw new Error('Validation failed')
+    }
+
     setLoading(true)
     try {
       // Parse date string (YYYY-MM-DD) directly to avoid timezone issues of "new Date(string)"
@@ -165,12 +187,11 @@ function CreateEntries() {
       )
 
       if (!budgetExists) {
-        setMessage(
-          `Please set a budget for ${expenseForm.category} before creating an expense.`
-        )
+        const errorMsg = `Please set a budget for ${expenseForm.category} before creating an expense.`
+        setMessage(errorMsg)
         setIsError(true)
         setLoading(false)
-        throw new Error('Budget missing')
+        throw new Error(errorMsg)
       }
 
       const response = await createExpense({

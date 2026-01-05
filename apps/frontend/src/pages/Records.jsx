@@ -189,6 +189,11 @@ function Records() {
     const payload = expenseEdits[id]
     if (!payload) return
 
+    if (payload.amount === '') {
+      setError('Please provide an amount')
+      throw new Error('Validation failed')
+    }
+
     // Budget check
     if (payload.date && payload.category) {
       // Parse date string (YYYY-MM-DD) directly to avoid timezone issues
@@ -232,7 +237,7 @@ function Records() {
         setError(
           `Please set a budget for ${payload.category} before updating this expense.`
         )
-        return
+        throw new Error('Budget missing')
       }
     }
 
@@ -271,6 +276,12 @@ function Records() {
   const handleUpdateSubscription = async (id) => {
     const payload = subscriptionEdits[id]
     if (!payload) return
+
+    if (payload.price === '') {
+      setError('Please provide a price')
+      throw new Error('Validation failed')
+    }
+
     try {
       const updated = await updateSubscription(id, {
         ...payload,
@@ -308,6 +319,12 @@ function Records() {
   const handleUpdateBudget = async (id) => {
     const payload = budgetEdits[id]
     if (!payload) return
+
+    if (payload.limit === '') {
+      setError('Please provide a limit')
+      throw new Error('Validation failed')
+    }
+
     try {
       const updated = await updateBudget(id, {
         ...payload,
