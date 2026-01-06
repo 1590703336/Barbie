@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionButton } from '../components/common/ActionButton'
+import { CategoryIcon } from '../components/common/CategoryIcon'
 import {
   deleteExpense,
   listExpenses,
@@ -437,13 +438,16 @@ function Records() {
                       className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-slate-900">
-                            {budget.category}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {budget.month}/{budget.year}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <CategoryIcon category={budget.category} className="h-12 w-12" />
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {budget.category}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {budget.month}/{budget.year}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-slate-900">
@@ -558,14 +562,17 @@ function Records() {
                       className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-slate-900">
-                            {expense.title}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {expense.category} ·{' '}
-                            {formatDateForDisplay(expense.date)}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <CategoryIcon category={expense.category} name={expense.title} className="h-12 w-12" />
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {expense.title}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {expense.category} ·{' '}
+                              {formatDateForDisplay(expense.date)}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-slate-900">
@@ -682,13 +689,16 @@ function Records() {
                       className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-slate-900">
-                            {subscription.name}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {subscription.category} · {subscription.frequency}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <CategoryIcon category={subscription.category} name={subscription.name} className="h-12 w-12" />
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {subscription.name}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {subscription.category} · {subscription.frequency}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-slate-900">

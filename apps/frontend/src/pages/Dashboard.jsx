@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion as Motion } from 'framer-motion'
+import { CategoryIcon } from '../components/common/CategoryIcon'
 import { getBudgetSummary } from '../services/budgetService'
 import { getTotalSubscription } from '../services/subscriptionService'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -168,9 +169,12 @@ function Dashboard() {
                   className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-base font-semibold text-slate-900">
-                      {item.category}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <CategoryIcon category={item.category} className="h-10 w-10" />
+                      <p className="text-base font-semibold text-slate-900">
+                        {item.category}
+                      </p>
+                    </div>
                     <span className="text-sm text-slate-500">
                       Budget {formatCurrency(item.budget ?? 0, currency)}
                     </span>
