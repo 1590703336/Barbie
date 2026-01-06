@@ -1,5 +1,23 @@
 import React from 'react'
 
+import iconFood from '../../assets/icon_food.png'
+import iconTransport from '../../assets/icon_transport.png'
+import iconEntertainment from '../../assets/icon_entertainment.png'
+import iconUtilities from '../../assets/icon_utilities.png'
+import iconRent from '../../assets/icon_rent.png'
+import iconHealth from '../../assets/icon_health.png'
+import iconOthers from '../../assets/icon_others.png'
+
+const categoryImages = {
+    Food: iconFood,
+    Transport: iconTransport,
+    Entertainment: iconEntertainment,
+    Utilities: iconUtilities,
+    Rent: iconRent,
+    Health: iconHealth,
+    Others: iconOthers,
+}
+
 const icons = {
     Food: (props) => (
         <svg fill="currentColor" viewBox="0 0 20 20" {...props}>
@@ -107,6 +125,15 @@ export const CategoryIcon = ({ category, name, className = 'w-10 h-10' }) => {
 
     const Icon = brand ? icons[brand] : (icons[category] || icons.Others)
     const gradientClass = brand ? gradients[brand] : (gradients[category] || gradients.Others)
+    const imageIcon = !brand ? (categoryImages[category] || categoryImages.Others) : null
+
+    if (imageIcon) {
+        return (
+            <div className={`flex shrink-0 items-center justify-center rounded-xl bg-transparent ${className}`}>
+                <img src={imageIcon} alt={category} className="h-full w-full object-contain drop-shadow-md" />
+            </div>
+        )
+    }
 
     return (
         <div
