@@ -129,8 +129,8 @@ export const CategoryIcon = ({ category, name, className = 'w-10 h-10' }) => {
 
     if (imageIcon) {
         return (
-            <div className={`flex shrink-0 items-center justify-center rounded-xl bg-transparent ${className}`}>
-                <img src={imageIcon} alt={category} className="h-full w-full object-contain drop-shadow-md" />
+            <div className={`flex shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-md bg-white ${className}`}>
+                <img src={imageIcon} alt={category} className="h-full w-full object-cover" />
             </div>
         )
     }
