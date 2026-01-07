@@ -23,6 +23,8 @@ Tokens are obtained from the `/auth/sign-in` or `/auth/sign-up` endpoints.
 - [Authentication API](#authentication-api)
 - [Users API](#users-api)
 - [Subscriptions API](#subscriptions-api)
+- [Budgets API](#budgets-api)
+- [Income API](#income-api)
 - [Error Responses](#error-responses)
 - [Request Examples](#request-examples)
 
@@ -909,6 +911,216 @@ Notes:
 
 
 
+
+---
+
+## Income API
+
+### Get All Incomes
+
+Retrieve a list of income records. Supports filtering by date range or specific month/year.
+
+**Endpoint:** `GET /income`
+
+**Authentication:** Required  
+**Authorization:** admin 可通过 `?userId=` 查询任意用户；普通用户仅能查询自己的收入
+
+**Query Parameters:**
+- `userId` (string, optional, admin only) - Specify user
+- `startDate` (date, optional) - ISO 8601 date string
+- `endDate` (date, optional) - ISO 8601 date string
+- `month` (number, optional) - Filter by month (1-12)
+- `year` (number, optional) - Filter by year
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "651f...",
+      "amount": 5000,
+      "source": "Main Job",
+      "category": "Salary",
+      "date": "2025-01-01T00:00:00.000Z",
+      "notes": "January Salary",
+      "user": "507f...",
+      "createdAt": "2025-01-01T10:00:00.000Z",
+      "updatedAt": "2025-01-01T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### Get Income by ID
+
+Retrieve a specific income record.
+
+**Endpoint:** `GET /income/:id`
+
+**Authentication:** Required  
+**Authorization:** admin or owner
+
+**URL Parameters:**
+- `id` (string, required) - Income's MongoDB ObjectId
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "651f...",
+    "amount": 5000,
+    "source": "Main Job",
+    "category": "Salary",
+    "date": "2025-01-01T00:00:00.000Z",
+    "notes": "January Salary",
+    "user": "507f...",
+    "createdAt": "2025-01-01T10:00:00.000Z",
+    "updatedAt": "2025-01-01T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### Create Income
+
+Create a new income record.
+
+**Endpoint:** `POST /income`
+
+**Authentication:** Required  
+**Authorization:** Login user (attributed to self)
+
+**Request Body:**
+```json
+{
+  "amount": "number (required, > 0)",
+  "currency": "string (optional, enum: EUR, USD, CNY, AUD, default: USD)",
+  "category": "string (required, enum: Salary, Freelance, Gift, Investment, Other)",
+  "source": "string (optional)",
+  "date": "date (required, default: now)",
+  "notes": "string (optional)"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "Income created successfully",
+  "data": {
+    "_id": "651f...",
+    "amount": 5000,
+    "currency": "EUR",
+    "amountUSD": 5500,
+    "category": "Salary",
+    ...
+  }
+}
+```
+
+---
+
+### Update Income
+
+Update an existing income record.
+
+**Endpoint:** `PUT /income/:id`
+
+**Authentication:** Required  
+**Authorization:** admin or owner
+
+**URL Parameters:**
+- `id` (string, required) - Income's MongoDB ObjectId
+
+**Request Body:**
+```json
+{
+  "amount": "number",
+  "currency": "string (enum: EUR, USD, CNY, AUD)",
+  "category": "string",
+  "source": "string",
+  "date": "date",
+  "notes": "string"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Income updated successfully",
+  "data": { 
+      "_id": "651f...",
+      "amount": 5000,
+      "currency": "EUR", 
+      "amountUSD": 5500,
+      ...
+  }
+}
+```
+
+---
+
+### Delete Income
+
+Delete an income record.
+
+**Endpoint:** `DELETE /income/:id`
+
+**Authentication:** Required  
+**Authorization:** admin or owner
+
+**URL Parameters:**
+- `id` (string, required) - Income's MongoDB ObjectId
+
+**Success Response (204):**
+(No Content)
+
+---
+
+### Get Income Summary
+
+Get total income and category breakdown for a specific month/year.
+
+**Endpoint:** `GET /income/summary`
+
+**Authentication:** Required  
+**Authorization:** admin or owner
+
+**Query Parameters:**
+- `month` (number, required)
+- `year` (number, required)
+- `userId` (string, optional, admin only)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalIncome": 6000,
+    "categoryBreakdown": [
+      {
+        "category": "Salary",
+        "total": 5000,
+        "count": 1
+      },
+      {
+        "category": "Freelance",
+        "total": 1000,
+        "count": 2
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## Error Responses
 
 统一格式（由全局错误处理中间件返回）：
@@ -1166,6 +1378,24 @@ interface Subscription {
   renewalDate: Date;        // Auto-calculated based on frequency
   status: 'active' | 'cancelled' | 'expired';
   paymentMethod: string;
+  user: string;             // User ObjectId reference
+  createdAt: Date;          // Auto-generated
+  updatedAt: Date;          // Auto-generated
+}
+```
+
+### Income Model
+
+```typescript
+interface Income {
+  _id: string;              // MongoDB ObjectId
+  amount: number;           // > 0
+  currency: 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CNY'; 
+  amountUSD: number;        // Converted value in USD
+  source: string;           // Optional source description
+  category: 'Salary' | 'Freelance' | 'Gift' | 'Investment' | 'Other';
+  date: Date;
+  notes: string;            // Optional
   user: string;             // User ObjectId reference
   createdAt: Date;          // Auto-generated
   updatedAt: Date;          // Auto-generated

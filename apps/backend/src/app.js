@@ -5,6 +5,7 @@ import authRouter from "./modules/auth/auth.routes.js";
 import subscriptionRouter from "./modules/subscription/subscription.routes.js";
 import budgetRouter from "./modules/budgets/budget.routes.js";
 import currencyRouter from "./modules/currency/currency.routes.js";
+import incomeRouter from "./modules/income/income.routes.js";
 import errorMiddlewares from "./middlewares/error.middlewares.js";
 import cookieParser from "cookie-parser";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
@@ -23,6 +24,7 @@ app.use('/api/v1/subscriptions', subscriptionRouter);
 app.use('/api/v1/expenses', expenseRouter);
 app.use('/api/v1/budgets', budgetRouter);
 app.use('/api/v1/currencies', currencyRouter);
+app.use('/api/v1/income', incomeRouter);
 
 app.use(errorMiddlewares);
 
