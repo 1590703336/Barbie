@@ -10,7 +10,7 @@ export const prepareIncomeData = async (incomeData, existingIncome = {}) => {
     }
 
     // Convert to USD if amount or currency is provided, or if it's a new income
-    if (processedData.amount || processedData.currency) {
+    if (processedData.amount !== undefined || processedData.currency) {
         const amount = processedData.amount !== undefined ? processedData.amount : existingIncome.amount;
         const currency = processedData.currency || existingIncome.currency || 'USD';
 
@@ -25,9 +25,9 @@ export const prepareIncomeData = async (incomeData, existingIncome = {}) => {
 // Build aggregation pipeline for monthly income stats
 export const buildMonthlyStatsPipeline = (userId, month, year) => {
     // Start of the month
-    const startDate = new Date(year, month - 1, 1);
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
     // End of the month (start of next month)
-    const endDate = new Date(year, month, 1);
+    const endDate = new Date(Date.UTC(year, month, 1));
 
     return [
         {

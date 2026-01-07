@@ -10,7 +10,7 @@ export const prepareSubscriptionData = async (data, existingData = {}) => {
     const processedData = { ...data };
 
     // 1. Handle Currency Conversion
-    if (processedData.price || processedData.currency) {
+    if (processedData.price !== undefined || processedData.currency) {
         const price = processedData.price !== undefined ? processedData.price : existingData.price;
         const currency = processedData.currency || existingData.currency;
 

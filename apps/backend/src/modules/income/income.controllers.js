@@ -32,8 +32,8 @@ export const getIncomes = async (req, res, next) => {
         } else if (req.query.month && req.query.year) {
             const month = parseInt(req.query.month, 10);
             const year = parseInt(req.query.year, 10);
-            const startDate = new Date(year, month - 1, 1);
-            const endDate = new Date(year, month, 1);
+            const startDate = new Date(Date.UTC(year, month - 1, 1));
+            const endDate = new Date(Date.UTC(year, month, 1));
             query.date = {
                 $gte: startDate,
                 $lt: endDate

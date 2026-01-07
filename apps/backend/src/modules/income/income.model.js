@@ -22,7 +22,8 @@ const incomeSchema = new mongoose.Schema({
     },
     source: {
         type: String,
-        default: ''
+        default: '',
+        required: false
     },
     category: {
         type: String,
@@ -37,7 +38,8 @@ const incomeSchema = new mongoose.Schema({
     },
     notes: {
         type: String,
-        default: ''
+        default: '',
+        required: false
     }
 }, {
     timestamps: true
