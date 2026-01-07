@@ -12,12 +12,22 @@ const ThemeToggle = () => {
     }, [initializeTheme])
 
     return (
-        <button
+        <div
             onClick={toggleTheme}
-            className="p-2 bg-gray-200 rounded"
+            className={`
+                w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300
+                ${theme === 'dark' ? 'bg-green-500' : 'bg-slate-300'}
+            `}
         >
-            {theme === 'dark' ? 'Dark' : 'Light'}
-        </button>
+            <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 700, damping: 30 }}
+                className={`
+                    bg-white w-6 h-6 rounded-full shadow-md
+                    ${theme === 'dark' ? 'ml-6' : 'ml-0'}
+                `}
+            />
+        </div>
     )
 }
 

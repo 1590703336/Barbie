@@ -1,5 +1,5 @@
 export const createThemeSlice = (set, get) => ({
-    theme: localStorage.getItem('theme') || 'light',
+    theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
     toggleTheme: () => {
         const { theme } = get()
         const newTheme = theme === 'light' ? 'dark' : 'light'
@@ -10,19 +10,16 @@ export const createThemeSlice = (set, get) => ({
         // Update persistance
         localStorage.setItem('theme', newTheme)
 
-        // Update document class
-        const root = window.document.documentElement
-        root.classList.remove('light', 'dark')
-        root.classList.add(newTheme)
+        // Update document attribute
+        document.documentElement.setAttribute('data-theme', newTheme)
     },
     initializeTheme: () => {
         const savedTheme = localStorage.getItem('theme')
-        const theme = savedTheme || 'light'
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        const theme = savedTheme || systemTheme
 
         set({ theme })
 
-        const root = window.document.documentElement
-        root.classList.remove('light', 'dark')
-        root.classList.add(theme)
+        document.documentElement.setAttribute('data-theme', theme)
     }
 })

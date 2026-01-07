@@ -17,7 +17,7 @@ function App() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <NavBar />
       <main className="flex-1 relative">
         <AnimatePresence mode="wait">
