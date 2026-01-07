@@ -143,6 +143,21 @@ describe('Income Controller', () => {
             expect(mockIncomeRepository.update).toHaveBeenCalledWith('inc1', preparedData);
             expect(res.json).toHaveBeenCalledWith({ success: true, message: "Income updated successfully", data: updatedIncome });
         });
+
+        it('should handle update failure (Income not found)', async () => {
+            req.params.id = 'nonexistent';
+            req.body = { amount: 2000 };
+
+            mockIncomeRepository.findById.mockResolvedValue(null);
+
+            await updateIncome(req, res, next);
+
+            expect(mockIncomeRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Income not found');
+            expect(error.statusCode).toBe(404);
+        });
     });
 
     describe('deleteIncome', () => {
@@ -157,6 +172,20 @@ describe('Income Controller', () => {
             expect(mockAuthorization.assertOwnerOrAdmin).toHaveBeenCalled();
             expect(mockIncomeRepository.deleteById).toHaveBeenCalledWith('inc1');
             expect(res.status).toHaveBeenCalledWith(204);
+        });
+
+        it('should handle delete failure (Income not found)', async () => {
+            req.params.id = 'nonexistent';
+
+            mockIncomeRepository.findById.mockResolvedValue(null);
+
+            await deleteIncome(req, res, next);
+
+            expect(mockIncomeRepository.findById).toHaveBeenCalledWith('nonexistent');
+            const error = next.mock.calls[0][0];
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe('Income not found');
+            expect(error.statusCode).toBe(404);
         });
     });
 

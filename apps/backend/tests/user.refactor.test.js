@@ -100,6 +100,21 @@ describe('User Controller (Refactored)', () => {
             expect(res.status).toHaveBeenCalledWith(200);
             console.log('--- TEST PASSED ---');
         });
+
+        it('should handle getUser failure (User not found)', async () => {
+            console.log('\n--- TEST: getUser (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            mockUserService.getUser.mockRejectedValue(error);
+
+            await getUser(req, res, next);
+
+            expect(mockUserService.getUser).toHaveBeenCalledWith('nonexistent');
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'User not found', statusCode: 404 }));
+            console.log('--- TEST PASSED ---');
+        });
     });
 
     describe('createUser', () => {
@@ -119,6 +134,20 @@ describe('User Controller (Refactored)', () => {
             expect(mockAuthorization.assertAdmin).toHaveBeenCalled();
             expect(mockUserService.createUser).toHaveBeenCalledWith(req.body);
             expect(res.status).toHaveBeenCalledWith(201);
+            console.log('--- TEST PASSED ---');
+        });
+
+        it('should handle createUser failure (User already exists)', async () => {
+            console.log('\n--- TEST: createUser (Already Exists) ---');
+            req.body = { name: 'Charlie', email: 'existing@example.com' };
+
+            const error = new Error('User already exists');
+            error.statusCode = 400;
+            mockUserService.createUser.mockRejectedValue(error);
+
+            await createUser(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'User already exists', statusCode: 400 }));
             console.log('--- TEST PASSED ---');
         });
     });
@@ -144,6 +173,21 @@ describe('User Controller (Refactored)', () => {
             expect(res.status).toHaveBeenCalledWith(200);
             console.log('--- TEST PASSED ---');
         });
+
+        it('should handle updateUser failure (User not found)', async () => {
+            console.log('\n--- TEST: updateUser (Not Found) ---');
+            req.params.id = 'nonexistent';
+            req.body = { name: 'Ghost' };
+
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            mockUserService.updateUser.mockRejectedValue(error);
+
+            await updateUser(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'User not found', statusCode: 404 }));
+            console.log('--- TEST PASSED ---');
+        });
     });
 
     describe('deleteUser', () => {
@@ -161,6 +205,20 @@ describe('User Controller (Refactored)', () => {
             expect(mockAuthorization.assertSameUserOrAdmin).toHaveBeenCalledWith('user123', expect.anything(), expect.any(String));
             expect(mockUserService.deleteUser).toHaveBeenCalledWith('user123');
             expect(res.status).toHaveBeenCalledWith(200);
+            console.log('--- TEST PASSED ---');
+        });
+
+        it('should handle deleteUser failure (User not found)', async () => {
+            console.log('\n--- TEST: deleteUser (Not Found) ---');
+            req.params.id = 'nonexistent';
+
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            mockUserService.deleteUser.mockRejectedValue(error);
+
+            await deleteUser(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'User not found', statusCode: 404 }));
             console.log('--- TEST PASSED ---');
         });
     });
