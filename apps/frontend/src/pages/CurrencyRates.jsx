@@ -46,6 +46,11 @@ const CurrencyRates = () => {
         fetchData();
     }, []);
 
+    // Get amount for a pair (default 100)
+    const getAmount = (pairId) => {
+        return amounts[pairId] !== undefined ? amounts[pairId] : 100;
+    };
+
     // Convert amount from one currency to another
     const convertAmount = (amount, fromCurrency, toCurrency) => {
         if (!amount || isNaN(amount) || !rates[fromCurrency] || !rates[toCurrency]) {
@@ -78,6 +83,19 @@ const CurrencyRates = () => {
             setConvertPairs(convertPairs.map(p => p._id === id ? response.data : p));
         } catch (err) {
             console.error('Failed to update convert pair:', err);
+        }
+    };
+
+    // Swap currencies in a pair
+    const handleSwapPair = async (pair) => {
+        try {
+            const response = await updateConvertPair(pair._id, {
+                fromCurrency: pair.toCurrency,
+                toCurrency: pair.fromCurrency
+            });
+            setConvertPairs(convertPairs.map(p => p._id === pair._id ? response.data : p));
+        } catch (err) {
+            console.error('Failed to swap currencies:', err);
         }
     };
 
@@ -132,8 +150,8 @@ const CurrencyRates = () => {
                                     {/* Amount input */}
                                     <input
                                         type="number"
-                                        placeholder="Amount"
-                                        value={amounts[pair._id] || ''}
+                                        placeholder="100"
+                                        value={getAmount(pair._id)}
                                         onChange={(e) => handleAmountChange(pair._id, e.target.value)}
                                         className="w-28 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
                                     />
@@ -149,11 +167,20 @@ const CurrencyRates = () => {
                                         ))}
                                     </select>
 
+                                    {/* Swap button */}
+                                    <button
+                                        onClick={() => handleSwapPair(pair)}
+                                        className="px-2 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-lg"
+                                        title="Swap currencies"
+                                    >
+                                        ⇄
+                                    </button>
+
                                     <span className="text-slate-400">=</span>
 
                                     {/* Converted result */}
                                     <div className="w-28 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
-                                        {convertAmount(amounts[pair._id], pair.fromCurrency, pair.toCurrency) || '—'}
+                                        {convertAmount(getAmount(pair._id), pair.fromCurrency, pair.toCurrency) || '—'}
                                     </div>
 
                                     {/* To currency select */}
