@@ -3,6 +3,7 @@ import { motion as Motion } from 'framer-motion'
 import { CategoryIcon } from '../components/common/CategoryIcon'
 import { getBudgetSummary } from '../services/budgetService'
 import { getTotalSubscription } from '../services/subscriptionService'
+import { getIncomeSummary } from '../services/incomeService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
 
@@ -18,6 +19,7 @@ function Dashboard() {
   const currency = user?.defaultCurrency || 'USD'
   const [budgetSummary, setBudgetSummary] = useState(null)
   const [subscriptionFee, setSubscriptionFee] = useState(null)
+  const [incomeSummary, setIncomeSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -27,9 +29,10 @@ function Dashboard() {
       setLoading(true)
       setError('')
       try {
-        const [summaryData, totalSubscription] = await Promise.all([
+        const [summaryData, totalSubscription, incomeData] = await Promise.all([
           getBudgetSummary({ month, year }),
           getTotalSubscription({ userId }),
+          getIncomeSummary({ month, year }),
         ])
 
         setBudgetSummary(summaryData ?? null)
@@ -38,6 +41,7 @@ function Dashboard() {
             ? totalSubscription
             : 0,
         )
+        setIncomeSummary(incomeData ?? null)
       } catch (err) {
         const message =
           err?.response?.data?.message ??
@@ -116,6 +120,21 @@ function Dashboard() {
           </p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
             {formatCurrency(subscriptionFee ?? 0, currency)}
+          </p>
+        </Motion.div>
+      ) : null}
+
+      {incomeSummary && incomeSummary.totalIncome !== undefined ? (
+        <Motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        >
+          <p className="text-sm text-slate-500">
+            Total income in {month}/{year}
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-600">
+            {formatCurrency(incomeSummary.totalIncome ?? 0, currency)}
           </p>
         </Motion.div>
       ) : null}

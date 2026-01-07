@@ -4,6 +4,7 @@ import { ActionButton } from '../components/common/ActionButton'
 import { createExpense } from '../services/expenseService'
 import { createSubscription } from '../services/subscriptionService'
 import { createBudget, listBudgets } from '../services/budgetService'
+import { createIncome } from '../services/incomeService'
 import useStore from '../store/store'
 
 const currencies = ['USD', 'EUR', 'CNY', 'AUD']
@@ -30,6 +31,14 @@ const expenseCategories = [
 ]
 
 const budgetCategories = expenseCategories
+
+const incomeCategories = [
+  'Salary',
+  'Freelance',
+  'Gift',
+  'Investment',
+  'Other',
+]
 
 const initialSubscription = {
   name: '',
@@ -61,6 +70,15 @@ const initialBudget = {
   currency: 'USD',
 }
 
+const initialIncome = {
+  amount: '',
+  currency: 'USD',
+  source: '',
+  category: '',
+  date: '',
+  notes: '',
+}
+
 function CreateEntries() {
   const user = useStore((state) => state.user)
   const userId = useMemo(  //useMemo is used to prevent the userId from being re-rendered
@@ -70,6 +88,7 @@ function CreateEntries() {
   const [subscriptionForm, setSubscriptionForm] = useState(initialSubscription)
   const [expenseForm, setExpenseForm] = useState(initialExpense)
   const [budgetForm, setBudgetForm] = useState(initialBudget)
+  const [incomeForm, setIncomeForm] = useState(initialIncome)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
   const [alerts, setAlerts] = useState([])
@@ -85,6 +104,10 @@ function CreateEntries() {
 
   const handleBudgetChange = (field, value) => {
     setBudgetForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleIncomeChange = (field, value) => {
+    setIncomeForm((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleCreateSubscription = async (event) => {
@@ -224,6 +247,38 @@ function CreateEntries() {
     }
   }
 
+  const handleCreateIncome = async (event) => {
+    if (event) event.preventDefault()
+    setLoading(true)
+    setMessage('')
+    setIsError(false)
+
+    if (incomeForm.amount === '') {
+      setMessage('Please provide an amount')
+      setIsError(true)
+      setLoading(false)
+      throw new Error('Validation failed')
+    }
+
+    try {
+      await createIncome({
+        ...incomeForm,
+        amount: Number(incomeForm.amount),
+      })
+      setMessage('Income created successfully')
+      setIsError(false)
+      setIncomeForm(initialIncome)
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ?? err?.message ?? 'Failed to create income'
+      setMessage(msg)
+      setIsError(true)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 space-y-10">
       <div className="space-y-2">
@@ -265,7 +320,7 @@ function CreateEntries() {
             },
           },
         }}
-        className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3"
+        className="grid gap-8 lg:grid-cols-2 xl:grid-cols-4"
       >
         <motion.form
           variants={{
@@ -544,6 +599,82 @@ function CreateEntries() {
               onChange={(e) =>
                 handleSubscriptionChange('renewalDate', e.target.value)
               }
+            />
+          </div>
+        </motion.form>
+
+        <motion.form
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+          onSubmit={handleCreateIncome}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Create income</h2>
+            <ActionButton
+              onClick={handleCreateIncome}
+              disabled={loading}
+              successText="Created!"
+            >
+              Submit
+            </ActionButton>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Amount"
+              type="number"
+              value={incomeForm.amount}
+              onChange={(e) => handleIncomeChange('amount', e.target.value)}
+              required
+            />
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={incomeForm.currency}
+              onChange={(e) => handleIncomeChange('currency', e.target.value)}
+              required
+            >
+              <option value="">Select currency</option>
+              {currencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <select
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={incomeForm.category}
+              onChange={(e) => handleIncomeChange('category', e.target.value)}
+              required
+            >
+              <option value="">Select category</option>
+              {incomeCategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              placeholder="Source (optional)"
+              value={incomeForm.source}
+              onChange={(e) => handleIncomeChange('source', e.target.value)}
+            />
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              type="date"
+              placeholder="Date"
+              value={incomeForm.date}
+              onChange={(e) => handleIncomeChange('date', e.target.value)}
+              required
+            />
+            <textarea
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+              placeholder="Notes"
+              value={incomeForm.notes}
+              onChange={(e) => handleIncomeChange('notes', e.target.value)}
             />
           </div>
         </motion.form>

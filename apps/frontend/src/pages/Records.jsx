@@ -16,6 +16,12 @@ import {
   listBudgets,
   updateBudget,
 } from '../services/budgetService'
+import {
+  createIncome,
+  deleteIncome,
+  listIncomes,
+  updateIncome,
+} from '../services/incomeService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
 
@@ -37,6 +43,14 @@ const subscriptionStatuses = ['active', 'cancelled', 'expired']
 const budgetCategories = expenseCategories
 const budgetCurrencies = currencies
 const expenseCurrencies = currencies
+const incomeCategories = [
+  'Salary',
+  'Freelance',
+  'Gift',
+  'Investment',
+  'Other',
+]
+const incomeCurrencies = currencies
 
 const formatDateInput = (value) => {
   if (!value) return ''
@@ -68,11 +82,13 @@ function Records() {
   const [expenses, setExpenses] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
   const [budgets, setBudgets] = useState([])
+  const [incomes, setIncomes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expenseEdits, setExpenseEdits] = useState({})
   const [subscriptionEdits, setSubscriptionEdits] = useState({})
   const [budgetEdits, setBudgetEdits] = useState({})
+  const [incomeEdits, setIncomeEdits] = useState({})
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,20 +96,23 @@ function Records() {
       setLoading(true)
       setError('')
       try {
-        const [expenseData, subscriptionData, budgetData] = await Promise.all([
+        const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
           listExpenses({ month, year, userId }),
           getUserSubscriptions(userId),
           listBudgets({ month, year, userId }),
+          listIncomes({ month, year, userId }),
         ])
         const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
         const normalizedSubscriptions = Array.isArray(subscriptionData)
           ? subscriptionData
           : []
         const normalizedBudgets = Array.isArray(budgetData) ? budgetData : []
+        const normalizedIncomes = Array.isArray(incomeData) ? incomeData : []
 
         setExpenses(normalizedExpenses)
         setSubscriptions(normalizedSubscriptions)
         setBudgets(normalizedBudgets)
+        setIncomes(normalizedIncomes)
 
         setExpenseEdits(
           Object.fromEntries(
@@ -151,6 +170,24 @@ function Records() {
             }),
           ),
         )
+        setIncomeEdits(
+          Object.fromEntries(
+            normalizedIncomes.map((item) => {
+              const id = item.id || item._id
+              return [
+                id,
+                {
+                  amount: item.amount ?? '',
+                  currency: item.currency ?? 'USD',
+                  source: item.source ?? '',
+                  category: item.category ?? '',
+                  date: formatDateInput(item.date),
+                  notes: item.notes ?? '',
+                },
+              ]
+            }),
+          ),
+        )
       } catch (err) {
         const message =
           err?.response?.data?.message ??
@@ -181,6 +218,13 @@ function Records() {
 
   const handleBudgetChange = (id, field, value) => {
     setBudgetEdits((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] ?? {}), [field]: value },
+    }))
+  }
+
+  const handleIncomeChange = (id, field, value) => {
+    setIncomeEdits((prev) => ({
       ...prev,
       [id]: { ...(prev[id] ?? {}), [field]: value },
     }))
@@ -365,6 +409,47 @@ function Records() {
     }
   }
 
+  const handleUpdateIncome = async (id) => {
+    setError('')
+    const payload = incomeEdits[id]
+    if (!payload) return
+
+    if (payload.amount === '') {
+      setError('Please provide an amount')
+      throw new Error('Validation failed')
+    }
+
+    try {
+      const updated = await updateIncome(id, {
+        ...payload,
+        amount: Number(payload.amount),
+      })
+      setIncomes((prev) =>
+        prev.map((item) => (item.id === id || item._id === id ? updated : item)),
+      )
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ?? err?.message ?? 'Update failed'
+      setError(message)
+      throw err
+    }
+  }
+
+  const handleDeleteIncome = async (id) => {
+    try {
+      await deleteIncome(id)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setIncomes((prev) =>
+        prev.filter((item) => item.id !== id && item._id !== id),
+      )
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ?? err?.message ?? 'Delete failed'
+      setError(message)
+      throw err
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
       <div className="space-y-3">
@@ -373,13 +458,13 @@ function Records() {
           Manage budgets, expenses, and subscriptions
         </h1>
         <p className="text-sm text-slate-600">
-          Update or delete any record you have created. Budgets follow the selected month/year.
+          Update or delete any record you have created. Budgets and expenses follow the selected month/year.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-700">Budget month & year</p>
             <p className="text-xs text-slate-500">
-              Affects budget list only; expenses/subscriptions are unaffected.
+              Affects budget and expense lists; subscriptions and incomes are unaffected.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -419,7 +504,7 @@ function Records() {
       ) : (
         <>
           {error && <p className="text-rose-600 mb-4">{error}</p>}
-          <div className="grid gap-8 lg:grid-cols-3">
+          <div className="grid gap-8 lg:grid-cols-4">
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -853,6 +938,134 @@ function Records() {
                 })}
                 {subscriptions.length === 0 ? (
                   <p className="text-sm text-slate-500">No subscriptions yet</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-900">Incomes</h2>
+                <span className="text-sm text-slate-500">
+                  {incomes.length} for {month}/{year}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {incomes.map((income) => {
+                  const id = income.id || income._id
+                  const form = incomeEdits[id] ?? {}
+                  return (
+                    <div
+                      key={id}
+                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+                            <span className="text-2xl">💰</span>
+                          </div>
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">
+                              {income.category}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {income.source || 'No source'} · {formatDateForDisplay(income.date)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-emerald-600">
+                            {formatCurrency(
+                              income.amount ?? 0,
+                              income.currency ?? 'USD',
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <input
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          type="number"
+                          value={form.amount ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'amount', e.target.value)
+                          }
+                          placeholder="Amount"
+                        />
+                        <select
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          value={form.currency ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'currency', e.target.value)
+                          }
+                        >
+                          <option value="">Select currency</option>
+                          {incomeCurrencies.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          value={form.category ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'category', e.target.value)
+                          }
+                        >
+                          <option value="">Select category</option>
+                          {incomeCategories.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          value={form.source ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'source', e.target.value)
+                          }
+                          placeholder="Source"
+                        />
+                        <input
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          type="date"
+                          value={form.date ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'date', e.target.value)
+                          }
+                        />
+                        <textarea
+                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+                          value={form.notes ?? ''}
+                          onChange={(e) =>
+                            handleIncomeChange(id, 'notes', e.target.value)
+                          }
+                          placeholder="Notes"
+                        />
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex gap-2">
+                          <ActionButton
+                            onClick={() => handleUpdateIncome(id)}
+                            successText="Updated!"
+                          >
+                            Update
+                          </ActionButton>
+                          <ActionButton
+                            variant="danger"
+                            onClick={() => handleDeleteIncome(id)}
+                            successText="Deleted!"
+                          >
+                            Delete
+                          </ActionButton>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+                {incomes.length === 0 ? (
+                  <p className="text-sm text-slate-500">No incomes yet</p>
                 ) : null}
               </div>
             </div>
