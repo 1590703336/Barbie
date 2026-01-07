@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import useStore from '../../store/store'
+import ThemeToggle from './ThemeToggle'
 
 const MotionLink = motion(Link)
 
@@ -56,6 +57,7 @@ function NavBar() {
         <div className="flex items-center gap-3 text-sm">
           {isAuthenticated ? (
             <>
+              <ThemeToggle />
               <span className="text-slate-700">Hi, {user?.email ?? 'User'}</span>
               <motion.button
                 whileHover={{ scale: 1.05 }}

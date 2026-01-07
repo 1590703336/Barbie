@@ -7,7 +7,7 @@ const budgetSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true
+      index: true // index is used to speed up the search
     },
 
     category: {

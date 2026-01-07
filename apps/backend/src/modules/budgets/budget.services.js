@@ -6,7 +6,7 @@ export const prepareBudgetData = async (budgetData, existingBudget = {}) => {
   const processedData = { ...budgetData };
 
   // If currency or limit is being updated, or if it's a new budget
-  if (processedData.limit || processedData.currency) {
+  if (processedData.limit !== undefined || processedData.currency) {
     const limit = processedData.limit !== undefined ? processedData.limit : existingBudget.limit;
     const currency = processedData.currency || existingBudget.currency;
 

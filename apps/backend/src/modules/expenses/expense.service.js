@@ -13,10 +13,10 @@ export const prepareExpenseData = async (data, currentData = {}) => {
   const processedData = { ...data };
 
   // Determine effective amount and currency
-  const amount = data.amount || currentData.amount;
+  const amount = data.amount !== undefined ? data.amount : currentData.amount;
   const currency = data.currency || currentData.currency;
 
-  if (amount && currency) {
+  if (amount !== undefined && currency) {
     processedData.amountUSD = await convertToUSD(amount, currency);
   }
 
