@@ -458,13 +458,13 @@ function Records() {
           Manage budgets, expenses, and subscriptions
         </h1>
         <p className="text-sm text-slate-600">
-          Update or delete any record you have created. Budgets and expenses follow the selected month/year.
+          Update or delete any record you have created. Budgets, expenses, and incomes are filtered by month/year. Subscriptions show all records.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-700">Budget month & year</p>
             <p className="text-xs text-slate-500">
-              Affects budget and expense lists; subscriptions and incomes are unaffected.
+              Filters budgets, expenses, and incomes. Subscriptions are not filtered.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -504,7 +504,7 @@ function Records() {
       ) : (
         <>
           {error && <p className="text-rose-600 mb-4">{error}</p>}
-          <div className="grid gap-8 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -761,7 +761,7 @@ function Records() {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Subscriptions</h2>
                 <span className="text-sm text-slate-500">
-                  Total {subscriptions.length}
+                  Total {subscriptions.length} (all)
                 </span>
               </div>
               <div className="space-y-3">

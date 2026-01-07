@@ -320,7 +320,7 @@ function CreateEntries() {
             },
           },
         }}
-        className="grid gap-8 lg:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-8 md:grid-cols-2"
       >
         <motion.form
           variants={{
