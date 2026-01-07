@@ -1,10 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getAvailableCurrencies } from '../../services/currencyService'
 
 function RegisterForm({ onSubmit, loading }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [defaultCurrency, setDefaultCurrency] = useState('USD')
+  const [currencies, setCurrencies] = useState(['USD'])
+  const [loadingCurrencies, setLoadingCurrencies] = useState(true)
+
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const availableCurrencies = await getAvailableCurrencies()
+        setCurrencies(availableCurrencies.length > 0 ? availableCurrencies : ['USD'])
+      } catch (err) {
+        console.error('Failed to fetch currencies:', err)
+        setCurrencies(['USD'])
+      } finally {
+        setLoadingCurrencies(false)
+      }
+    }
+    fetchCurrencies()
+  }, [])
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -54,12 +72,14 @@ function RegisterForm({ onSubmit, loading }) {
         <select
           value={defaultCurrency}
           onChange={(e) => setDefaultCurrency(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          disabled={loadingCurrencies}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100"
         >
-          <option value="USD">USD ($)</option>
-          <option value="EUR">EUR (€)</option>
-          <option value="CNY">CNY (¥)</option>
-          <option value="AUD">AUD ($)</option>
+          {currencies.map((currency) => (
+            <option key={currency} value={currency}>
+              {currency}
+            </option>
+          ))}
         </select>
       </div>
       <button
@@ -74,4 +94,3 @@ function RegisterForm({ onSubmit, loading }) {
 }
 
 export default RegisterForm
-

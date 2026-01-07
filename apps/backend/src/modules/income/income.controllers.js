@@ -1,6 +1,7 @@
 import * as incomeService from './income.services.js';
 import * as incomeRepository from './income.repository.js';
 import { assertOwnerOrAdmin, assertSameUserOrAdmin, buildError } from '../../utils/authorization.js';
+import { convertFromUSD } from '../currency/currency.service.js';
 
 // Create new income
 export const createIncome = async (req, res, next) => {
@@ -125,20 +126,29 @@ export const getIncomeSummary = async (req, res, next) => {
         const pipeline = incomeService.buildMonthlyStatsPipeline(targetUserId, month, year);
         const stats = await incomeRepository.aggregate(pipeline);
 
-        const totalIncome = stats.reduce((sum, item) => sum + item.totalAmount, 0);
+        const userCurrency = req.user.defaultCurrency || 'USD';
+
+        // Sum total income in USD first
+        const totalIncomeUSD = stats.reduce((sum, item) => sum + item.totalAmount, 0);
+
+        // Convert category breakdown to user's currency
+        const categoryBreakdown = await Promise.all(
+            stats.map(async (item) => ({
+                category: item._id,
+                total: await convertFromUSD(item.totalAmount, userCurrency),
+                count: item.count
+            }))
+        );
 
         res.json({
             success: true,
             data: {
-                totalIncome,
-                categoryBreakdown: stats.map(item => ({
-                    category: item._id,
-                    total: item.totalAmount,
-                    count: item.count
-                }))
+                totalIncome: await convertFromUSD(totalIncomeUSD, userCurrency),
+                categoryBreakdown
             }
         });
     } catch (err) {
         next(err);
     }
 };
+

@@ -25,10 +25,22 @@ const mockAuthorization = {
     })
 };
 
+const mockCurrencyService = {
+    convertFromUSD: jest.fn((amount, currency) => {
+        // Mock conversion rates for testing
+        if (currency === 'USD') return amount;
+        if (currency === 'CNY') return amount * 7.2; // 1 USD = 7.2 CNY
+        if (currency === 'EUR') return amount * 0.92; // 1 USD = 0.92 EUR
+        return amount;
+    }),
+    convertToUSD: jest.fn((amount) => amount)
+};
+
 // Mock Imports
 jest.unstable_mockModule('../src/modules/income/income.repository.js', () => mockIncomeRepository);
 jest.unstable_mockModule('../src/modules/income/income.services.js', () => mockIncomeService);
 jest.unstable_mockModule('../src/utils/authorization.js', () => mockAuthorization);
+jest.unstable_mockModule('../src/modules/currency/currency.service.js', () => mockCurrencyService);
 
 // Import Controller
 const {
@@ -47,7 +59,7 @@ describe('Income Controller', () => {
         jest.clearAllMocks();
         req = {
             body: {},
-            user: { _id: 'user123', role: 'user' },
+            user: { _id: 'user123', role: 'user', defaultCurrency: 'USD' },
             params: {},
             query: {}
         };
@@ -190,11 +202,13 @@ describe('Income Controller', () => {
     });
 
     describe('getIncomeSummary', () => {
-        it('should return income summary based on USD', async () => {
+        it('should return income summary in USD when user default currency is USD', async () => {
             req.query = { month: '5', year: '2023' };
+            req.user.defaultCurrency = 'USD';
+
             const pipeline = ['pipeline'];
             const stats = [
-                { _id: 'Salary', totalAmount: 5500, count: 1 }, // 5000 EUR -> 5500 USD
+                { _id: 'Salary', totalAmount: 5500, count: 1 },
                 { _id: 'Freelance', totalAmount: 1000, count: 1 }
             ];
 
@@ -205,16 +219,95 @@ describe('Income Controller', () => {
 
             expect(mockIncomeService.buildMonthlyStatsPipeline).toHaveBeenCalled();
             expect(mockIncomeRepository.aggregate).toHaveBeenCalledWith(pipeline);
+            expect(mockCurrencyService.convertFromUSD).toHaveBeenCalled();
             expect(res.json).toHaveBeenCalledWith({
                 success: true,
                 data: {
-                    totalIncome: 6500,
+                    totalIncome: 6500, // USD -> USD = same
                     categoryBreakdown: [
                         { category: 'Salary', total: 5500, count: 1 },
                         { category: 'Freelance', total: 1000, count: 1 }
                     ]
                 }
             });
+        });
+
+        it('should convert income summary to user currency (CNY)', async () => {
+            req.query = { month: '5', year: '2023' };
+            req.user.defaultCurrency = 'CNY';
+
+            const pipeline = ['pipeline'];
+            const stats = [
+                { _id: 'Salary', totalAmount: 1000, count: 1 } // 1000 USD from aggregation
+            ];
+
+            mockIncomeService.buildMonthlyStatsPipeline.mockReturnValue(pipeline);
+            mockIncomeRepository.aggregate.mockResolvedValue(stats);
+
+            await getIncomeSummary(req, res, next);
+
+            expect(mockCurrencyService.convertFromUSD).toHaveBeenCalledWith(1000, 'CNY');
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                data: {
+                    totalIncome: 7200, // 1000 USD * 7.2 = 7200 CNY
+                    categoryBreakdown: [
+                        { category: 'Salary', total: 7200, count: 1 }
+                    ]
+                }
+            });
+        });
+
+        it('should convert income summary to user currency (EUR)', async () => {
+            req.query = { month: '5', year: '2023' };
+            req.user.defaultCurrency = 'EUR';
+
+            const pipeline = ['pipeline'];
+            const stats = [
+                { _id: 'Salary', totalAmount: 100, count: 1 }
+            ];
+
+            mockIncomeService.buildMonthlyStatsPipeline.mockReturnValue(pipeline);
+            mockIncomeRepository.aggregate.mockResolvedValue(stats);
+
+            await getIncomeSummary(req, res, next);
+
+            expect(mockCurrencyService.convertFromUSD).toHaveBeenCalledWith(100, 'EUR');
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                data: {
+                    totalIncome: 92, // 100 USD * 0.92 = 92 EUR
+                    categoryBreakdown: [
+                        { category: 'Salary', total: 92, count: 1 }
+                    ]
+                }
+            });
+        });
+
+        it('should handle missing month/year parameters', async () => {
+            req.query = {}; // No month or year
+
+            await getIncomeSummary(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Month and year are required" });
+        });
+
+        it('should default to USD when user has no defaultCurrency', async () => {
+            req.query = { month: '5', year: '2023' };
+            req.user.defaultCurrency = undefined;
+
+            const pipeline = ['pipeline'];
+            const stats = [
+                { _id: 'Salary', totalAmount: 1000, count: 1 }
+            ];
+
+            mockIncomeService.buildMonthlyStatsPipeline.mockReturnValue(pipeline);
+            mockIncomeRepository.aggregate.mockResolvedValue(stats);
+
+            await getIncomeSummary(req, res, next);
+
+            expect(mockCurrencyService.convertFromUSD).toHaveBeenCalledWith(1000, 'USD');
         });
     });
 });

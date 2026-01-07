@@ -23,6 +23,17 @@ export const getExchangeRates = async () => {
     }
 };
 
+// Get exchange rates with cache metadata
+export const getExchangeRatesWithMeta = async () => {
+    const rates = await getExchangeRates();
+    return {
+        rates,
+        cacheTime: cacheTime,
+        cacheDuration: CACHE_DURATION,
+        nextUpdateTime: cacheTime + CACHE_DURATION
+    };
+};
+
 export const convertToUSD = async (amount, currencyCode) => {
     if (currencyCode === 'USD') return amount;
 

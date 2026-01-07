@@ -13,7 +13,7 @@ const budgetSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      trim: true,
+      trim: true, // trim is used to remove leading and trailing spaces
       enum: [
         "Food",
         "Transport",
