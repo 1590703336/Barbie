@@ -14,6 +14,8 @@ const CurrencyRates = () => {
     const [convertPairs, setConvertPairs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [cacheTime, setCacheTime] = useState(null);
+    const [nextUpdateTime, setNextUpdateTime] = useState(null);
 
     // State for amounts in each pair (keyed by pair id)
     const [amounts, setAmounts] = useState({});
@@ -29,6 +31,11 @@ const CurrencyRates = () => {
 
                 if (ratesResponse.success) {
                     setRates(ratesResponse.data);
+                    // Use cache time from backend
+                    if (ratesResponse.cacheTime) {
+                        setCacheTime(new Date(ratesResponse.cacheTime));
+                        setNextUpdateTime(new Date(ratesResponse.nextUpdateTime));
+                    }
                 } else {
                     setRates(ratesResponse.data || ratesResponse);
                 }
@@ -209,7 +216,13 @@ const CurrencyRates = () => {
             </div>
 
             {/* Exchange Rates Table */}
-            <h1 className="text-3xl font-bold mb-6 text-slate-800">Current Exchange Rates (Base: USD)</h1>
+            <h1 className="text-3xl font-bold mb-2 text-slate-800">Current Exchange Rates (Base: USD)</h1>
+            {cacheTime && nextUpdateTime && (
+                <div className="mb-4 text-sm text-slate-500">
+                    <p>Last updated: {cacheTime.toLocaleString()}</p>
+                    <p>Next update: {nextUpdateTime.toLocaleString()}</p>
+                </div>
+            )}
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 font-medium bg-slate-100 border-b">
                     <div>Currency</div>
