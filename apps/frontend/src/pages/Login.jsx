@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion as Motion } from 'framer-motion'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import LoginForm from '../components/auth/LoginForm'
 import { signIn as signInService } from '../services/authService'
 import useStore from '../store/store'
@@ -8,10 +8,21 @@ import useStore from '../store/store'
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const login = useStore((state) => state.login)
+  const logout = useStore((state) => state.logout)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [expiredMessage, setExpiredMessage] = useState('')
+
+  // Handle token expiration redirect
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      logout() // Ensure store is cleared
+      setExpiredMessage('Your session has expired. Please log in again.')
+    }
+  }, [searchParams, logout])
 
   const handleLogin = async (payload) => {
     setLoading(true)
@@ -66,6 +77,11 @@ function Login() {
         animate={{ opacity: 1, x: 0 }}
         className="w-full max-w-md space-y-3"
       >
+        {expiredMessage && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+            {expiredMessage}
+          </div>
+        )}
         <LoginForm onSubmit={handleLogin} loading={loading} />
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         <p className="text-sm text-slate-600">
