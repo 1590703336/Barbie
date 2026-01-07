@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     },
     defaultCurrency: {
         type: String,
-        enum: ['EUR', 'USD', 'CNY', 'AUD'],
+        match: [/^[A-Z]{3}$/, 'Please enter a valid 3-letter currency code'],
         default: 'USD',
     }
 }, { timestamps: true });

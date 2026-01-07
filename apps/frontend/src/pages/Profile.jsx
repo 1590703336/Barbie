@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/store'
 import { getUser, updateUser } from '../services/userService'
+import { getAvailableCurrencies } from '../services/currencyService'
 
 function Profile() {
     const navigate = useNavigate()
@@ -11,14 +12,28 @@ function Profile() {
     const [email, setEmail] = useState('')
     const [defaultCurrency, setDefaultCurrency] = useState('USD')
     const [password, setPassword] = useState('')
+    const [currencies, setCurrencies] = useState(['USD'])
 
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(true)
     const [message, setMessage] = useState({ type: '', text: '' })
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            if (!storedUser?._id && !storedUser?.id) return
+        const fetchData = async () => {
+            try {
+                // Fetch currencies
+                const availableCurrencies = await getAvailableCurrencies()
+                setCurrencies(availableCurrencies.length > 0 ? availableCurrencies : ['USD'])
+            } catch (err) {
+                console.error('Failed to fetch currencies:', err)
+                setCurrencies(['USD'])
+            }
+
+            // Fetch user data
+            if (!storedUser?._id && !storedUser?.id) {
+                setFetching(false)
+                return
+            }
             try {
                 const userId = storedUser._id || storedUser.id
                 const data = await getUser(userId)
@@ -36,7 +51,7 @@ function Profile() {
             }
         }
 
-        fetchUserData()
+        fetchData()
     }, [storedUser])
 
     const handleSubmit = async (e) => {
@@ -134,10 +149,11 @@ function Profile() {
                             onChange={(e) => setDefaultCurrency(e.target.value)}
                             className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
                         >
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="CNY">CNY (¥)</option>
-                            <option value="AUD">AUD ($)</option>
+                            {currencies.map((currency) => (
+                                <option key={currency} value={currency}>
+                                    {currency}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
