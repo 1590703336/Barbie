@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     getExchangeRates,
     getAvailableCurrencies,
@@ -20,7 +20,12 @@ const CurrencyRates = () => {
     // State for amounts in each pair (keyed by pair id)
     const [amounts, setAmounts] = useState({});
 
+    const fetchedRef = React.useRef(false);
+
     useEffect(() => {
+        if (fetchedRef.current) return;
+        fetchedRef.current = true;
+
         const fetchData = async () => {
             try {
                 const [ratesResponse, currencyList, pairsResponse] = await Promise.all([

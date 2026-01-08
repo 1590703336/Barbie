@@ -1,12 +1,12 @@
 import api from './api';
 
-export async function getExchangeRates() {
-    const response = await api.get('/currencies');
+export async function getExchangeRates(signal) {
+    const response = await api.get('/currencies', { signal });
     return response.data;
 }
 
-export async function getAvailableCurrencies() {
-    const response = await api.get('/currencies');
+export async function getAvailableCurrencies(signal) {
+    const response = await api.get('/currencies', { signal });
     // response.data.data contains the rates object with currency codes as keys
     const rates = response.data?.data || {};
     return Object.keys(rates).sort();

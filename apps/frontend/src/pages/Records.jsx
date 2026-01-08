@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 import { ActionButton } from '../components/common/ActionButton'
 import { CategoryIcon } from '../components/common/CategoryIcon'
 import {
@@ -91,115 +93,136 @@ function Records() {
   const [incomeEdits, setIncomeEdits] = useState({})
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userId || !month || !year) return
-      setLoading(true)
-      setError('')
-      try {
-        const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
-          listExpenses({ month, year, userId }),
-          getUserSubscriptions(userId),
-          listBudgets({ month, year, userId }),
-          listIncomes({ month, year, userId }),
-        ])
-        const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
-        const normalizedSubscriptions = Array.isArray(subscriptionData)
-          ? subscriptionData
-          : []
-        const normalizedBudgets = Array.isArray(budgetData) ? budgetData : []
-        const normalizedIncomes = Array.isArray(incomeData) ? incomeData : []
+    const controller = new AbortController()
 
-        setExpenses(normalizedExpenses)
-        setSubscriptions(normalizedSubscriptions)
-        setBudgets(normalizedBudgets)
-        setIncomes(normalizedIncomes)
+    const timerId = setTimeout(() => {
+      const fetchData = async () => {
+        if (!userId || !month || !year) return
+        setLoading(true)
+        setError('')
+        try {
+          const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
+            listExpenses({ month, year, userId, signal: controller.signal }),
+            getUserSubscriptions(userId, { signal: controller.signal }),
+            listBudgets({ month, year, userId, signal: controller.signal }),
+            listIncomes({ month, year, userId, signal: controller.signal }),
+          ])
 
-        setExpenseEdits(
-          Object.fromEntries(
-            normalizedExpenses.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  title: item.title ?? '',
-                  amount: item.amount ?? '',
-                  currency: item.currency ?? 'USD',
-                  category: item.category ?? '',
-                  date: formatDateInput(item.date),
-                  notes: item.notes ?? '',
-                },
-              ]
-            }),
-          ),
-        )
-        setSubscriptionEdits(
-          Object.fromEntries(
-            normalizedSubscriptions.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  name: item.name ?? '',
-                  price: item.price ?? '',
-                  currency: item.currency ?? 'USD',
-                  frequency: item.frequency ?? '',
-                  category: item.category ?? '',
-                  paymentMethod: item.paymentMethod ?? '',
-                  status: item.status ?? 'active',
-                  startDate: formatDateInput(item.startDate),
-                  renewalDate: formatDateInput(item.renewalDate),
-                },
-              ]
-            }),
-          ),
-        )
-        setBudgetEdits(
-          Object.fromEntries(
-            normalizedBudgets.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  category: item.category ?? '',
-                  limit: item.limit ?? '',
-                  month: item.month ?? month,
-                  year: item.year ?? year,
-                  currency: item.currency ?? 'USD',
-                },
-              ]
-            }),
-          ),
-        )
-        setIncomeEdits(
-          Object.fromEntries(
-            normalizedIncomes.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  amount: item.amount ?? '',
-                  currency: item.currency ?? 'USD',
-                  source: item.source ?? '',
-                  category: item.category ?? '',
-                  date: formatDateInput(item.date),
-                  notes: item.notes ?? '',
-                },
-              ]
-            }),
-          ),
-        )
-      } catch (err) {
-        const message =
-          err?.response?.data?.message ??
-          err?.message ??
-          'Failed to load data, please try again later'
-        setError(message)
-      } finally {
-        setLoading(false)
+          if (!controller.signal.aborted) {
+            const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
+            const normalizedSubscriptions = Array.isArray(subscriptionData)
+              ? subscriptionData
+              : []
+            const normalizedBudgets = Array.isArray(budgetData) ? budgetData : []
+            const normalizedIncomes = Array.isArray(incomeData) ? incomeData : []
+
+            setExpenses(normalizedExpenses)
+            setSubscriptions(normalizedSubscriptions)
+            setBudgets(normalizedBudgets)
+            setIncomes(normalizedIncomes)
+
+            setExpenseEdits(
+              Object.fromEntries(
+                normalizedExpenses.map((item) => {
+                  const id = item.id || item._id
+                  return [
+                    id,
+                    {
+                      title: item.title ?? '',
+                      amount: item.amount ?? '',
+                      currency: item.currency ?? 'USD',
+                      category: item.category ?? '',
+                      date: formatDateInput(item.date),
+                      notes: item.notes ?? '',
+                    },
+                  ]
+                }),
+              ),
+            )
+            setSubscriptionEdits(
+              Object.fromEntries(
+                normalizedSubscriptions.map((item) => {
+                  const id = item.id || item._id
+                  return [
+                    id,
+                    {
+                      name: item.name ?? '',
+                      price: item.price ?? '',
+                      currency: item.currency ?? 'USD',
+                      frequency: item.frequency ?? '',
+                      category: item.category ?? '',
+                      paymentMethod: item.paymentMethod ?? '',
+                      status: item.status ?? 'active',
+                      startDate: formatDateInput(item.startDate),
+                      renewalDate: formatDateInput(item.renewalDate),
+                    },
+                  ]
+                }),
+              ),
+            )
+            setBudgetEdits(
+              Object.fromEntries(
+                normalizedBudgets.map((item) => {
+                  const id = item.id || item._id
+                  return [
+                    id,
+                    {
+                      category: item.category ?? '',
+                      limit: item.limit ?? '',
+                      month: item.month ?? month,
+                      year: item.year ?? year,
+                      currency: item.currency ?? 'USD',
+                    },
+                  ]
+                }),
+              ),
+            )
+            setIncomeEdits(
+              Object.fromEntries(
+                normalizedIncomes.map((item) => {
+                  const id = item.id || item._id
+                  return [
+                    id,
+                    {
+                      amount: item.amount ?? '',
+                      currency: item.currency ?? 'USD',
+                      source: item.source ?? '',
+                      category: item.category ?? '',
+                      date: formatDateInput(item.date),
+                      notes: item.notes ?? '',
+                    },
+                  ]
+                }),
+              ),
+            )
+          }
+        } catch (err) {
+          if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
+            return
+          }
+
+          const message =
+            err?.response?.data?.message ??
+            err?.message ??
+            'Failed to load data, please try again later'
+
+          if (!controller.signal.aborted) {
+            setError(message)
+          }
+        } finally {
+          if (!controller.signal.aborted) {
+            setLoading(false)
+          }
+        }
       }
-    }
 
-    fetchData()
+      fetchData()
+    }, 500)
+
+    return () => {
+      clearTimeout(timerId)
+      controller.abort()
+    }
   }, [userId, month, year])
 
   const handleExpenseChange = (id, field, value) => {
@@ -500,7 +523,7 @@ function Records() {
       </div>
 
       {loading ? (
-        <p className="text-slate-600">Loading...</p>
+        <LoadingSpinner />
       ) : (
         <>
           {error && <p className="text-rose-600 mb-4">{error}</p>}

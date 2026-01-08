@@ -5,9 +5,10 @@ export async function createIncome(payload) {
     return response.data ?? {}
 }
 
-export async function listIncomes(params) {
+export async function listIncomes(params, { signal } = {}) {
     const response = await api.get('/income', {
         params,
+        signal,
     })
     return response.data?.data ?? []
 }
@@ -27,9 +28,10 @@ export async function deleteIncome(id) {
     return response.data ?? {}
 }
 
-export async function getIncomeSummary(params) {
+export async function getIncomeSummary(params, { signal } = {}) {
     const response = await api.get('/income/summary', {
         params,
+        signal,
     })
     return response.data?.data ?? null
 }

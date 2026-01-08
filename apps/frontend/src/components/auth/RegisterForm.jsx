@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getAvailableCurrencies } from '../../services/currencyService'
 
 function RegisterForm({ onSubmit, loading }) {
@@ -9,7 +9,12 @@ function RegisterForm({ onSubmit, loading }) {
   const [currencies, setCurrencies] = useState(['USD'])
   const [loadingCurrencies, setLoadingCurrencies] = useState(true)
 
+  const fetchedRef = useRef(false)
+
   useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+
     const fetchCurrencies = async () => {
       try {
         const availableCurrencies = await getAvailableCurrencies()

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-rotate {
+  animation: spin 1s linear infinite;
+}
+
 :root {
   color-scheme: light dark;
 

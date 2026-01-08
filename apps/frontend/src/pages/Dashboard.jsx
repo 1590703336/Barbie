@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 import { motion as Motion } from 'framer-motion'
 import { CategoryIcon } from '../components/common/CategoryIcon'
 import { getBudgetSummary } from '../services/budgetService'
@@ -24,36 +27,58 @@ function Dashboard() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userId || !month || !year) return
-      setLoading(true)
-      setError('')
-      try {
-        const [summaryData, totalSubscription, incomeData] = await Promise.all([
-          getBudgetSummary({ month, year }),
-          getTotalSubscription({ userId }),
-          getIncomeSummary({ month, year }),
-        ])
+    const controller = new AbortController()
 
-        setBudgetSummary(summaryData ?? null)
-        setSubscriptionFee(
-          typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
-            ? totalSubscription
-            : 0,
-        )
-        setIncomeSummary(incomeData ?? null)
-      } catch (err) {
-        const message =
-          err?.response?.data?.message ??
-          err?.message ??
-          'Failed to load data, please try again later'
-        setError(message)
-      } finally {
-        setLoading(false)
+    // Debounce the fetch by 500ms to prevent rapid-fire requests on input change
+    const timerId = setTimeout(() => {
+      const fetchData = async () => {
+        if (!userId || !month || !year) return
+        setLoading(true)
+        setError('')
+        try {
+          const [summaryData, totalSubscription, incomeData] = await Promise.all([
+            getBudgetSummary({ month, year, signal: controller.signal }),
+            getTotalSubscription({ userId, signal: controller.signal }),
+            getIncomeSummary({ month, year }, { signal: controller.signal }),
+          ])
+
+          if (!controller.signal.aborted) {
+            setBudgetSummary(summaryData ?? null)
+            setSubscriptionFee(
+              typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
+                ? totalSubscription
+                : 0,
+            )
+            setIncomeSummary(incomeData ?? null)
+          }
+        } catch (err) {
+          // Ignore abort errors
+          if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
+            return
+          }
+
+          const message =
+            err?.response?.data?.message ??
+            err?.message ??
+            'Failed to load data, please try again later'
+
+          if (!controller.signal.aborted) {
+            setError(message)
+          }
+        } finally {
+          if (!controller.signal.aborted) {
+            setLoading(false)
+          }
+        }
       }
-    }
 
-    fetchData()
+      fetchData()
+    }, 500)
+
+    return () => {
+      clearTimeout(timerId)
+      controller.abort()
+    }
   }, [userId, month, year])
 
   return (
@@ -222,7 +247,7 @@ function Dashboard() {
       ) : null}
 
       {loading ? (
-        <p className="text-slate-600">Loading...</p>
+        <LoadingSpinner />
       ) : error ? (
         <p className="text-rose-600">{error}</p>
       ) : (

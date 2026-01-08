@@ -5,9 +5,10 @@ export async function createExpense(payload) {
   return response.data ?? {}
 }
 
-export async function listExpenses(params) {
+export async function listExpenses(params, { signal } = {}) {
   const response = await api.get('/expenses', {
     params,
+    signal,
   })
   return response.data ?? []
 }

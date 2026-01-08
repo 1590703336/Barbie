@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/store'
 import { getUser, updateUser } from '../services/userService'
 import { getAvailableCurrencies } from '../services/currencyService'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 
 function Profile() {
     const navigate = useNavigate()
@@ -19,39 +21,58 @@ function Profile() {
     const [message, setMessage] = useState({ type: '', text: '' })
 
     useEffect(() => {
+        const controller = new AbortController()
+
         const fetchData = async () => {
             try {
                 // Fetch currencies
-                const availableCurrencies = await getAvailableCurrencies()
-                setCurrencies(availableCurrencies.length > 0 ? availableCurrencies : ['USD'])
+                const availableCurrencies = await getAvailableCurrencies(controller.signal)
+                if (!controller.signal.aborted) {
+                    setCurrencies(availableCurrencies.length > 0 ? availableCurrencies : ['USD'])
+                }
             } catch (err) {
+                if (axios.isCancel(err)) return
                 console.error('Failed to fetch currencies:', err)
-                setCurrencies(['USD'])
+                if (!controller.signal.aborted) {
+                    setCurrencies(['USD'])
+                }
             }
 
             // Fetch user data
             if (!storedUser?._id && !storedUser?.id) {
-                setFetching(false)
+                if (!controller.signal.aborted) setFetching(false)
                 return
             }
             try {
                 const userId = storedUser._id || storedUser.id
-                const data = await getUser(userId)
-                // Adjust based on API structure: data.data.user or data.user
-                const userData = data?.data?.user || data?.user || data
+                const data = await getUser(userId, { signal: controller.signal })
 
-                setName(userData.name || '')
-                setEmail(userData.email || '')
-                setDefaultCurrency(userData.defaultCurrency || 'USD')
+                if (!controller.signal.aborted) {
+                    // Adjust based on API structure: data.data.user or data.user
+                    const userData = data?.data?.user || data?.user || data
+
+                    setName(userData.name || '')
+                    setEmail(userData.email || '')
+                    setDefaultCurrency(userData.defaultCurrency || 'USD')
+                }
             } catch (err) {
+                if (axios.isCancel(err)) return
                 console.error('Failed to fetch user data', err)
-                setMessage({ type: 'error', text: 'Failed to load user data' })
+                if (!controller.signal.aborted) {
+                    setMessage({ type: 'error', text: 'Failed to load user data' })
+                }
             } finally {
-                setFetching(false)
+                if (!controller.signal.aborted) {
+                    setFetching(false)
+                }
             }
         }
 
         fetchData()
+
+        return () => {
+            controller.abort()
+        }
     }, [storedUser])
 
     const handleSubmit = async (e) => {
@@ -98,7 +119,7 @@ function Profile() {
     }
 
     if (fetching) {
-        return <div className="p-12 text-center">Loading profile...</div>
+        return <LoadingSpinner />
     }
 
     return (
