@@ -2,25 +2,38 @@ const cache = new Map();
 const DEFAULT_TTL = 60 * 1000; // 60 seconds
 
 export const simpleCache = {
-    get: (key) => {
-        const item = cache.get(key);
-        if (!item) return null;
-        if (Date.now() > item.expiry) {
+    async getOrSet(key, fetcher, ttl = DEFAULT_TTL) {
+        const cached = cache.get(key);
+
+        if (cached) {
+            if (cached.promise) return cached.promise;
+            if (Date.now() < cached.expiry) return cached.value;
             cache.delete(key);
-            return null;
         }
-        return item.value;
+
+        const promise = fetcher()
+            .then((value) => {
+                cache.set(key, {
+                    value,
+                    expiry: Date.now() + ttl,
+                });
+                return value;
+            })
+            .catch((error) => {
+                // If it fails, remove the promise from cache so it can be retried
+                cache.delete(key);
+                throw error;
+            });
+
+        cache.set(key, { promise });
+        return promise;
     },
-    set: (key, value, ttl = DEFAULT_TTL) => {
-        cache.set(key, {
-            value,
-            expiry: Date.now() + ttl,
-        });
+
+    delete(key) {
+        cache.delete(key);
     },
-    clear: () => {
+
+    clear() {
         cache.clear();
     },
-    delete: (key) => {
-        cache.delete(key);
-    }
 };

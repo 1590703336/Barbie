@@ -1,4 +1,5 @@
 import api from './api'
+import simpleCache from './simpleCache'
 
 export async function createIncome(payload) {
     const response = await api.post('/income', payload)

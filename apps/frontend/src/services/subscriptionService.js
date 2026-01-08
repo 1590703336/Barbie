@@ -50,15 +50,12 @@ export async function getUpcomingRenewals(days = 7, { signal } = {}) {
 
 export async function getTotalSubscription({ userId, signal } = {}) {
   const cacheKey = `total-subscription-${userId || 'anon'}`
-  const cached = simpleCache.get(cacheKey)
-  if (cached) return cached
-
-  const response = await api.get('/subscriptions/total', {
-    params: userId ? { userId } : {},
-    signal,
+  return simpleCache.getOrSet(cacheKey, async () => {
+    const response = await api.get('/subscriptions/total', {
+      params: userId ? { userId } : {},
+      signal,
+    })
+    return response.data?.data?.total ?? 0
   })
-  const val = response.data?.data?.total ?? 0
-  simpleCache.set(cacheKey, val)
-  return val
 }
 

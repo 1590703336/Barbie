@@ -29,16 +29,13 @@ export async function deleteBudget(id) {
 
 export async function getBudgetSummary({ month, year, signal }) {
   const cacheKey = `budget-summary-${month}-${year}`
-  const cached = simpleCache.get(cacheKey)
-  if (cached) return cached
-
-  const response = await api.get('/budgets/summary/spending-summary', {
-    params: { month, year },
-    signal,
+  return simpleCache.getOrSet(cacheKey, async () => {
+    const response = await api.get('/budgets/summary/spending-summary', {
+      params: { month, year },
+      signal,
+    })
+    return response.data?.data ?? null
   })
-  const data = response.data?.data ?? null
-  simpleCache.set(cacheKey, data)
-  return data
 }
 
 
