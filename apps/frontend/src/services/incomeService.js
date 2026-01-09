@@ -1,5 +1,5 @@
 import api from './api'
-import simpleCache from './simpleCache'
+import { simpleCache } from '../utils/simpleCache'
 
 export async function createIncome(payload) {
     const response = await api.post('/income', payload)
