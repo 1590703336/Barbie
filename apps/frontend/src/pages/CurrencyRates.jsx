@@ -1,62 +1,35 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-    getExchangeRates,
-    getAvailableCurrencies,
-    getConvertPairs,
     createConvertPair,
     updateConvertPair,
     deleteConvertPair
 } from '../services/currencyService';
+import {
+    useExchangeRates,
+    useAvailableCurrencies,
+    useConvertPairs,
+    currencyKeys
+} from '../hooks/queries/useCurrencyQueries';
 
 const CurrencyRates = () => {
-    const [rates, setRates] = useState({});
-    const [currencies, setCurrencies] = useState([]);
-    const [convertPairs, setConvertPairs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [error, setError] = useState(null);
-    const [cacheTime, setCacheTime] = useState(null);
-    const [nextUpdateTime, setNextUpdateTime] = useState(null);
 
     // State for amounts in each pair (keyed by pair id)
     const [amounts, setAmounts] = useState({});
 
-    const fetchedRef = React.useRef(false);
+    // React Query hooks for data fetching
+    const { data: ratesResponse, isLoading: ratesLoading } = useExchangeRates();
+    const { data: currencies = [], isLoading: currenciesLoading } = useAvailableCurrencies();
+    const { data: pairsResponse, isLoading: pairsLoading } = useConvertPairs();
 
-    useEffect(() => {
-        if (fetchedRef.current) return;
-        fetchedRef.current = true;
+    const rates = ratesResponse?.data || {};
+    const convertPairs = pairsResponse?.data || [];
+    const cacheTime = ratesResponse?.cacheTime ? new Date(ratesResponse.cacheTime) : null;
+    const nextUpdateTime = ratesResponse?.nextUpdateTime ? new Date(ratesResponse.nextUpdateTime) : null;
 
-        const fetchData = async () => {
-            try {
-                const [ratesResponse, currencyList, pairsResponse] = await Promise.all([
-                    getExchangeRates(),
-                    getAvailableCurrencies(),
-                    getConvertPairs().catch(() => ({ data: [] })) // Graceful fallback if not logged in
-                ]);
-
-                if (ratesResponse.success) {
-                    setRates(ratesResponse.data);
-                    // Use cache time from backend
-                    if (ratesResponse.cacheTime) {
-                        setCacheTime(new Date(ratesResponse.cacheTime));
-                        setNextUpdateTime(new Date(ratesResponse.nextUpdateTime));
-                    }
-                } else {
-                    setRates(ratesResponse.data || ratesResponse);
-                }
-
-                setCurrencies(currencyList);
-                setConvertPairs(pairsResponse.data || []);
-            } catch (err) {
-                setError('Failed to load exchange rates');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+    const loading = ratesLoading || currenciesLoading || pairsLoading;
 
     // Get amount for a pair (default 100)
     const getAmount = (pairId) => {
@@ -77,11 +50,11 @@ const CurrencyRates = () => {
     // Add new convert pair
     const handleAddPair = async () => {
         try {
-            const response = await createConvertPair({
+            await createConvertPair({
                 fromCurrency: 'USD',
                 toCurrency: 'EUR'
             });
-            setConvertPairs([response.data, ...convertPairs]);
+            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to create convert pair:', err);
             setError('Failed to create convert pair. Please log in first.');
@@ -91,8 +64,8 @@ const CurrencyRates = () => {
     // Update pair currencies
     const handleUpdatePair = async (id, updates) => {
         try {
-            const response = await updateConvertPair(id, updates);
-            setConvertPairs(convertPairs.map(p => p._id === id ? response.data : p));
+            await updateConvertPair(id, updates);
+            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to update convert pair:', err);
         }
@@ -101,11 +74,11 @@ const CurrencyRates = () => {
     // Swap currencies in a pair
     const handleSwapPair = async (pair) => {
         try {
-            const response = await updateConvertPair(pair._id, {
+            await updateConvertPair(pair._id, {
                 fromCurrency: pair.toCurrency,
                 toCurrency: pair.fromCurrency
             });
-            setConvertPairs(convertPairs.map(p => p._id === pair._id ? response.data : p));
+            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to swap currencies:', err);
         }
@@ -115,11 +88,11 @@ const CurrencyRates = () => {
     const handleDeletePair = async (id) => {
         try {
             await deleteConvertPair(id);
-            setConvertPairs(convertPairs.filter(p => p._id !== id));
             // Clean up amount state
             const newAmounts = { ...amounts };
             delete newAmounts[id];
             setAmounts(newAmounts);
+            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to delete convert pair:', err);
         }

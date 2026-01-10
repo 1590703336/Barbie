@@ -1,4 +1,4 @@
-import { simpleCache } from '../../utils/simpleCache'
+import { queryClient } from '../../lib/queryClient'
 
 const getStoredAuth = () => {
   if (typeof window === 'undefined') return { user: null, token: null }
@@ -45,7 +45,7 @@ export const createAuthSlice = (set) => ({
   isAuthenticated: Boolean(storedToken),
   login: ({ user, token }) => {
     // Clear any cached data from previous user on new login
-    simpleCache.clear()
+    queryClient.clear()
     persistAuth(user, token)
     set({
       user: user ?? null,
@@ -55,7 +55,7 @@ export const createAuthSlice = (set) => ({
   },
   logout: () => {
     // Clear all cached user data to prevent data leakage to next user
-    simpleCache.clear()
+    queryClient.clear()
     clearPersistedAuth()
     // Reset UI state to current month/year
     const currentDate = new Date()
