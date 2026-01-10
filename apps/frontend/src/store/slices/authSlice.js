@@ -39,7 +39,7 @@ const clearPersistedAuth = () => {
 
 const { user: storedUser, token: storedToken } = getStoredAuth()
 
-export const createAuthSlice = (set) => ({
+export const createAuthSlice = (set, get) => ({
   user: storedUser,
   token: storedToken,
   isAuthenticated: Boolean(storedToken),
@@ -52,6 +52,12 @@ export const createAuthSlice = (set) => ({
       token: token ?? null,
       isAuthenticated: Boolean(token),
     })
+  },
+  // Update user info without clearing cache (for profile updates)
+  updateUserInfo: (user) => {
+    const token = get().token
+    persistAuth(user, token)
+    set({ user })
   },
   logout: () => {
     // Clear all cached user data to prevent data leakage to next user

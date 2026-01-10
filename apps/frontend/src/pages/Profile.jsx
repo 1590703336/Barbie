@@ -10,7 +10,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner'
 function Profile() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
-    const { user: storedUser, logout, login } = useStore((state) => state)
+    const { user: storedUser, logout, updateUserInfo } = useStore((state) => state)
 
     const userId = useMemo(
         () => storedUser?._id || storedUser?.id || null,
@@ -67,8 +67,8 @@ function Profile() {
                 logout()
                 navigate('/login', { state: { message: 'Password updated. Please log in again.' } })
             } else {
-                // otherwise update local store
-                login({ user: updatedUser, token: useStore.getState().token })
+                // Update local store without clearing cache
+                updateUserInfo(updatedUser)
                 setMessage({ type: 'success', text: 'Profile updated successfully' })
             }
 
