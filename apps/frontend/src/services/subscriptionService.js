@@ -18,25 +18,25 @@ export async function getUserSubscriptions(userId, { signal } = {}) {
 
 export async function createSubscription(payload) {
   const response = await api.post('/subscriptions', payload)
-  simpleCache.clear() // Invalidate on change
+  simpleCache.invalidateByPrefix('subscription-')
   return response.data?.data?.subscription ?? {}
 }
 
 export async function updateSubscription(id, payload) {
   const response = await api.put(`/subscriptions/${id}`, payload)
-  simpleCache.clear() // Invalidate on change
+  simpleCache.invalidateByPrefix('subscription-')
   return response.data?.data ?? {}
 }
 
 export async function cancelSubscription(id) {
   const response = await api.put(`/subscriptions/${id}/cancel`)
-  simpleCache.clear() // Invalidate on change
+  simpleCache.invalidateByPrefix('subscription-')
   return response.data?.data ?? {}
 }
 
 export async function deleteSubscription(id) {
   const response = await api.delete(`/subscriptions/${id}`)
-  simpleCache.clear() // Invalidate on change
+  simpleCache.invalidateByPrefix('subscription-')
   return response.data ?? {}
 }
 
@@ -49,13 +49,12 @@ export async function getUpcomingRenewals(days = 7, { signal } = {}) {
 }
 
 export async function getTotalSubscription({ userId, signal } = {}) {
-  const cacheKey = `total-subscription-${userId || 'anon'}`
+  const cacheKey = `subscription-total-${userId || 'anon'}`
   return simpleCache.getOrSet(cacheKey, async () => {
     const response = await api.get('/subscriptions/total', {
       params: userId ? { userId } : {},
       signal,
     })
     return response.data?.data?.total ?? 0
-  })
+  }, signal)
 }
-

@@ -11,31 +11,29 @@ export async function listBudgets({ month, year, userId, signal }) {
 
 export async function createBudget(payload) {
   const response = await api.post('/budgets', payload)
-  simpleCache.clear() // Invalidate cache
+  simpleCache.invalidateByPrefix('budget-')
   return response.data?.data ?? {}
 }
 
 export async function updateBudget(id, payload) {
   const response = await api.put(`/budgets/${id}`, payload)
-  simpleCache.clear() // Invalidate cache
+  simpleCache.invalidateByPrefix('budget-')
   return response.data?.data ?? {}
 }
 
 export async function deleteBudget(id) {
   const response = await api.delete(`/budgets/${id}`)
-  simpleCache.clear() // Invalidate cache
+  simpleCache.invalidateByPrefix('budget-')
   return response.data ?? {}
 }
 
-export async function getBudgetSummary({ month, year, signal }) {
-  const cacheKey = `budget-summary-${month}-${year}`
+export async function getBudgetSummary({ month, year, userId, signal }) {
+  const cacheKey = `budget-summary-${userId || 'anon'}-${month}-${year}`
   return simpleCache.getOrSet(cacheKey, async () => {
     const response = await api.get('/budgets/summary/spending-summary', {
       params: { month, year },
       signal,
     })
     return response.data?.data ?? null
-  })
+  }, signal)
 }
-
-
