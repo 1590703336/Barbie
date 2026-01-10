@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import axios from 'axios'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -96,19 +96,8 @@ function Records() {
   const debouncedMonth = useDebouncedValue(month, 500)
   const debouncedYear = useDebouncedValue(year, 500)
 
-  // Track current request to prevent StrictMode double-abort issue
-  const currentRequestRef = useRef(null)
-
   useEffect(() => {
-    const requestKey = `${userId}-${debouncedMonth}-${debouncedYear}`
-
-    // Skip if already fetching this exact data
-    if (currentRequestRef.current === requestKey) {
-      return
-    }
-
-    const controller = new AbortController()
-    currentRequestRef.current = requestKey
+    let ignore = false
 
     const fetchData = async () => {
       if (!userId || !debouncedMonth || !debouncedYear) return
@@ -116,13 +105,13 @@ function Records() {
       setError('')
       try {
         const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
-          listExpenses({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
-          getUserSubscriptions(userId, { signal: controller.signal }),
-          listBudgets({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
-          listIncomes({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
+          listExpenses({ month: debouncedMonth, year: debouncedYear, userId }),
+          getUserSubscriptions(userId),
+          listBudgets({ month: debouncedMonth, year: debouncedYear, userId }),
+          listIncomes({ month: debouncedMonth, year: debouncedYear, userId }),
         ])
 
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
           const normalizedSubscriptions = Array.isArray(subscriptionData)
             ? subscriptionData
@@ -211,6 +200,7 @@ function Records() {
           )
         }
       } catch (err) {
+        if (ignore) return
         if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
           return
         }
@@ -220,11 +210,9 @@ function Records() {
           err?.message ??
           'Failed to load data, please try again later'
 
-        if (!controller.signal.aborted) {
-          setError(message)
-        }
+        setError(message)
       } finally {
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setLoading(false)
         }
       }
@@ -233,7 +221,7 @@ function Records() {
     fetchData()
 
     return () => {
-      controller.abort()
+      ignore = true
     }
   }, [userId, debouncedMonth, debouncedYear])
 

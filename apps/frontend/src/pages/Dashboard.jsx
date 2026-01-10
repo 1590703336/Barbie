@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { motion as Motion } from 'framer-motion'
@@ -30,19 +30,8 @@ function Dashboard() {
   const debouncedMonth = useDebouncedValue(month, 500)
   const debouncedYear = useDebouncedValue(year, 500)
 
-  // Track current request to prevent StrictMode double-abort issue
-  const currentRequestRef = useRef(null)
-
   useEffect(() => {
-    const requestKey = `${userId}-${debouncedMonth}-${debouncedYear}`
-
-    // Skip if already fetching this exact data
-    if (currentRequestRef.current === requestKey) {
-      return
-    }
-
-    const controller = new AbortController()
-    currentRequestRef.current = requestKey
+    let ignore = false
 
     const fetchData = async () => {
       if (!userId || !debouncedMonth || !debouncedYear) return
@@ -50,12 +39,12 @@ function Dashboard() {
       setError('')
       try {
         const [summaryData, totalSubscription, incomeData] = await Promise.all([
-          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
-          getTotalSubscription({ userId }, { signal: controller.signal }),
-          getIncomeSummary({ month: debouncedMonth, year: debouncedYear }, { signal: controller.signal }),
+          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId }),
+          getTotalSubscription({ userId }),
+          getIncomeSummary({ month: debouncedMonth, year: debouncedYear }),
         ])
 
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setBudgetSummary(summaryData ?? null)
           setSubscriptionFee(
             typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
@@ -65,6 +54,7 @@ function Dashboard() {
           setIncomeSummary(incomeData ?? null)
         }
       } catch (err) {
+        if (ignore) return
         // Ignore abort errors
         if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
           return
@@ -75,11 +65,9 @@ function Dashboard() {
           err?.message ??
           'Failed to load data, please try again later'
 
-        if (!controller.signal.aborted) {
-          setError(message)
-        }
+        setError(message)
       } finally {
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setLoading(false)
         }
       }
@@ -88,7 +76,7 @@ function Dashboard() {
     fetchData()
 
     return () => {
-      controller.abort()
+      ignore = true
     }
   }, [userId, debouncedMonth, debouncedYear])
 
