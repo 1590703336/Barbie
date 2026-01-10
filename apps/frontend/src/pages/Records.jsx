@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import axios from 'axios'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -96,8 +96,19 @@ function Records() {
   const debouncedMonth = useDebouncedValue(month, 500)
   const debouncedYear = useDebouncedValue(year, 500)
 
+  // Track current request to prevent StrictMode double-abort issue
+  const currentRequestRef = useRef(null)
+
   useEffect(() => {
+    const requestKey = `${userId}-${debouncedMonth}-${debouncedYear}`
+
+    // Skip if already fetching this exact data
+    if (currentRequestRef.current === requestKey) {
+      return
+    }
+
     const controller = new AbortController()
+    currentRequestRef.current = requestKey
 
     const fetchData = async () => {
       if (!userId || !debouncedMonth || !debouncedYear) return

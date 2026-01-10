@@ -83,39 +83,67 @@ describe('currencyService', () => {
     })
 
     describe('cache invalidation on mutations', () => {
-        it('should invalidate currency cache on createConvertPair', async () => {
-            api.get.mockResolvedValue({ data: { data: [] } })
+        it('should only invalidate convert-pairs cache on createConvertPair, NOT rates', async () => {
+            const mockRates = { success: true, data: { USD: 1, EUR: 0.85 } }
+            api.get
+                .mockResolvedValueOnce({ data: mockRates }) // rates
+                .mockResolvedValueOnce({ data: { data: [] } }) // pairs
+                .mockResolvedValueOnce({ data: { data: [] } }) // pairs refetch
             api.post.mockResolvedValue({ data: { data: { _id: 'new-pair' } } })
 
+            // Cache both rates and pairs
+            await getExchangeRates()
             await getConvertPairs()
-            expect(api.get).toHaveBeenCalledTimes(1)
+            expect(api.get).toHaveBeenCalledTimes(2)
 
+            // Create a pair
             await createConvertPair({ fromCurrency: 'USD', toCurrency: 'EUR' })
 
+            // Rates should still be cached, pairs should refetch
+            await getExchangeRates()
             await getConvertPairs()
-            expect(api.get).toHaveBeenCalledTimes(2)
+
+            // Rates: no new call (still cached), Pairs: 1 new call
+            expect(api.get).toHaveBeenCalledTimes(3)
         })
 
-        it('should invalidate currency cache on updateConvertPair', async () => {
-            api.get.mockResolvedValue({ data: { data: [] } })
+        it('should only invalidate convert-pairs cache on updateConvertPair, NOT rates', async () => {
+            const mockRates = { success: true, data: { USD: 1, EUR: 0.85 } }
+            api.get
+                .mockResolvedValueOnce({ data: mockRates })
+                .mockResolvedValueOnce({ data: { data: [] } })
+                .mockResolvedValueOnce({ data: { data: [] } })
             api.put.mockResolvedValue({ data: { data: {} } })
 
-            await getConvertPairs()
-            await updateConvertPair('pair-id', { toCurrency: 'GBP' })
+            await getExchangeRates()
             await getConvertPairs()
 
-            expect(api.get).toHaveBeenCalledTimes(2)
+            await updateConvertPair('pair-id', { toCurrency: 'GBP' })
+
+            await getExchangeRates()
+            await getConvertPairs()
+
+            // Rates: 1 call total, Pairs: 2 calls (initial + refetch after update)
+            expect(api.get).toHaveBeenCalledTimes(3)
         })
 
-        it('should invalidate currency cache on deleteConvertPair', async () => {
-            api.get.mockResolvedValue({ data: { data: [] } })
+        it('should only invalidate convert-pairs cache on deleteConvertPair, NOT rates', async () => {
+            const mockRates = { success: true, data: { USD: 1, EUR: 0.85 } }
+            api.get
+                .mockResolvedValueOnce({ data: mockRates })
+                .mockResolvedValueOnce({ data: { data: [] } })
+                .mockResolvedValueOnce({ data: { data: [] } })
             api.delete.mockResolvedValue({ data: {} })
 
-            await getConvertPairs()
-            await deleteConvertPair('pair-id')
+            await getExchangeRates()
             await getConvertPairs()
 
-            expect(api.get).toHaveBeenCalledTimes(2)
+            await deleteConvertPair('pair-id')
+
+            await getExchangeRates()
+            await getConvertPairs()
+
+            expect(api.get).toHaveBeenCalledTimes(3)
         })
 
         it('should not invalidate other service caches', async () => {

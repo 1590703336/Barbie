@@ -6,26 +6,30 @@ import { useState, useEffect, useRef } from 'react'
  * Unlike setTimeout-based debouncing at component level, this hook:
  * - Returns the value immediately on initial mount (no delay)
  * - Only debounces subsequent changes to the value
+ * - Works correctly with React StrictMode (double render in dev)
  * 
  * @param {any} value - The value to debounce
  * @param {number} delay - Debounce delay in milliseconds (default: 500)
  * @returns {any} The debounced value
  */
 export function useDebouncedValue(value, delay = 500) {
-    // Track if this is the first render - if so, use value directly as initial state
-    const isFirstRender = useRef(true)
-
     // Initialize with current value so first render shows data immediately
     const [debouncedValue, setDebouncedValue] = useState(value)
 
+    // Track the previous value to detect actual changes
+    const previousValueRef = useRef(value)
+
     useEffect(() => {
-        // Skip debouncing on first render - we already have the correct initial value
-        if (isFirstRender.current) {
-            isFirstRender.current = false
+        // If value hasn't changed, don't do anything
+        // This handles StrictMode double-render correctly
+        if (previousValueRef.current === value) {
             return
         }
 
-        // For subsequent changes, debounce
+        // Update previous value ref
+        previousValueRef.current = value
+
+        // For value changes, debounce
         const timerId = setTimeout(() => {
             setDebouncedValue(value)
         }, delay)

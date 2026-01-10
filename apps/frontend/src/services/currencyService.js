@@ -1,7 +1,7 @@
 import api from './api';
 import { simpleCache } from '../utils/simpleCache';
 
-// Exchange rates TTL: 5 minutes (rates don't change frequently)
+// Exchange rates TTL: 5 minutes (rates don't change based on user actions)
 const RATES_TTL = 5 * 60 * 1000;
 // Convert pairs TTL: 60 seconds
 const PAIRS_TTL = 60 * 1000;
@@ -38,18 +38,21 @@ export async function getConvertPairs({ signal } = {}) {
 
 export async function createConvertPair(data) {
     const response = await api.post('/convert-pairs', data);
-    simpleCache.invalidateByPrefix('currency-');
+    // Only invalidate convert-pairs cache, NOT the exchange rates
+    simpleCache.delete('currency-convert-pairs');
     return response.data;
 }
 
 export async function updateConvertPair(id, data) {
     const response = await api.put(`/convert-pairs/${id}`, data);
-    simpleCache.invalidateByPrefix('currency-');
+    // Only invalidate convert-pairs cache, NOT the exchange rates
+    simpleCache.delete('currency-convert-pairs');
     return response.data;
 }
 
 export async function deleteConvertPair(id) {
     const response = await api.delete(`/convert-pairs/${id}`);
-    simpleCache.invalidateByPrefix('currency-');
+    // Only invalidate convert-pairs cache, NOT the exchange rates
+    simpleCache.delete('currency-convert-pairs');
     return response.data;
 }
