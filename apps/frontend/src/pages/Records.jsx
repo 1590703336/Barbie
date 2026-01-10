@@ -105,10 +105,10 @@ function Records() {
       setError('')
       try {
         const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
-          listExpenses({ month: debouncedMonth, year: debouncedYear, userId, signal: controller.signal }),
+          listExpenses({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
           getUserSubscriptions(userId, { signal: controller.signal }),
-          listBudgets({ month: debouncedMonth, year: debouncedYear, userId, signal: controller.signal }),
-          listIncomes({ month: debouncedMonth, year: debouncedYear, userId, signal: controller.signal }),
+          listBudgets({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
+          listIncomes({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
         ])
 
         if (!controller.signal.aborted) {

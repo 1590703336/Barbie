@@ -1,12 +1,15 @@
 import api from './api'
 import { simpleCache } from '../utils/simpleCache'
 
-export async function listBudgets({ month, year, userId, signal }) {
-  const response = await api.get('/budgets', {
-    params: { month, year, ...(userId ? { userId } : {}) },
-    signal,
-  })
-  return response.data?.data ?? []
+export async function listBudgets({ month, year, userId }, { signal } = {}) {
+  const cacheKey = `budget-list-${userId || 'anon'}-${month}-${year}`
+  return simpleCache.getOrSet(cacheKey, async () => {
+    const response = await api.get('/budgets', {
+      params: { month, year, ...(userId ? { userId } : {}) },
+      signal,
+    })
+    return response.data?.data ?? []
+  }, signal)
 }
 
 export async function createBudget(payload) {
@@ -27,7 +30,7 @@ export async function deleteBudget(id) {
   return response.data ?? {}
 }
 
-export async function getBudgetSummary({ month, year, userId, signal }) {
+export async function getBudgetSummary({ month, year, userId }, { signal } = {}) {
   const cacheKey = `budget-summary-${userId || 'anon'}-${month}-${year}`
   return simpleCache.getOrSet(cacheKey, async () => {
     const response = await api.get('/budgets/summary/spending-summary', {

@@ -66,15 +66,35 @@ describe('subscriptionService', () => {
             expect(result).toBe(0)
         })
 
-        it('should pass signal for abort support', async () => {
+        it('should not pass signal as URL param', async () => {
             const controller = new AbortController()
             api.get.mockResolvedValue({ data: { data: { total: 50 } } })
 
-            await getTotalSubscription({ userId: 'user123', signal: controller.signal })
+            await getTotalSubscription({ userId: 'user123' }, { signal: controller.signal })
 
             expect(api.get).toHaveBeenCalledWith('/subscriptions/total', expect.objectContaining({
                 signal: controller.signal,
             }))
+        })
+    })
+
+    describe('getUserSubscriptions - caching behavior', () => {
+        it('should cache user subscriptions by userId', async () => {
+            api.get.mockResolvedValue({ data: { data: { subscriptions: [{ id: '1' }] } } })
+
+            await getUserSubscriptions('user123')
+            await getUserSubscriptions('user123')
+
+            expect(api.get).toHaveBeenCalledTimes(1)
+        })
+
+        it('should have separate cache entries for different users', async () => {
+            api.get.mockResolvedValue({ data: { data: { subscriptions: [] } } })
+
+            await getUserSubscriptions('user1')
+            await getUserSubscriptions('user2')
+
+            expect(api.get).toHaveBeenCalledTimes(2)
         })
     })
 
@@ -89,6 +109,19 @@ describe('subscriptionService', () => {
             await createSubscription({ name: 'Netflix', price: 15.99 })
 
             await getTotalSubscription({ userId: 'user123' })
+            expect(api.get).toHaveBeenCalledTimes(2)
+        })
+
+        it('should invalidate user subscriptions cache on createSubscription', async () => {
+            api.get.mockResolvedValue({ data: { data: { subscriptions: [{ id: '1' }] } } })
+            api.post.mockResolvedValue({ data: { data: { subscription: { id: 'new-sub' } } } })
+
+            await getUserSubscriptions('user123')
+            expect(api.get).toHaveBeenCalledTimes(1)
+
+            await createSubscription({ name: 'Netflix', price: 15.99 })
+
+            await getUserSubscriptions('user123')
             expect(api.get).toHaveBeenCalledTimes(2)
         })
 
@@ -150,15 +183,6 @@ describe('subscriptionService', () => {
 
             await getSubscriptions()
             await getSubscriptions()
-
-            expect(api.get).toHaveBeenCalledTimes(2)
-        })
-
-        it('getUserSubscriptions should make API call each time', async () => {
-            api.get.mockResolvedValue({ data: { data: { subscriptions: [] } } })
-
-            await getUserSubscriptions('user123')
-            await getUserSubscriptions('user123')
 
             expect(api.get).toHaveBeenCalledTimes(2)
         })

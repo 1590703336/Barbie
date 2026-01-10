@@ -39,8 +39,8 @@ function Dashboard() {
       setError('')
       try {
         const [summaryData, totalSubscription, incomeData] = await Promise.all([
-          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId, signal: controller.signal }),
-          getTotalSubscription({ userId, signal: controller.signal }),
+          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId }, { signal: controller.signal }),
+          getTotalSubscription({ userId }, { signal: controller.signal }),
           getIncomeSummary({ month: debouncedMonth, year: debouncedYear }, { signal: controller.signal }),
         ])
 

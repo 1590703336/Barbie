@@ -12,8 +12,11 @@ export async function getSubscriptionById(id) {
 }
 
 export async function getUserSubscriptions(userId, { signal } = {}) {
-  const response = await api.get(`/subscriptions/user/${userId}`, { signal })
-  return response.data?.data?.subscriptions ?? []
+  const cacheKey = `subscription-user-${userId || 'anon'}`
+  return simpleCache.getOrSet(cacheKey, async () => {
+    const response = await api.get(`/subscriptions/user/${userId}`, { signal })
+    return response.data?.data?.subscriptions ?? []
+  }, signal)
 }
 
 export async function createSubscription(payload) {
@@ -48,7 +51,7 @@ export async function getUpcomingRenewals(days = 7, { signal } = {}) {
   return response.data?.data?.renewals ?? []
 }
 
-export async function getTotalSubscription({ userId, signal } = {}) {
+export async function getTotalSubscription({ userId }, { signal } = {}) {
   const cacheKey = `subscription-total-${userId || 'anon'}`
   return simpleCache.getOrSet(cacheKey, async () => {
     const response = await api.get('/subscriptions/total', {

@@ -7,12 +7,15 @@ export async function createIncome(payload) {
     return response.data ?? {}
 }
 
-export async function listIncomes(params, { signal } = {}) {
-    const response = await api.get('/income', {
-        params,
-        signal,
-    })
-    return response.data?.data ?? []
+export async function listIncomes({ month, year, userId }, { signal } = {}) {
+    const cacheKey = `income-list-${userId || 'anon'}-${month}-${year}`
+    return simpleCache.getOrSet(cacheKey, async () => {
+        const response = await api.get('/income', {
+            params: { month, year, userId },
+            signal,
+        })
+        return response.data?.data ?? []
+    }, signal)
 }
 
 export async function getIncomeById(id) {
@@ -32,12 +35,11 @@ export async function deleteIncome(id) {
     return response.data ?? {}
 }
 
-export async function getIncomeSummary(params, { signal } = {}) {
-    const { month, year } = params
+export async function getIncomeSummary({ month, year }, { signal } = {}) {
     const cacheKey = `income-summary-${month}-${year}`
     return simpleCache.getOrSet(cacheKey, async () => {
         const response = await api.get('/income/summary', {
-            params,
+            params: { month, year },
             signal,
         })
         return response.data?.data ?? null

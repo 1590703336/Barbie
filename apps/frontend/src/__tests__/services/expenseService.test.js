@@ -73,15 +73,17 @@ describe('expenseService', () => {
             expect(result).toEqual([])
         })
 
-        it('should pass signal for abort support', async () => {
+        it('should not pass signal as URL param', async () => {
             const controller = new AbortController()
             api.get.mockResolvedValue({ data: [] })
 
             await listExpenses({ month: 1, year: 2026, userId: 'user123' }, { signal: controller.signal })
 
-            expect(api.get).toHaveBeenCalledWith('/expenses', expect.objectContaining({
+            // Signal should be in axios config, not in params
+            expect(api.get).toHaveBeenCalledWith('/expenses', {
+                params: { month: 1, year: 2026, userId: 'user123' },
                 signal: controller.signal,
-            }))
+            })
         })
     })
 

@@ -30,13 +30,9 @@ describe('budgetService', () => {
             const mockData = { data: { totalBudget: 1000, totalExpenses: 500 } }
             api.get.mockResolvedValue({ data: mockData })
 
-            // First call
+            await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' })
             await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' })
 
-            // Second call with same params
-            await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' })
-
-            // API should only be called once (cached)
             expect(api.get).toHaveBeenCalledTimes(1)
         })
 
@@ -67,12 +63,7 @@ describe('budgetService', () => {
             const controller = new AbortController()
             api.get.mockResolvedValue({ data: { data: {} } })
 
-            await getBudgetSummary({
-                month: 1,
-                year: 2026,
-                userId: 'user123',
-                signal: controller.signal
-            })
+            await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' }, { signal: controller.signal })
 
             expect(api.get).toHaveBeenCalledWith(
                 '/budgets/summary/spending-summary',
@@ -83,21 +74,73 @@ describe('budgetService', () => {
         })
     })
 
+    describe('listBudgets - caching behavior', () => {
+        it('should cache budget list with userId in key', async () => {
+            api.get.mockResolvedValue({ data: { data: [{ id: '1' }] } })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
+
+            expect(api.get).toHaveBeenCalledTimes(1)
+        })
+
+        it('should have separate cache entries for different months', async () => {
+            api.get.mockResolvedValue({ data: { data: [] } })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
+            await listBudgets({ month: 2, year: 2026, userId: 'user123' })
+
+            expect(api.get).toHaveBeenCalledTimes(2)
+        })
+
+        it('should have separate cache entries for different users', async () => {
+            api.get.mockResolvedValue({ data: { data: [] } })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user1' })
+            await listBudgets({ month: 1, year: 2026, userId: 'user2' })
+
+            expect(api.get).toHaveBeenCalledTimes(2)
+        })
+
+        it('should not pass signal as URL param', async () => {
+            const controller = new AbortController()
+            api.get.mockResolvedValue({ data: { data: [] } })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' }, { signal: controller.signal })
+
+            // Signal should be in axios config, not in params
+            expect(api.get).toHaveBeenCalledWith('/budgets', {
+                params: { month: 1, year: 2026, userId: 'user123' },
+                signal: controller.signal,
+            })
+        })
+    })
+
     describe('cache invalidation on mutations', () => {
         it('should invalidate budget cache on createBudget', async () => {
             const mockSummary = { data: { totalBudget: 1000 } }
             api.get.mockResolvedValue({ data: mockSummary })
             api.post.mockResolvedValue({ data: { data: { id: 'new-budget' } } })
 
-            // Cache the summary
             await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' })
             expect(api.get).toHaveBeenCalledTimes(1)
 
-            // Create new budget - should invalidate
             await createBudget({ category: 'Food', limit: 500 })
 
-            // Fetch again - should make new API call
             await getBudgetSummary({ month: 1, year: 2026, userId: 'user123' })
+            expect(api.get).toHaveBeenCalledTimes(2)
+        })
+
+        it('should invalidate budget list cache on createBudget', async () => {
+            api.get.mockResolvedValue({ data: { data: [{ id: '1' }] } })
+            api.post.mockResolvedValue({ data: { data: { id: 'new-budget' } } })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
+            expect(api.get).toHaveBeenCalledTimes(1)
+
+            await createBudget({ category: 'Food', limit: 500 })
+
+            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
             expect(api.get).toHaveBeenCalledTimes(2)
         })
 
@@ -129,41 +172,12 @@ describe('budgetService', () => {
 
             // Simulate other cache entries
             await simpleCache.getOrSet('subscription-total-user123', async () => ({ total: 50 }))
-            const initialSize = simpleCache.size()
 
-            // Create budget
             await createBudget({ category: 'Food', limit: 500 })
 
             // Check subscription cache is still there
             const result = await simpleCache.getOrSet('subscription-total-user123', async () => ({ total: 999 }))
-            expect(result.total).toBe(50) // Should be cached value, not new fetch
-        })
-    })
-
-    describe('listBudgets - non-cached', () => {
-        it('should make API call each time (not cached)', async () => {
-            api.get.mockResolvedValue({ data: { data: [{ id: '1' }] } })
-
-            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
-            await listBudgets({ month: 1, year: 2026, userId: 'user123' })
-
-            expect(api.get).toHaveBeenCalledTimes(2)
-        })
-
-        it('should pass signal for abort support', async () => {
-            const controller = new AbortController()
-            api.get.mockResolvedValue({ data: { data: [] } })
-
-            await listBudgets({
-                month: 1,
-                year: 2026,
-                userId: 'user123',
-                signal: controller.signal
-            })
-
-            expect(api.get).toHaveBeenCalledWith('/budgets', expect.objectContaining({
-                signal: controller.signal,
-            }))
+            expect(result.total).toBe(50)
         })
     })
 })

@@ -8,12 +8,11 @@ export async function createExpense(payload) {
   return response.data ?? {}
 }
 
-export async function listExpenses(params, { signal } = {}) {
-  const { month, year, userId } = params
+export async function listExpenses({ month, year, userId }, { signal } = {}) {
   const cacheKey = `expense-list-${userId || 'anon'}-${month}-${year}`
   return simpleCache.getOrSet(cacheKey, async () => {
     const response = await api.get('/expenses', {
-      params,
+      params: { month, year, userId },
       signal,
     })
     return response.data ?? []
