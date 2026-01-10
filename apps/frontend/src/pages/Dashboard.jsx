@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { motion as Motion } from 'framer-motion'
 import { CategoryIcon } from '../components/common/CategoryIcon'
@@ -9,6 +8,7 @@ import { getTotalSubscription } from '../services/subscriptionService'
 import { getIncomeSummary } from '../services/incomeService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 function Dashboard() {
   const user = useStore((state) => state.user)
@@ -17,8 +17,12 @@ function Dashboard() {
     [user],
   )
 
-  const [month, setMonth] = useState(new Date().getMonth() + 1)
-  const [year, setYear] = useState(new Date().getFullYear())
+  // Use store for month/year to persist across page navigations
+  const month = useStore((state) => state.selectedMonth)
+  const year = useStore((state) => state.selectedYear)
+  const setMonth = useStore((state) => state.setSelectedMonth)
+  const setYear = useStore((state) => state.setSelectedYear)
+
   const currency = user?.defaultCurrency || 'USD'
   const [budgetSummary, setBudgetSummary] = useState(null)
   const [subscriptionFee, setSubscriptionFee] = useState(null)
@@ -26,60 +30,59 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Debounce month/year changes - instant on first mount, 500ms delay on subsequent changes
+  const debouncedMonth = useDebouncedValue(month, 500)
+  const debouncedYear = useDebouncedValue(year, 500)
+
   useEffect(() => {
-    const controller = new AbortController()
+    let ignore = false
 
-    // Debounce the fetch by 500ms to prevent rapid-fire requests on input change
-    const timerId = setTimeout(() => {
-      const fetchData = async () => {
-        if (!userId || !month || !year) return
-        setLoading(true)
-        setError('')
-        try {
-          const [summaryData, totalSubscription, incomeData] = await Promise.all([
-            getBudgetSummary({ month, year, signal: controller.signal }),
-            getTotalSubscription({ userId, signal: controller.signal }),
-            getIncomeSummary({ month, year }, { signal: controller.signal }),
-          ])
+    const fetchData = async () => {
+      if (!userId || !debouncedMonth || !debouncedYear) return
+      setLoading(true)
+      setError('')
+      try {
+        const [summaryData, totalSubscription, incomeData] = await Promise.all([
+          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId }),
+          getTotalSubscription({ userId }),
+          getIncomeSummary({ month: debouncedMonth, year: debouncedYear }),
+        ])
 
-          if (!controller.signal.aborted) {
-            setBudgetSummary(summaryData ?? null)
-            setSubscriptionFee(
-              typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
-                ? totalSubscription
-                : 0,
-            )
-            setIncomeSummary(incomeData ?? null)
-          }
-        } catch (err) {
-          // Ignore abort errors
-          if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
-            return
-          }
+        if (!ignore) {
+          setBudgetSummary(summaryData ?? null)
+          setSubscriptionFee(
+            typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
+              ? totalSubscription
+              : 0,
+          )
+          setIncomeSummary(incomeData ?? null)
+        }
+      } catch (err) {
+        if (ignore) return
+        // Ignore abort errors
+        if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
+          return
+        }
 
-          const message =
-            err?.response?.data?.message ??
-            err?.message ??
-            'Failed to load data, please try again later'
+        const message =
+          err?.response?.data?.message ??
+          err?.message ??
+          'Failed to load data, please try again later'
 
-          if (!controller.signal.aborted) {
-            setError(message)
-          }
-        } finally {
-          if (!controller.signal.aborted) {
-            setLoading(false)
-          }
+        setError(message)
+      } finally {
+        if (!ignore) {
+          setLoading(false)
         }
       }
+    }
 
-      fetchData()
-    }, 500)
+    fetchData()
 
     return () => {
-      clearTimeout(timerId)
-      controller.abort()
+      ignore = true
     }
-  }, [userId, month, year])
+  }, [userId, debouncedMonth, debouncedYear])
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">

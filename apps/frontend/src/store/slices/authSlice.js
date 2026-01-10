@@ -1,3 +1,5 @@
+import { simpleCache } from '../../utils/simpleCache'
+
 const getStoredAuth = () => {
   if (typeof window === 'undefined') return { user: null, token: null }
   try {
@@ -42,6 +44,8 @@ export const createAuthSlice = (set) => ({
   token: storedToken,
   isAuthenticated: Boolean(storedToken),
   login: ({ user, token }) => {
+    // Clear any cached data from previous user on new login
+    simpleCache.clear()
     persistAuth(user, token)
     set({
       user: user ?? null,
@@ -50,12 +54,17 @@ export const createAuthSlice = (set) => ({
     })
   },
   logout: () => {
+    // Clear all cached user data to prevent data leakage to next user
+    simpleCache.clear()
     clearPersistedAuth()
+    // Reset UI state to current month/year
+    const currentDate = new Date()
     set({
       user: null,
       token: null,
       isAuthenticated: false,
+      selectedMonth: currentDate.getMonth() + 1,
+      selectedYear: currentDate.getFullYear(),
     })
   },
 })
-
