@@ -79,8 +79,12 @@ function Records() {
     [user],
   )
 
-  const [month, setMonth] = useState(new Date().getMonth() + 1)
-  const [year, setYear] = useState(new Date().getFullYear())
+  // Use store for month/year to persist across page navigations
+  const month = useStore((state) => state.selectedMonth)
+  const year = useStore((state) => state.selectedYear)
+  const setMonth = useStore((state) => state.setSelectedMonth)
+  const setYear = useStore((state) => state.setSelectedYear)
+
   const [expenses, setExpenses] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
   const [budgets, setBudgets] = useState([])

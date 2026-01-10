@@ -57,10 +57,14 @@ export const createAuthSlice = (set) => ({
     // Clear all cached user data to prevent data leakage to next user
     simpleCache.clear()
     clearPersistedAuth()
+    // Reset UI state to current month/year
+    const currentDate = new Date()
     set({
       user: null,
       token: null,
       isAuthenticated: false,
+      selectedMonth: currentDate.getMonth() + 1,
+      selectedYear: currentDate.getFullYear(),
     })
   },
 })
