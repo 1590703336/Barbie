@@ -22,11 +22,9 @@ export async function deleteBudget(id) {
   return response.data ?? {}
 }
 
-export async function getBudgetSummary({ month, year }) {
+export async function getBudgetSummary({ month, year, userId }) {
   const response = await api.get('/budgets/summary/spending-summary', {
     params: { month, year },
   })
   return response.data?.data ?? null
 }
-
-

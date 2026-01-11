@@ -1,3 +1,5 @@
+import { queryClient } from '../../lib/queryClient'
+
 const getStoredAuth = () => {
   if (typeof window === 'undefined') return { user: null, token: null }
   try {
@@ -37,11 +39,13 @@ const clearPersistedAuth = () => {
 
 const { user: storedUser, token: storedToken } = getStoredAuth()
 
-export const createAuthSlice = (set) => ({
+export const createAuthSlice = (set, get) => ({
   user: storedUser,
   token: storedToken,
   isAuthenticated: Boolean(storedToken),
   login: ({ user, token }) => {
+    // Clear any cached data from previous user on new login
+    queryClient.clear()
     persistAuth(user, token)
     set({
       user: user ?? null,
@@ -49,13 +53,24 @@ export const createAuthSlice = (set) => ({
       isAuthenticated: Boolean(token),
     })
   },
+  // Update user info without clearing cache (for profile updates)
+  updateUserInfo: (user) => {
+    const token = get().token
+    persistAuth(user, token)
+    set({ user })
+  },
   logout: () => {
+    // Clear all cached user data to prevent data leakage to next user
+    queryClient.clear()
     clearPersistedAuth()
+    // Reset UI state to current month/year
+    const currentDate = new Date()
     set({
       user: null,
       token: null,
       isAuthenticated: false,
+      selectedMonth: currentDate.getMonth() + 1,
+      selectedYear: currentDate.getFullYear(),
     })
   },
 })
-

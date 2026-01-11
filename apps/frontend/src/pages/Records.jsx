@@ -1,29 +1,33 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useQueryClient } from '@tanstack/react-query'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 import { ActionButton } from '../components/common/ActionButton'
 import { CategoryIcon } from '../components/common/CategoryIcon'
 import {
-  deleteExpense,
-  listExpenses,
   updateExpense,
+  deleteExpense,
 } from '../services/expenseService'
 import {
-  deleteSubscription,
-  getUserSubscriptions,
   updateSubscription,
+  deleteSubscription,
 } from '../services/subscriptionService'
 import {
-  deleteBudget,
   listBudgets,
   updateBudget,
+  deleteBudget,
 } from '../services/budgetService'
 import {
-  createIncome,
-  deleteIncome,
-  listIncomes,
   updateIncome,
+  deleteIncome,
 } from '../services/incomeService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
+import { useExpenseList } from '../hooks/queries/useExpenseQueries'
+import { useBudgetList, budgetKeys } from '../hooks/queries/useBudgetQueries'
+import { useIncomeList, incomeKeys } from '../hooks/queries/useIncomeQueries'
+import { useUserSubscriptions, subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
+import { expenseKeys } from '../hooks/queries/useExpenseQueries'
 
 const expenseCategories = [
   'Food',
@@ -77,130 +81,133 @@ function Records() {
     [user],
   )
 
-  const [month, setMonth] = useState(new Date().getMonth() + 1)
-  const [year, setYear] = useState(new Date().getFullYear())
-  const [expenses, setExpenses] = useState([])
-  const [subscriptions, setSubscriptions] = useState([])
-  const [budgets, setBudgets] = useState([])
-  const [incomes, setIncomes] = useState([])
-  const [loading, setLoading] = useState(true)
+  // Use store for month/year to persist across page navigations
+  const month = useStore((state) => state.selectedMonth)
+  const year = useStore((state) => state.selectedYear)
+  const setMonth = useStore((state) => state.setSelectedMonth)
+  const setYear = useStore((state) => state.setSelectedYear)
+
   const [error, setError] = useState('')
   const [expenseEdits, setExpenseEdits] = useState({})
   const [subscriptionEdits, setSubscriptionEdits] = useState({})
   const [budgetEdits, setBudgetEdits] = useState({})
   const [incomeEdits, setIncomeEdits] = useState({})
 
+  // Debounce month/year changes - instant on first mount, 500ms delay on subsequent changes
+  const debouncedMonth = useDebouncedValue(month, 500)
+  const debouncedYear = useDebouncedValue(year, 500)
+
+  const queryClient = useQueryClient()
+
+  // React Query hooks for data fetching
+  const { data: expenses = [], isLoading: expensesLoading } = useExpenseList({
+    month: debouncedMonth,
+    year: debouncedYear,
+    userId,
+  })
+
+  const { data: budgets = [], isLoading: budgetsLoading } = useBudgetList({
+    month: debouncedMonth,
+    year: debouncedYear,
+    userId,
+  })
+
+  const { data: incomes = [], isLoading: incomesLoading } = useIncomeList({
+    month: debouncedMonth,
+    year: debouncedYear,
+    userId,
+  })
+
+  const { data: subscriptions = [], isLoading: subscriptionsLoading } = useUserSubscriptions(userId)
+
+  const loading = expensesLoading || budgetsLoading || incomesLoading || subscriptionsLoading
+
+  // Initialize edit states when data changes
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userId || !month || !year) return
-      setLoading(true)
-      setError('')
-      try {
-        const [expenseData, subscriptionData, budgetData, incomeData] = await Promise.all([
-          listExpenses({ month, year, userId }),
-          getUserSubscriptions(userId),
-          listBudgets({ month, year, userId }),
-          listIncomes({ month, year, userId }),
-        ])
-        const normalizedExpenses = Array.isArray(expenseData) ? expenseData : []
-        const normalizedSubscriptions = Array.isArray(subscriptionData)
-          ? subscriptionData
-          : []
-        const normalizedBudgets = Array.isArray(budgetData) ? budgetData : []
-        const normalizedIncomes = Array.isArray(incomeData) ? incomeData : []
+    setExpenseEdits(
+      Object.fromEntries(
+        expenses.map((item) => {
+          const id = item.id || item._id
+          return [
+            id,
+            {
+              title: item.title ?? '',
+              amount: item.amount ?? '',
+              currency: item.currency ?? 'USD',
+              category: item.category ?? '',
+              date: formatDateInput(item.date),
+              notes: item.notes ?? '',
+            },
+          ]
+        }),
+      ),
+    )
+  }, [expenses])
 
-        setExpenses(normalizedExpenses)
-        setSubscriptions(normalizedSubscriptions)
-        setBudgets(normalizedBudgets)
-        setIncomes(normalizedIncomes)
+  useEffect(() => {
+    setSubscriptionEdits(
+      Object.fromEntries(
+        subscriptions.map((item) => {
+          const id = item.id || item._id
+          return [
+            id,
+            {
+              name: item.name ?? '',
+              price: item.price ?? '',
+              currency: item.currency ?? 'USD',
+              frequency: item.frequency ?? '',
+              category: item.category ?? '',
+              paymentMethod: item.paymentMethod ?? '',
+              status: item.status ?? 'active',
+              startDate: formatDateInput(item.startDate),
+              renewalDate: formatDateInput(item.renewalDate),
+            },
+          ]
+        }),
+      ),
+    )
+  }, [subscriptions])
 
-        setExpenseEdits(
-          Object.fromEntries(
-            normalizedExpenses.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  title: item.title ?? '',
-                  amount: item.amount ?? '',
-                  currency: item.currency ?? 'USD',
-                  category: item.category ?? '',
-                  date: formatDateInput(item.date),
-                  notes: item.notes ?? '',
-                },
-              ]
-            }),
-          ),
-        )
-        setSubscriptionEdits(
-          Object.fromEntries(
-            normalizedSubscriptions.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  name: item.name ?? '',
-                  price: item.price ?? '',
-                  currency: item.currency ?? 'USD',
-                  frequency: item.frequency ?? '',
-                  category: item.category ?? '',
-                  paymentMethod: item.paymentMethod ?? '',
-                  status: item.status ?? 'active',
-                  startDate: formatDateInput(item.startDate),
-                  renewalDate: formatDateInput(item.renewalDate),
-                },
-              ]
-            }),
-          ),
-        )
-        setBudgetEdits(
-          Object.fromEntries(
-            normalizedBudgets.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  category: item.category ?? '',
-                  limit: item.limit ?? '',
-                  month: item.month ?? month,
-                  year: item.year ?? year,
-                  currency: item.currency ?? 'USD',
-                },
-              ]
-            }),
-          ),
-        )
-        setIncomeEdits(
-          Object.fromEntries(
-            normalizedIncomes.map((item) => {
-              const id = item.id || item._id
-              return [
-                id,
-                {
-                  amount: item.amount ?? '',
-                  currency: item.currency ?? 'USD',
-                  source: item.source ?? '',
-                  category: item.category ?? '',
-                  date: formatDateInput(item.date),
-                  notes: item.notes ?? '',
-                },
-              ]
-            }),
-          ),
-        )
-      } catch (err) {
-        const message =
-          err?.response?.data?.message ??
-          err?.message ??
-          'Failed to load data, please try again later'
-        setError(message)
-      } finally {
-        setLoading(false)
-      }
-    }
+  useEffect(() => {
+    setBudgetEdits(
+      Object.fromEntries(
+        budgets.map((item) => {
+          const id = item.id || item._id
+          return [
+            id,
+            {
+              category: item.category ?? '',
+              limit: item.limit ?? '',
+              month: item.month ?? debouncedMonth,
+              year: item.year ?? debouncedYear,
+              currency: item.currency ?? 'USD',
+            },
+          ]
+        }),
+      ),
+    )
+  }, [budgets, debouncedMonth, debouncedYear])
 
-    fetchData()
-  }, [userId, month, year])
+  useEffect(() => {
+    setIncomeEdits(
+      Object.fromEntries(
+        incomes.map((item) => {
+          const id = item.id || item._id
+          return [
+            id,
+            {
+              amount: item.amount ?? '',
+              currency: item.currency ?? 'USD',
+              source: item.source ?? '',
+              category: item.category ?? '',
+              date: formatDateInput(item.date),
+              notes: item.notes ?? '',
+            },
+          ]
+        }),
+      ),
+    )
+  }, [incomes])
 
   const handleExpenseChange = (id, field, value) => {
     setExpenseEdits((prev) => ({
@@ -288,13 +295,13 @@ function Records() {
     }
 
     try {
-      const updated = await updateExpense(id, {
+      await updateExpense(id, {
         ...payload,
         amount: Number(payload.amount),
       })
-      setExpenses((prev) =>
-        prev.map((item) => (item.id === id || item._id === id ? updated : item)),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -308,9 +315,9 @@ function Records() {
       await deleteExpense(id)
       // Wait a moment so user sees the success animation before the item vanishes
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setExpenses((prev) =>
-        prev.filter((item) => item.id !== id && item._id !== id),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -330,16 +337,12 @@ function Records() {
     }
 
     try {
-      const updated = await updateSubscription(id, {
+      await updateSubscription(id, {
         ...payload,
         price: Number(payload.price),
       })
-      const updatedData = updated?.subscription ?? updated
-      setSubscriptions((prev) =>
-        prev.map((item) =>
-          item.id === id || item._id === id ? updatedData : item,
-        ),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -352,9 +355,8 @@ function Records() {
     try {
       await deleteSubscription(id)
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setSubscriptions((prev) =>
-        prev.filter((item) => item.id !== id && item._id !== id),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -374,18 +376,14 @@ function Records() {
     }
 
     try {
-      const updated = await updateBudget(id, {
+      await updateBudget(id, {
         ...payload,
         limit: Number(payload.limit),
         month: Number(payload.month),
         year: Number(payload.year),
       })
-      const updatedBudget = updated?.data ?? updated
-      setBudgets((prev) =>
-        prev.map((item) =>
-          item.id === id || item._id === id ? updatedBudget : item,
-        ),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -398,9 +396,8 @@ function Records() {
     try {
       await deleteBudget(id)
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setBudgets((prev) =>
-        prev.filter((item) => item.id !== id && item._id !== id),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -420,13 +417,12 @@ function Records() {
     }
 
     try {
-      const updated = await updateIncome(id, {
+      await updateIncome(id, {
         ...payload,
         amount: Number(payload.amount),
       })
-      setIncomes((prev) =>
-        prev.map((item) => (item.id === id || item._id === id ? updated : item)),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: incomeKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -439,9 +435,8 @@ function Records() {
     try {
       await deleteIncome(id)
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setIncomes((prev) =>
-        prev.filter((item) => item.id !== id && item._id !== id),
-      )
+      // Invalidate queries to refetch data
+      queryClient.invalidateQueries({ queryKey: incomeKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -500,7 +495,7 @@ function Records() {
       </div>
 
       {loading ? (
-        <p className="text-slate-600">Loading...</p>
+        <LoadingSpinner />
       ) : (
         <>
           {error && <p className="text-rose-600 mb-4">{error}</p>}

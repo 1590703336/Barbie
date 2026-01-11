@@ -5,9 +5,9 @@ export async function createIncome(payload) {
     return response.data ?? {}
 }
 
-export async function listIncomes(params) {
+export async function listIncomes({ month, year, userId }) {
     const response = await api.get('/income', {
-        params,
+        params: { month, year, userId },
     })
     return response.data?.data ?? []
 }
@@ -27,9 +27,9 @@ export async function deleteIncome(id) {
     return response.data ?? {}
 }
 
-export async function getIncomeSummary(params) {
+export async function getIncomeSummary({ month, year }) {
     const response = await api.get('/income/summary', {
-        params,
+        params: { month, year },
     })
     return response.data?.data ?? null
 }

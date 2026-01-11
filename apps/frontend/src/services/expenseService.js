@@ -5,9 +5,9 @@ export async function createExpense(payload) {
   return response.data ?? {}
 }
 
-export async function listExpenses(params) {
+export async function listExpenses({ month, year, userId }) {
   const response = await api.get('/expenses', {
-    params,
+    params: { month, year, userId },
   })
   return response.data ?? []
 }
@@ -26,4 +26,3 @@ export async function deleteExpense(id) {
   const response = await api.delete(`/expenses/${id}`)
   return response.data ?? {}
 }
-

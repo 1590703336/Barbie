@@ -1,58 +1,43 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import useStore from '../store/store'
-import { getUser, updateUser } from '../services/userService'
-import { getAvailableCurrencies } from '../services/currencyService'
+import { updateUser } from '../services/userService'
+import { useUser, userKeys } from '../hooks/queries/useUserQueries'
+import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 
 function Profile() {
     const navigate = useNavigate()
-    const { user: storedUser, logout, login } = useStore((state) => state)
+    const queryClient = useQueryClient()
+    const { user: storedUser, logout, updateUserInfo } = useStore((state) => state)
 
+    const userId = useMemo(
+        () => storedUser?._id || storedUser?.id || null,
+        [storedUser]
+    )
+
+    // React Query hooks
+    const { data: userData, isLoading: userLoading } = useUser(userId)
+    const { data: currencies = ['USD'], isLoading: currenciesLoading } = useAvailableCurrencies()
+
+    // Local form state
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [defaultCurrency, setDefaultCurrency] = useState('USD')
     const [password, setPassword] = useState('')
-    const [currencies, setCurrencies] = useState(['USD'])
-
     const [loading, setLoading] = useState(false)
-    const [fetching, setFetching] = useState(true)
     const [message, setMessage] = useState({ type: '', text: '' })
 
+    // Initialize form when user data loads
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch currencies
-                const availableCurrencies = await getAvailableCurrencies()
-                setCurrencies(availableCurrencies.length > 0 ? availableCurrencies : ['USD'])
-            } catch (err) {
-                console.error('Failed to fetch currencies:', err)
-                setCurrencies(['USD'])
-            }
-
-            // Fetch user data
-            if (!storedUser?._id && !storedUser?.id) {
-                setFetching(false)
-                return
-            }
-            try {
-                const userId = storedUser._id || storedUser.id
-                const data = await getUser(userId)
-                // Adjust based on API structure: data.data.user or data.user
-                const userData = data?.data?.user || data?.user || data
-
-                setName(userData.name || '')
-                setEmail(userData.email || '')
-                setDefaultCurrency(userData.defaultCurrency || 'USD')
-            } catch (err) {
-                console.error('Failed to fetch user data', err)
-                setMessage({ type: 'error', text: 'Failed to load user data' })
-            } finally {
-                setFetching(false)
-            }
+        if (userData) {
+            const user = userData?.data?.user || userData?.user || userData
+            setName(user.name || '')
+            setEmail(user.email || '')
+            setDefaultCurrency(user.defaultCurrency || 'USD')
         }
-
-        fetchData()
-    }, [storedUser])
+    }, [userData])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -60,7 +45,6 @@ function Profile() {
         setMessage({ type: '', text: '' })
 
         try {
-            const userId = storedUser?._id || storedUser?.id
             const payload = {
                 name,
                 email,
@@ -75,13 +59,16 @@ function Profile() {
             const response = await updateUser(userId, payload)
             const updatedUser = response?.data?.user || response?.user
 
+            // Invalidate user cache
+            queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) })
+
             if (password) {
                 // If password was changed, logout and redirect
                 logout()
                 navigate('/login', { state: { message: 'Password updated. Please log in again.' } })
             } else {
-                // otherwise update local store
-                login({ user: updatedUser, token: useStore.getState().token })
+                // Update local store without clearing cache
+                updateUserInfo(updatedUser)
                 setMessage({ type: 'success', text: 'Profile updated successfully' })
             }
 
@@ -97,8 +84,8 @@ function Profile() {
         }
     }
 
-    if (fetching) {
-        return <div className="p-12 text-center">Loading profile...</div>
+    if (userLoading || currenciesLoading) {
+        return <LoadingSpinner />
     }
 
     return (
