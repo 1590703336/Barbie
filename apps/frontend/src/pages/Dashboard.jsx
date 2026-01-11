@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
+import { useMemo } from 'react'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { motion as Motion } from 'framer-motion'
 import { CategoryIcon } from '../components/common/CategoryIcon'
-import { getBudgetSummary } from '../services/budgetService'
-import { getTotalSubscription } from '../services/subscriptionService'
-import { getIncomeSummary } from '../services/incomeService'
 import { formatCurrency } from '../utils/formatCurrency'
 import useStore from '../store/store'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { useBudgetSummary } from '../hooks/queries/useBudgetQueries'
+import { useTotalSubscription } from '../hooks/queries/useSubscriptionQueries'
+import { useIncomeSummary } from '../hooks/queries/useIncomeQueries'
 
 function Dashboard() {
   const user = useStore((state) => state.user)
@@ -24,65 +23,37 @@ function Dashboard() {
   const setYear = useStore((state) => state.setSelectedYear)
 
   const currency = user?.defaultCurrency || 'USD'
-  const [budgetSummary, setBudgetSummary] = useState(null)
-  const [subscriptionFee, setSubscriptionFee] = useState(null)
-  const [incomeSummary, setIncomeSummary] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   // Debounce month/year changes - instant on first mount, 500ms delay on subsequent changes
   const debouncedMonth = useDebouncedValue(month, 500)
   const debouncedYear = useDebouncedValue(year, 500)
 
-  useEffect(() => {
-    let ignore = false
+  // React Query hooks - automatically handle loading, caching, and errors
+  const {
+    data: budgetSummary,
+    isLoading: budgetLoading,
+    error: budgetError
+  } = useBudgetSummary({
+    month: debouncedMonth,
+    year: debouncedYear,
+    userId
+  })
 
-    const fetchData = async () => {
-      if (!userId || !debouncedMonth || !debouncedYear) return
-      setLoading(true)
-      setError('')
-      try {
-        const [summaryData, totalSubscription, incomeData] = await Promise.all([
-          getBudgetSummary({ month: debouncedMonth, year: debouncedYear, userId }),
-          getTotalSubscription({ userId }),
-          getIncomeSummary({ month: debouncedMonth, year: debouncedYear }),
-        ])
+  const {
+    data: subscriptionFee,
+    isLoading: subscriptionLoading
+  } = useTotalSubscription({ userId })
 
-        if (!ignore) {
-          setBudgetSummary(summaryData ?? null)
-          setSubscriptionFee(
-            typeof totalSubscription === 'number' && !Number.isNaN(totalSubscription)
-              ? totalSubscription
-              : 0,
-          )
-          setIncomeSummary(incomeData ?? null)
-        }
-      } catch (err) {
-        if (ignore) return
-        // Ignore abort errors
-        if (err.name === 'CanceledError' || err.name === 'AbortError' || axios.isCancel(err)) {
-          return
-        }
+  const {
+    data: incomeSummary,
+    isLoading: incomeLoading
+  } = useIncomeSummary({
+    month: debouncedMonth,
+    year: debouncedYear
+  })
 
-        const message =
-          err?.response?.data?.message ??
-          err?.message ??
-          'Failed to load data, please try again later'
-
-        setError(message)
-      } finally {
-        if (!ignore) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchData()
-
-    return () => {
-      ignore = true
-    }
-  }, [userId, debouncedMonth, debouncedYear])
+  const loading = budgetLoading || subscriptionLoading || incomeLoading
+  const error = budgetError?.message || ''
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
@@ -137,7 +108,7 @@ function Dashboard() {
         </div>
       </Motion.div>
 
-      {subscriptionFee !== null ? (
+      {subscriptionFee !== undefined && subscriptionFee !== null ? (
         <Motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

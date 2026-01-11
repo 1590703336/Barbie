@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ActionButton } from '../components/common/ActionButton'
 import { createExpense } from '../services/expenseService'
@@ -6,6 +7,10 @@ import { createSubscription } from '../services/subscriptionService'
 import { createBudget, listBudgets } from '../services/budgetService'
 import { createIncome } from '../services/incomeService'
 import useStore from '../store/store'
+import { budgetKeys } from '../hooks/queries/useBudgetQueries'
+import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { incomeKeys } from '../hooks/queries/useIncomeQueries'
+import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 
 const currencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
@@ -94,6 +99,8 @@ function CreateEntries() {
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
 
+  const queryClient = useQueryClient()
+
   const handleSubscriptionChange = (field, value) => {
     setSubscriptionForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -132,6 +139,8 @@ function CreateEntries() {
       setMessage('Subscription created successfully')
       setIsError(false)
       setSubscriptionForm(initialSubscription)
+      // Invalidate cache so other pages refetch
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create subscription'
@@ -166,6 +175,8 @@ function CreateEntries() {
       setMessage('Budget created successfully')
       setIsError(false)
       setBudgetForm(initialBudget)
+      // Invalidate cache so other pages refetch
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create budget'
@@ -235,6 +246,9 @@ function CreateEntries() {
 
       setIsError(false)
       setExpenseForm(initialExpense)
+      // Invalidate cache so other pages refetch (expense affects budget too)
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create expense'
@@ -268,6 +282,8 @@ function CreateEntries() {
       setMessage('Income created successfully')
       setIsError(false)
       setIncomeForm(initialIncome)
+      // Invalidate cache so other pages refetch
+      queryClient.invalidateQueries({ queryKey: incomeKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create income'
