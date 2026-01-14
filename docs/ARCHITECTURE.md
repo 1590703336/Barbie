@@ -178,7 +178,7 @@ Barbie/
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      User Interface                      │
-│                 React Frontend (:3000)                   │
+│            React Frontend (:5173 dev / :4173 preview)    │
 └──────────────┬────────────────────────┬─────────────────┘
                │                        │
                │ HTTP/REST              │ HTTP/REST
@@ -186,7 +186,7 @@ Barbie/
 ┌──────────────────────────┐   ┌─────────────────────────┐
 │   Business Logic API     │   │   Data Science API      │
 │  Node.js + Express       │   │  Python + FastAPI       │
-│       (:5000)            │←→│       (:8000)           │
+│  (:5500 dev / :4273 prod)│←→│       (:8000)           │
 │                          │   │                         │
 │ • User Authentication    │   │ • Data Analytics        │
 │ • Subscription CRUD      │   │ • Trend Prediction      │
@@ -205,7 +205,7 @@ Barbie/
 
 ## Technology Stack
 
-### Frontend (Port: 3000)
+### Frontend (Port: 5173 dev / 4173 preview)
 - **Framework**: React 18.3
 - **Build Tool**: Vite 5
 - **UI Framework**: Tailwind CSS 3
@@ -217,7 +217,7 @@ Barbie/
 - **Date Handling**: date-fns
 - **Icons**: Lucide React
 
-### Backend (Port: 5000)
+### Backend (Port: 5500 dev / 4273 production)
 - **Runtime**: Node.js 20+
 - **Framework**: Express.js 4.16
 - **Database**: MongoDB 7.0 with Mongoose 9.0
@@ -372,10 +372,15 @@ services/
 ### Development Environment
 ```
 Local Development (localhost)
-├── Frontend: http://localhost:3000
-├── Backend: http://localhost:5000
+├── Frontend: http://localhost:5173 (dev) / http://localhost:4173 (preview)
+├── Backend: http://localhost:5500 (dev) / http://localhost:4273 (production)
 ├── Data Science: http://localhost:8000
 └── MongoDB: mongodb://localhost:27017
+
+Run Modes:
+- npm run dev    → Uses development ports (Frontend 5173, Backend 5500)
+- npm run start  → Uses production ports (Backend 4273)
+- npm run preview → Uses preview port (Frontend 4173, proxies to Backend 4273)
 ```
 
 ### Docker Production
@@ -412,16 +417,25 @@ Docker Compose
 docker-compose up
 ```
 
-**Option 3: Manual**
+**Option 3: Manual (Development)**
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Backend (port 5500)
 cd apps/backend && npm run dev
 
-# Terminal 2: Frontend
+# Terminal 2: Frontend (port 5173, proxies to backend 5500)
 cd apps/frontend && npm run dev
 
 # Terminal 3: Data Science
 cd apps/data-science && uvicorn app.main:app --reload
+```
+
+**Option 4: Manual (Production-like)**
+```bash
+# Terminal 1: Backend (port 4273)
+cd apps/backend && npm start
+
+# Terminal 2: Frontend (port 4173, proxies to backend 4273)
+cd apps/frontend && npm run build && npm run preview
 ```
 
 ## References
@@ -435,6 +449,6 @@ cd apps/data-science && uvicorn app.main:app --reload
 
 ---
 
-**Last Updated**: December 2025  
+**Last Updated**: January 2026  
 **Version**: 0.1.0  
 **Status**: ✅ Structure Complete, Under Development
