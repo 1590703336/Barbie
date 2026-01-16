@@ -55,9 +55,9 @@ function NavBar() {
             ))}
         </nav>
         <div className="flex items-center gap-6 text-sm">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
-              <ThemeToggle />
               <span className="text-slate-700">Hi, {user?.name ?? user?.email ?? 'User'}</span>
               <motion.button
                 whileHover={{ scale: 1.05 }}
