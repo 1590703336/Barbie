@@ -3,6 +3,8 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import heroImg from '../assets/hero.png'
 import subImg from '../assets/subscriptions.png'
 import analyticsImg from '../assets/analytics.png'
+import incomeImg from '../assets/income_features.png'
+import currencyImg from '../assets/currency_features.png'
 
 const MotionLink = motion(Link)
 
@@ -47,10 +49,10 @@ function Home() {
                 Smart Financial Management
               </span>
               <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl mb-6">
-                Master your <span className="text-blue-600">Subscriptions</span> & <span className="text-purple-600">Expenses</span>
+                Master your <span className="text-blue-600">Finances</span>
               </h1>
               <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0">
-                Stop losing money to forgotten subscriptions. take control of your monthly spend with automated tracking, smart alerts, and beautiful analytics.
+                The all-in-one platform to track income, manage expenses, and control subscriptions. Smart currency conversion and automated alerts help you stay on top of your money.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <MotionLink
@@ -134,8 +136,52 @@ function Home() {
         </div>
       </section>
 
-      {/* Feature 2: Budgeting */}
+      {/* Feature 2: Income Tracking */}
       <section className="py-24 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <motion.div
+              {...fadeInLeft}
+              className="flex-1"
+            >
+              <div className="inline-flex items-center justify-center p-3 bg-purple-100 rounded-xl mb-6">
+                <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Track Every Income Stream</h2>
+              <p className="text-lg text-slate-600 mb-6">
+                Whether it's your primary salary, freelance work, or investment returns, keep everything in one place. Understand your cash flow with detailed breakdowns.
+              </p>
+              <ul className="space-y-3">
+                {['Multiple Income Sources', 'Monthly Income Analytics', 'Year-to-Date Tracking'].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-slate-700">
+                    <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+            <motion.div
+              {...fadeInRight}
+              className="flex-1"
+            >
+              <div className="bg-white p-2 rounded-2xl shadow-xl">
+                <img
+                  src={incomeImg}
+                  alt="Income Tracking"
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 3: Budgeting */}
+      <section className="py-24 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <motion.div
@@ -173,6 +219,50 @@ function Home() {
                   className="w-full h-auto rounded-xl"
                 />
               </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature 4: Global Currency */}
+      <section className="py-24 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <motion.div
+              {...fadeInLeft}
+              className="flex-1"
+            >
+              <div className="bg-white p-2 rounded-2xl shadow-xl">
+                <img
+                  src={currencyImg}
+                  alt="Global Currency Support"
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            </motion.div>
+            <motion.div
+              {...fadeInRight}
+              className="flex-1"
+            >
+              <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-xl mb-6">
+                <svg className="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Global Currency Support</h2>
+              <p className="text-lg text-slate-600 mb-6">
+                Travel freely and manage finances across borders. We support real-time currency conversion for USD, EUR, CNY, and more.
+              </p>
+              <ul className="space-y-3">
+                {['Real-time Exchange Rates', 'Multi-currency Wallets', 'Instant Conversion'].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-slate-700">
+                    <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </motion.div>
           </div>
         </div>
@@ -236,7 +326,7 @@ function Home() {
           </div>
         </div>
       </section>
-    </div>
+    </div >
   )
 }
 
