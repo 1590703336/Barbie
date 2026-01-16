@@ -139,7 +139,7 @@ export const CategoryIcon = ({ category, name, className = 'w-10 h-10' }) => {
         <div
             className={`flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br shadow-md ${gradientClass} ${className}`}
         >
-            <Icon className="h-3/5 w-3/5 text-white drop-shadow-sm" />
+            <Icon className="h-3/5 w-3/5 text-main drop-shadow-sm" />
         </div>
     )
 }

@@ -13,59 +13,153 @@
 :root {
   color-scheme: dark;
 
-  /* Modern Fintech Palette */
-  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  /* Indigo to Purple */
-  --bg-deep: #030712;
-  /* Very dark slate/blue */
+  /* --- DARK THEME VARIABLES (Default) --- */
 
-  /* Text */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
+  /* Backgrounds */
+  --bg-deep: #030712;
+  --bg-gradient:
+    radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, transparent 100%);
+
+  /* Glass Effects */
+  --glass-bg: rgba(17, 24, 39, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --glass-card-bg: rgba(30, 41, 59, 0.4);
+  --glass-card-border: rgba(255, 255, 255, 0.1);
+  --glass-card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+  --glass-panel-bg: rgba(15, 23, 42, 0.6);
+  --glass-panel-border: rgba(255, 255, 255, 0.05);
+
+  /* Text Colors */
+  --text-main: #f8fafc;
+  /* slate-50 */
+  --text-secondary: #94a3b8;
+  /* slate-400 */
+  --text-muted: #64748b;
+  /* slate-500 */
+
+  /* Inputs */
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-text: #f8fafc;
+  --input-placeholder: #64748b;
+  --input-focus-border: #818cf8;
+  /* indigo-400 */
+  --input-focus-ring: rgba(99, 102, 241, 0.2);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  /* Special */
+  --date-icon-filter: invert(1);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* --- LIGHT THEME VARIABLES --- */
+
+  /* Backgrounds: Light blue gradient close to white */
+  --bg-deep: #f0f9ff;
+  /* sky-50 */
+  --bg-gradient:
+    radial-gradient(circle at 0% 0%, rgba(224, 242, 254, 0.8) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(233, 213, 255, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(240, 249, 255, 1) 0%, transparent 100%);
+
+  /* Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(203, 213, 225, 0.6);
+  /* slate-300 */
+
+  --glass-card-bg: rgba(255, 255, 255, 0.75);
+  --glass-card-border: rgba(203, 213, 225, 0.6);
+  --glass-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
+
+  --glass-panel-bg: rgba(241, 245, 249, 0.6);
+  /* slate-100 */
+  --glass-panel-border: rgba(203, 213, 225, 0.5);
+
+  /* Text Colors */
+  --text-main: #0f172a;
+  /* slate-900 */
+  --text-secondary: #475569;
+  /* slate-600 */
   --text-muted: #94a3b8;
+  /* slate-400 */
+
+  /* Inputs */
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(203, 213, 225, 1);
+  /* slate-300 */
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #6366f1;
+  /* indigo-500 */
+  --input-focus-ring: rgba(99, 102, 241, 0.15);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(148, 163, 184, 0.5);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.6);
+
+  /* Special */
+  --date-icon-filter: none;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  /* Deep Blue/Purple Gradient Background */
   background-color: var(--bg-deep);
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, transparent 100%);
+  background-image: var(--bg-gradient);
   background-attachment: fixed;
-  color: var(--text-primary);
+  color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- UTILITY CLASSES FOR THEME --- */
+
+.text-main {
+  color: var(--text-main);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
 }
 
 /* Glassmorphism Utilities */
 .glass {
-  background: rgba(17, 24, 39, 0.7);
-  /* slate-900 with opacity */
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.4);
-  /* darker glass */
+  background: var(--glass-card-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-card-border);
+  box-shadow: var(--glass-card-shadow);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .glass-panel {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--glass-panel-bg);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-panel-border);
+  transition: background 0.3s, border-color 0.3s;
 }
-
-/* Override Default Allocations */
-/* We force a dark theme look globally based on user request */
 
 /* Links & text */
 a {
@@ -80,9 +174,8 @@ h3,
 h4,
 h5,
 h6 {
-  color: #fff;
+  color: var(--text-main);
   letter-spacing: -0.025em;
-  /* tight tracking for modern look */
 }
 
 p {
@@ -93,11 +186,10 @@ p {
 input,
 select,
 textarea {
-  background-color: rgba(15, 23, 42, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #f8fafc !important;
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
   border-radius: 0.75rem;
-  /* rounded-xl */
   transition: all 0.2s;
 }
 
@@ -105,15 +197,15 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #818cf8 !important;
-  /* Indigo-400 */
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
-  background-color: rgba(30, 41, 59, 0.8) !important;
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
+  /* Ensure background opacity increases slightly on focus in dark mode if needed, 
+     but keeping it simple for consistency */
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #64748b !important;
+  color: var(--input-placeholder) !important;
 }
 
 /* Custom Scrollbar */
@@ -126,17 +218,17 @@ textarea::placeholder {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Date Input Icon */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: var(--date-icon-filter);
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
@@ -149,6 +241,5 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 /* Selection Color */
 ::selection {
   background: rgba(139, 92, 246, 0.3);
-  /* violet-500 optimized */
   color: #fff;
 }

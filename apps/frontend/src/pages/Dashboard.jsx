@@ -63,21 +63,21 @@ function Dashboard() {
         className="space-y-3"
       >
         <p className="text-sm font-semibold text-indigo-400">My bills</p>
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-3xl font-bold text-main">
           Welcome back, {user?.name ?? user?.email ?? 'friend'}
         </h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-secondary">
           Budget statistics for the selected month/year. Records have moved to the Records page.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-300">Budget month & year</p>
+            <p className="text-sm font-semibold text-muted">Budget month & year</p>
             <p className="text-xs text-slate-500">
               Controls which month/year the stats use. Changing the inputs refreshes data.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-muted">
               Month
               <input
                 className="w-24 px-3 py-2 text-sm"
@@ -91,7 +91,7 @@ function Dashboard() {
                 }}
               />
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-muted">
               Year
               <input
                 className="w-28 px-3 py-2 text-sm"
@@ -114,10 +114,10 @@ function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-2xl glass-card p-4"
         >
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-secondary">
             Subscription fee in {year || new Date().getFullYear()}
           </p>
-          <p className="mt-2 text-2xl font-semibold text-white">
+          <p className="mt-2 text-2xl font-semibold text-main">
             {formatCurrency(subscriptionFee ?? 0, currency)}
           </p>
         </Motion.div>
@@ -129,7 +129,7 @@ function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-2xl glass-card p-4"
         >
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-secondary">
             Total income in {month}/{year}
           </p>
           <p className="mt-2 text-2xl font-semibold text-emerald-400">
@@ -146,8 +146,8 @@ function Dashboard() {
             transition={{ delay: 0.1 }}
             className="rounded-2xl glass-card p-4"
           >
-            <p className="text-sm text-slate-400">Total budget</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="text-sm text-secondary">Total budget</p>
+            <p className="mt-2 text-2xl font-semibold text-main">
               {formatCurrency(budgetSummary.totalBudget ?? 0, currency)}
             </p>
           </Motion.div>
@@ -157,8 +157,8 @@ function Dashboard() {
             transition={{ delay: 0.2 }}
             className="rounded-2xl glass-card p-4"
           >
-            <p className="text-sm text-slate-400">Total expenses</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="text-sm text-secondary">Total expenses</p>
+            <p className="mt-2 text-2xl font-semibold text-main">
               {formatCurrency(budgetSummary.totalExpenses ?? 0, currency)}
             </p>
           </Motion.div>
@@ -168,13 +168,13 @@ function Dashboard() {
             transition={{ delay: 0.3 }}
             className="rounded-2xl glass-card p-4"
           >
-            <p className="text-sm text-slate-400">Remaining budget</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="text-sm text-secondary">Remaining budget</p>
+            <p className="mt-2 text-2xl font-semibold text-main">
               {formatCurrency(budgetSummary.remainingBudget ?? 0, currency)}
             </p>
           </Motion.div>
           <div className="sm:col-span-3">
-            <h3 className="mb-2 text-sm font-semibold text-slate-400">
+            <h3 className="mb-2 text-sm font-semibold text-secondary">
               Category breakdown
             </h3>
             <div className="grid gap-3 md:grid-cols-2">
@@ -189,15 +189,15 @@ function Dashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CategoryIcon category={item.category} className="h-10 w-10 text-slate-200" />
-                      <p className="text-base font-semibold text-white">
+                      <p className="text-base font-semibold text-main">
                         {item.category}
                       </p>
                     </div>
-                    <span className="text-sm text-slate-400">
+                    <span className="text-sm text-secondary">
                       Budget {formatCurrency(item.budget ?? 0, currency)}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-secondary">
                     Spent {formatCurrency(item.expenses ?? 0, currency)} · Remaining{' '}
                     <span
                       className={
@@ -225,7 +225,7 @@ function Dashboard() {
       ) : error ? (
         <p className="text-rose-600">{error}</p>
       ) : (
-        <div className="rounded-2xl glass-panel p-10 text-center text-slate-400 border border-dashed border-slate-500/50">
+        <div className="rounded-2xl glass-panel p-10 text-center text-secondary border border-dashed border-slate-500/50">
           Charts coming soon — reserved space for future analytics and visualizations.
         </div>
       )}

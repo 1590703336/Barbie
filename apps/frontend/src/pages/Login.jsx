@@ -58,13 +58,13 @@ function Login() {
         <p className="inline-flex rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
           Authentication
         </p>
-        <h1 className="text-4xl font-bold text-white">Welcome back</h1>
-        <p className="text-base text-slate-400">
+        <h1 className="text-4xl font-bold text-main">Welcome back</h1>
+        <p className="text-base text-secondary">
           Use your account to sign in and manage your expenses and subscriptions. If you don’t have an account yet, please register first.
         </p>
-        <div className="rounded-2xl glass-panel p-4 text-sm text-slate-300 shadow-sm">
+        <div className="rounded-2xl glass-panel p-4 text-sm text-muted shadow-sm">
           <p className="font-semibold text-indigo-300">Frontend notes</p>
-          <ul className="mt-2 space-y-1 list-disc list-inside text-slate-400">
+          <ul className="mt-2 space-y-1 list-disc list-inside text-secondary">
             <li>Authentication state is stored in Zustand</li>
             <li>On success, users are redirected to the dashboard</li>
             <li>API calls are wrapped in services/authService</li>
@@ -86,7 +86,7 @@ function Login() {
           <LoginForm onSubmit={handleLogin} loading={loading} />
         </div>
         {error ? <p className="text-sm text-rose-400">{error}</p> : null}
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-secondary">
           Don’t have an account?{' '}
           <Link to="/register" className="text-indigo-400 hover:text-indigo-300 underline">
             Go to register

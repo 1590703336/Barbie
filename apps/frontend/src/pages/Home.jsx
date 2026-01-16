@@ -117,13 +117,13 @@ function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Never Miss a Renewal</h2>
-              <p className="text-lg text-slate-400 mb-6">
+              <h2 className="text-3xl font-bold text-main mb-4">Never Miss a Renewal</h2>
+              <p className="text-lg text-secondary mb-6">
                 Keep track of all your recurring payments in one organized dashboard. Set custom alerts to remind you before payments occur, giving you the chance to cancel unwanted services in time.
               </p>
               <ul className="space-y-3">
                 {['Automatic Renewal Tracking', 'Custom Notification Alerts', 'Cancellation Reminders'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                  <li key={item} className="flex items-center gap-3 text-muted">
                     <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -149,13 +149,13 @@ function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Track Every Income Stream</h2>
-              <p className="text-lg text-slate-400 mb-6">
+              <h2 className="text-3xl font-bold text-main mb-4">Track Every Income Stream</h2>
+              <p className="text-lg text-secondary mb-6">
                 Whether it's your primary salary, freelance work, or investment returns, keep everything in one place. Understand your cash flow with detailed breakdowns.
               </p>
               <ul className="space-y-3">
                 {['Multiple Income Sources', 'Monthly Income Analytics', 'Year-to-Date Tracking'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                  <li key={item} className="flex items-center gap-3 text-muted">
                     <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -193,13 +193,13 @@ function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Visualize Your Growth</h2>
-              <p className="text-lg text-slate-400 mb-6">
+              <h2 className="text-3xl font-bold text-main mb-4">Visualize Your Growth</h2>
+              <p className="text-lg text-secondary mb-6">
                 Set comprehensive monthly budgets and visualize your spending habits. Our intuitive charts show you exactly where your money goes, helping you save more for what truly matters.
               </p>
               <ul className="space-y-3">
                 {['Visual Spending Breakdown', 'Monthly Budget Goals', 'Smart Savings Insights'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                  <li key={item} className="flex items-center gap-3 text-muted">
                     <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -249,13 +249,13 @@ function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Global Currency Support</h2>
-              <p className="text-lg text-slate-400 mb-6">
+              <h2 className="text-3xl font-bold text-main mb-4">Global Currency Support</h2>
+              <p className="text-lg text-secondary mb-6">
                 Travel freely and manage finances across borders. We support real-time currency conversion for USD, EUR, CNY, and more.
               </p>
               <ul className="space-y-3">
                 {['Real-time Exchange Rates', 'Multi-currency Wallets', 'Instant Conversion'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                  <li key={item} className="flex items-center gap-3 text-muted">
                     <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -276,7 +276,7 @@ function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl font-bold mb-4">Designed for security and privacy</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">
+            <p className="text-secondary max-w-2xl mx-auto">
               We prioritize your data security so you can manage your finances with peace of mind.
             </p>
           </motion.div>
@@ -291,7 +291,7 @@ function Home() {
                 🔒
               </div>
               <h3 className="text-xl font-bold mb-3">Bank-Grade Encryption</h3>
-              <p className="text-slate-400">
+              <p className="text-secondary">
                 Your data is encrypted at rest and in transit using industry-standard protocols.
               </p>
             </motion.div>
@@ -305,7 +305,7 @@ function Home() {
                 🛡️
               </div>
               <h3 className="text-xl font-bold mb-3">Private By Default</h3>
-              <p className="text-slate-400">
+              <p className="text-secondary">
                 We don't sell your data. Your financial information belongs to you and only you.
               </p>
             </motion.div>
@@ -319,7 +319,7 @@ function Home() {
                 ⚡
               </div>
               <h3 className="text-xl font-bold mb-3">Real-time Sync</h3>
-              <p className="text-slate-400">
+              <p className="text-secondary">
                 Access your data from any device. Updates are synced instantly for seamless management.
               </p>
             </motion.div>

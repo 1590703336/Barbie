@@ -109,7 +109,7 @@ const ChangelogButton = () => {
                             }
                         `}>
                             <div className="flex items-center justify-between">
-                                <h3 className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                                <h3 className={`font-semibold ${theme === 'dark' ? 'text-main' : 'text-slate-900'}`}>
                                     Changelog
                                 </h3>
                                 <button
@@ -117,7 +117,7 @@ const ChangelogButton = () => {
                                     className={`
                                         p-1 rounded-lg transition-colors
                                         ${theme === 'dark'
-                                            ? 'hover:bg-slate-700 text-slate-400'
+                                            ? 'hover:bg-slate-700 text-secondary'
                                             : 'hover:bg-slate-100 text-slate-500'
                                         }
                                     `}
@@ -143,7 +143,7 @@ const ChangelogButton = () => {
                                         <span className={`
                                             px-2 py-0.5 text-xs font-semibold rounded-full
                                             ${index === 0
-                                                ? 'bg-green-500 text-white'
+                                                ? 'bg-green-500 text-main'
                                                 : theme === 'dark'
                                                     ? 'bg-slate-600 text-slate-200'
                                                     : 'bg-slate-200 text-slate-700'
@@ -151,7 +151,7 @@ const ChangelogButton = () => {
                                         `}>
                                             v{entry.version}
                                         </span>
-                                        <span className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        <span className={`text-xs ${theme === 'dark' ? 'text-secondary' : 'text-slate-500'}`}>
                                             {entry.date}
                                         </span>
                                         {index === 0 && (
@@ -166,7 +166,7 @@ const ChangelogButton = () => {
                                                 key={changeIndex}
                                                 className={`
                                                     text-sm flex items-start gap-2
-                                                    ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}
+                                                    ${theme === 'dark' ? 'text-muted' : 'text-slate-600'}
                                                 `}
                                             >
                                                 <span className="text-green-500 mt-1">•</span>
