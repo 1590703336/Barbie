@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import useStore from '../../store/store'
 import ThemeToggle from './ThemeToggle'
+import ChangelogButton from './ChangelogButton'
 
 const MotionLink = motion(Link)
 
@@ -56,6 +57,7 @@ function NavBar() {
         </nav>
         <div className="flex items-center gap-6 text-sm">
           <ThemeToggle />
+          <ChangelogButton />
           {isAuthenticated ? (
             <>
               <span className="text-slate-700">Hi, {user?.name ?? user?.email ?? 'User'}</span>
