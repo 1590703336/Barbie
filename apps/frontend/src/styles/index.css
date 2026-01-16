@@ -27,9 +27,23 @@
   --glass-bg: rgba(17, 24, 39, 0.4);
   --glass-border: rgba(255, 255, 255, 0.12);
 
-  --glass-card-bg: rgba(30, 41, 59, 0.25);
+  /* ========== GLASS CARD (Dark Mode) ==========
+   * --glass-card-bg: rgba(R, G, B, OPACITY)
+   *   - R,G,B: 30,41,59 = slate-800 深灰蓝色
+   *   - OPACITY: 0.25 = 25% 不透明度 (越低越透明，毛玻璃效果越明显)
+   * 
+   * --glass-card-border: rgba(255,255,255, OPACITY)
+   *   - 白色边框，0.1 = 10% 不透明度
+   *
+   * --glass-card-shadow: 0 Y-offset BLUR SPREAD rgba(0,0,0, OPACITY)
+   *   - Y-offset: 8px 向下偏移
+   *   - BLUR: 32px 模糊半径
+   *   - SPREAD: 0 扩散
+   *   - OPACITY: 0.3 = 30% 阴影深度
+   */
+  --glass-card-bg: rgba(30, 41, 59, 0.5);
   --glass-card-border: rgba(255, 255, 255, 0.1);
-  --glass-card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --glass-card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 
   --glass-panel-bg: rgba(15, 23, 42, 0.3);
   --glass-panel-border: rgba(255, 255, 255, 0.08);
@@ -82,9 +96,23 @@
   --glass-border: rgba(203, 213, 225, 0.6);
   /* slate-300 */
 
-  --glass-card-bg: rgba(255, 255, 255, 0.75);
+  /* ========== GLASS CARD (Light Mode) ==========
+   * --glass-card-bg: rgba(R, G, B, OPACITY)
+   *   - R,G,B: 255,255,255 = 白色
+   *   - OPACITY: 0.75 = 75% 不透明度 (降低此值可增强毛玻璃效果，如 0.4-0.6)
+   * 
+   * --glass-card-border: rgba(203,213,225, OPACITY)
+   *   - slate-300 灰色边框，0.6 = 60% 不透明度
+   *
+   * --glass-card-shadow: 0 Y-offset BLUR SPREAD rgba(0,0,0, OPACITY)
+   *   - Y-offset: 4px 向下偏移
+   *   - BLUR: 20px 模糊半径
+   *   - SPREAD: -2px 负扩散（阴影更紧凑）
+   *   - OPACITY: 0.1 = 10% 阴影深度 (Light mode 阴影应比 dark 浅)
+   */
+  --glass-card-bg: rgba(255, 255, 255, 0.25);
   --glass-card-border: rgba(203, 213, 225, 0.6);
-  --glass-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1);
+  --glass-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
 
   --glass-panel-bg: rgba(241, 245, 249, 0.6);
   /* slate-100 */
