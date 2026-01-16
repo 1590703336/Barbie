@@ -269,7 +269,7 @@ function Home() {
       </section>
 
       {/* Feature 3: Security / Benefits Grid */}
-      <section className="py-24 bg-slate-900 text-white">
+      <section className="py-24 text-main relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             {...fadeInUp}
@@ -285,9 +285,9 @@ function Home() {
             <motion.div
               {...fadeInUp}
               transition={{ delay: 0.1 }}
-              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+              className="glass-card p-8 rounded-2xl"
             >
-              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+              <div className="glass w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
                 🔒
               </div>
               <h3 className="text-xl font-bold mb-3">Bank-Grade Encryption</h3>
@@ -299,9 +299,9 @@ function Home() {
             <motion.div
               {...fadeInUp}
               transition={{ delay: 0.2 }}
-              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+              className="glass-card p-8 rounded-2xl"
             >
-              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+              <div className="glass w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
                 🛡️
               </div>
               <h3 className="text-xl font-bold mb-3">Private By Default</h3>
@@ -313,9 +313,9 @@ function Home() {
             <motion.div
               {...fadeInUp}
               transition={{ delay: 0.3 }}
-              className="bg-slate-800 p-8 rounded-2xl border border-slate-700"
+              className="glass-card p-8 rounded-2xl"
             >
-              <div className="bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
+              <div className="glass w-12 h-12 rounded-lg flex items-center justify-center mb-6 text-2xl">
                 ⚡
               </div>
               <h3 className="text-xl font-bold mb-3">Real-time Sync</h3>

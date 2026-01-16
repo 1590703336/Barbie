@@ -132,7 +132,7 @@ function Dashboard() {
           <p className="text-sm text-secondary">
             Total income in {month}/{year}
           </p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-400">
+          <p className="mt-2 text-2xl font-semibold text-main">
             {formatCurrency(incomeSummary.totalIncome ?? 0, currency)}
           </p>
         </Motion.div>

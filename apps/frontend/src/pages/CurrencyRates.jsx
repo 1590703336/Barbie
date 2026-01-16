@@ -164,7 +164,7 @@ const CurrencyRates = () => {
                                     <span className="text-secondary">=</span>
 
                                     {/* Converted result */}
-                                    <div className="w-28 px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm font-semibold text-emerald-400">
+                                    <div className="w-28 px-3 py-2 glass-panel rounded-lg text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                                         {convertAmount(getAmount(pair._id), pair.fromCurrency, pair.toCurrency) || '—'}
                                     </div>
 
