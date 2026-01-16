@@ -37,7 +37,7 @@ function NavBar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative px-3 py-2 rounded-lg transition text-muted hover:text-main`
+                  `relative px-3 py-2 rounded-lg transition text-secondary hover:text-main`
                 }
               >
                 {({ isActive }) => (
@@ -60,7 +60,7 @@ function NavBar() {
           <ChangelogButton />
           {isAuthenticated ? (
             <>
-              <span className="text-slate-700">Hi, {user?.name ?? user?.email ?? 'User'}</span>
+              <span className="text-secondary">Hi, {user?.name ?? user?.email ?? 'User'}</span>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -74,7 +74,7 @@ function NavBar() {
             <>
               <Link
                 to="/login"
-                className="px-3 py-2 rounded-lg text-muted hover:bg-white/10 hover:text-main"
+                className="px-3 py-2 rounded-lg text-secondary hover:bg-white/10 hover:text-main"
               >
                 Log in
               </Link>
