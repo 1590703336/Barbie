@@ -21,9 +21,9 @@ function NavBar() {
   const logout = useStore((state) => state.logout)
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+    <header className="sticky top-0 z-20 glass border-b border-transparent">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="text-xl font-semibold text-slate-900">
+        <Link to="/" className="text-xl font-semibold text-white">
           Barbie Cloud
         </Link>
         <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
@@ -37,7 +37,7 @@ function NavBar() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative px-3 py-2 rounded-lg transition text-slate-900 hover:text-slate-600`
+                  `relative px-3 py-2 rounded-lg transition text-slate-300 hover:text-white`
                 }
               >
                 {({ isActive }) => (
@@ -46,7 +46,7 @@ function NavBar() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-active"
-                        className="absolute inset-0 bg-white rounded-lg mix-blend-difference"
+                        className="absolute inset-0 bg-white/10 rounded-lg"
                         transition={{ type: 'spring', duration: 0.6 }}
                       />
                     )}
@@ -74,7 +74,7 @@ function NavBar() {
             <>
               <Link
                 to="/login"
-                className="px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100"
+                className="px-3 py-2 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"
               >
                 Log in
               </Link>
@@ -82,7 +82,7 @@ function NavBar() {
                 to="/register"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30"
                 style={{ color: 'rgba(255, 255, 255, 1)' }}
               >
                 Sign up

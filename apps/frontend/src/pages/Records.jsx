@@ -448,25 +448,25 @@ function Records() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-slate-600">Records</p>
-        <h1 className="text-3xl font-bold text-slate-900">
+        <p className="text-sm font-semibold text-indigo-400">Records</p>
+        <h1 className="text-3xl font-bold text-white">
           Manage budgets, expenses, and subscriptions
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Update or delete any record you have created. Budgets, expenses, and incomes are filtered by month/year. Subscriptions show all records.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-700">Budget month & year</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-semibold text-slate-300">Budget month & year</p>
+            <p className="text-xs text-slate-400">
               Filters budgets, expenses, and incomes. Subscriptions are not filtered.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-slate-300">
               Month
               <input
-                className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-24 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                 type="number"
                 min={1}
                 max={12}
@@ -477,10 +477,10 @@ function Records() {
                 }}
               />
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-slate-300">
               Year
               <input
-                className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-28 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                 type="number"
                 min={2024}
                 value={year}
@@ -503,8 +503,8 @@ function Records() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Budgets</h2>
-                <span className="text-sm text-slate-500">
+                <h2 className="text-lg font-semibold text-white">Budgets</h2>
+                <span className="text-sm text-slate-400">
                   {budgets.length} for {month}/{year}
                 </span>
               </div>
@@ -515,22 +515,22 @@ function Records() {
                   return (
                     <div
                       key={id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      className="rounded-xl glass-card p-4"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <CategoryIcon category={budget.category} className="h-12 w-12" />
                           <div>
-                            <p className="text-base font-semibold text-slate-900">
+                            <p className="text-base font-semibold text-white">
                               {budget.category}
                             </p>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-400">
                               {budget.month}/{budget.year}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-lg font-bold text-white">
                             {formatCurrency(
                               budget.limit ?? 0,
                               budget.currency ?? 'USD',
@@ -540,7 +540,7 @@ function Records() {
                       </div>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.category ?? ''}
                           onChange={(e) =>
                             handleBudgetChange(id, 'category', e.target.value)
@@ -554,7 +554,7 @@ function Records() {
                           ))}
                         </select>
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.currency ?? ''}
                           onChange={(e) =>
                             handleBudgetChange(id, 'currency', e.target.value)
@@ -568,7 +568,7 @@ function Records() {
                           ))}
                         </select>
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           min={0}
                           value={form.limit ?? ''}
@@ -578,7 +578,7 @@ function Records() {
                           placeholder="Limit"
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           min={1}
                           max={12}
@@ -589,7 +589,7 @@ function Records() {
                           placeholder="Month"
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           min={2024}
                           value={form.year ?? ''}
@@ -627,8 +627,8 @@ function Records() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Expenses</h2>
-                <span className="text-sm text-slate-500">
+                <h2 className="text-lg font-semibold text-white">Expenses</h2>
+                <span className="text-sm text-slate-400">
                   Total {expenses.length}
                 </span>
               </div>
@@ -639,16 +639,16 @@ function Records() {
                   return (
                     <div
                       key={id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      className="rounded-xl glass-card p-4"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <CategoryIcon category={expense.category} name={expense.title} className="h-12 w-12" />
                           <div>
-                            <p className="text-base font-semibold text-slate-900">
+                            <p className="text-base font-semibold text-white">
                               {expense.title}
                             </p>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-400">
                               {expense.category} ·{' '}
                               {formatDateForDisplay(expense.date)}
                             </p>
@@ -665,7 +665,7 @@ function Records() {
                       </div>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.title ?? ''}
                           onChange={(e) =>
                             handleExpenseChange(id, 'title', e.target.value)
@@ -673,7 +673,7 @@ function Records() {
                           placeholder="Title"
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           value={form.amount ?? ''}
                           onChange={(e) =>
@@ -682,7 +682,7 @@ function Records() {
                           placeholder="Amount"
                         />
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.category ?? ''}
                           onChange={(e) =>
                             handleExpenseChange(id, 'category', e.target.value)
@@ -696,7 +696,7 @@ function Records() {
                           ))}
                         </select>
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.currency ?? ''}
                           onChange={(e) =>
                             handleExpenseChange(id, 'currency', e.target.value)
@@ -710,7 +710,7 @@ function Records() {
                           ))}
                         </select>
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="date"
                           value={form.date ?? ''}
                           onChange={(e) =>
@@ -718,7 +718,7 @@ function Records() {
                           }
                         />
                         <textarea
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm sm:col-span-2 text-white focus:border-indigo-500 focus:outline-none"
                           value={form.notes ?? ''}
                           onChange={(e) =>
                             handleExpenseChange(id, 'notes', e.target.value)
@@ -754,8 +754,8 @@ function Records() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Subscriptions</h2>
-                <span className="text-sm text-slate-500">
+                <h2 className="text-lg font-semibold text-white">Subscriptions</h2>
+                <span className="text-sm text-slate-400">
                   Total {subscriptions.length} (all)
                 </span>
               </div>
@@ -766,16 +766,16 @@ function Records() {
                   return (
                     <div
                       key={id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      className="rounded-xl glass-card p-4"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <CategoryIcon category={subscription.category} name={subscription.name} className="h-12 w-12" />
                           <div>
-                            <p className="text-base font-semibold text-slate-900">
+                            <p className="text-base font-semibold text-white">
                               {subscription.name}
                             </p>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-400">
                               {subscription.category} · {subscription.frequency}
                             </p>
                           </div>
@@ -794,7 +794,7 @@ function Records() {
                       </div>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.name ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(id, 'name', e.target.value)
@@ -802,7 +802,7 @@ function Records() {
                           placeholder="Name"
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           value={form.price ?? ''}
                           onChange={(e) =>
@@ -811,7 +811,7 @@ function Records() {
                           placeholder="Price"
                         />
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.currency ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(id, 'currency', e.target.value)
@@ -825,7 +825,7 @@ function Records() {
                           ))}
                         </select>
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.frequency ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(
@@ -843,7 +843,7 @@ function Records() {
                           ))}
                         </select>
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.category ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(
@@ -861,7 +861,7 @@ function Records() {
                           ))}
                         </select>
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.paymentMethod ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(
@@ -873,7 +873,7 @@ function Records() {
                           placeholder="Payment method"
                         />
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.status ?? ''}
                           onChange={(e) =>
                             handleSubscriptionChange(id, 'status', e.target.value)
@@ -887,7 +887,7 @@ function Records() {
                           ))}
                         </select>
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="date"
                           value={form.startDate ?? ''}
                           onChange={(e) =>
@@ -899,7 +899,7 @@ function Records() {
                           }
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="date"
                           value={form.renewalDate ?? ''}
                           onChange={(e) =>
@@ -939,8 +939,8 @@ function Records() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Incomes</h2>
-                <span className="text-sm text-slate-500">
+                <h2 className="text-lg font-semibold text-white">Incomes</h2>
+                <span className="text-sm text-slate-400">
                   {incomes.length} for {month}/{year}
                 </span>
               </div>
@@ -951,7 +951,7 @@ function Records() {
                   return (
                     <div
                       key={id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      className="rounded-xl glass-card p-4"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -959,10 +959,10 @@ function Records() {
                             <span className="text-2xl">💰</span>
                           </div>
                           <div>
-                            <p className="text-base font-semibold text-slate-900">
+                            <p className="text-base font-semibold text-white">
                               {income.category}
                             </p>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-slate-400">
                               {income.source || 'No source'} · {formatDateForDisplay(income.date)}
                             </p>
                           </div>
@@ -978,7 +978,7 @@ function Records() {
                       </div>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="number"
                           value={form.amount ?? ''}
                           onChange={(e) =>
@@ -987,7 +987,7 @@ function Records() {
                           placeholder="Amount"
                         />
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.currency ?? ''}
                           onChange={(e) =>
                             handleIncomeChange(id, 'currency', e.target.value)
@@ -1001,7 +1001,7 @@ function Records() {
                           ))}
                         </select>
                         <select
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.category ?? ''}
                           onChange={(e) =>
                             handleIncomeChange(id, 'category', e.target.value)
@@ -1015,7 +1015,7 @@ function Records() {
                           ))}
                         </select>
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={form.source ?? ''}
                           onChange={(e) =>
                             handleIncomeChange(id, 'source', e.target.value)
@@ -1023,7 +1023,7 @@ function Records() {
                           placeholder="Source"
                         />
                         <input
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           type="date"
                           value={form.date ?? ''}
                           onChange={(e) =>
@@ -1031,7 +1031,7 @@ function Records() {
                           }
                         />
                         <textarea
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm sm:col-span-2 text-white focus:border-indigo-500 focus:outline-none"
                           value={form.notes ?? ''}
                           onChange={(e) =>
                             handleIncomeChange(id, 'notes', e.target.value)

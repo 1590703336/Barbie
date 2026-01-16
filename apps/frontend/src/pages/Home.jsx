@@ -93,14 +93,14 @@ function Home() {
       </section>
 
       {/* Feature 1: Subscriptions */}
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <motion.div
               {...fadeInLeft}
               className="flex-1 order-2 lg:order-1"
             >
-              <div className="bg-white p-2 rounded-2xl shadow-xl">
+              <div className="glass-card p-2 rounded-2xl shadow-xl">
                 <img
                   src={subImg}
                   alt="Subscription Tracking"
@@ -112,19 +112,19 @@ function Home() {
               {...fadeInRight}
               className="flex-1 order-1 lg:order-2"
             >
-              <div className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-xl mb-6">
-                <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="inline-flex items-center justify-center p-3 glass rounded-xl mb-6 border border-blue-500/30">
+                <svg className="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">Never Miss a Renewal</h2>
-              <p className="text-lg text-slate-600 mb-6">
+              <h2 className="text-3xl font-bold text-white mb-4">Never Miss a Renewal</h2>
+              <p className="text-lg text-slate-400 mb-6">
                 Keep track of all your recurring payments in one organized dashboard. Set custom alerts to remind you before payments occur, giving you the chance to cancel unwanted services in time.
               </p>
               <ul className="space-y-3">
                 {['Automatic Renewal Tracking', 'Custom Notification Alerts', 'Cancellation Reminders'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-700">
-                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
@@ -137,26 +137,26 @@ function Home() {
       </section>
 
       {/* Feature 2: Income Tracking */}
-      <section className="py-24 bg-white">
+      <section className="py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <motion.div
               {...fadeInLeft}
               className="flex-1"
             >
-              <div className="inline-flex items-center justify-center p-3 bg-purple-100 rounded-xl mb-6">
-                <svg className="w-8 h-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="inline-flex items-center justify-center p-3 glass rounded-xl mb-6 border border-purple-500/30">
+                <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">Track Every Income Stream</h2>
-              <p className="text-lg text-slate-600 mb-6">
+              <h2 className="text-3xl font-bold text-white mb-4">Track Every Income Stream</h2>
+              <p className="text-lg text-slate-400 mb-6">
                 Whether it's your primary salary, freelance work, or investment returns, keep everything in one place. Understand your cash flow with detailed breakdowns.
               </p>
               <ul className="space-y-3">
                 {['Multiple Income Sources', 'Monthly Income Analytics', 'Year-to-Date Tracking'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-700">
-                    <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
@@ -168,7 +168,7 @@ function Home() {
               {...fadeInRight}
               className="flex-1"
             >
-              <div className="bg-white p-2 rounded-2xl shadow-xl">
+              <div className="glass-card p-2 rounded-2xl shadow-xl">
                 <img
                   src={incomeImg}
                   alt="Income Tracking"
@@ -181,26 +181,26 @@ function Home() {
       </section>
 
       {/* Feature 3: Budgeting */}
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <motion.div
               {...fadeInLeft}
               className="flex-1"
             >
-              <div className="inline-flex items-center justify-center p-3 bg-green-100 rounded-xl mb-6">
-                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="inline-flex items-center justify-center p-3 glass rounded-xl mb-6 border border-green-500/30">
+                <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">Visualize Your Growth</h2>
-              <p className="text-lg text-slate-600 mb-6">
+              <h2 className="text-3xl font-bold text-white mb-4">Visualize Your Growth</h2>
+              <p className="text-lg text-slate-400 mb-6">
                 Set comprehensive monthly budgets and visualize your spending habits. Our intuitive charts show you exactly where your money goes, helping you save more for what truly matters.
               </p>
               <ul className="space-y-3">
                 {['Visual Spending Breakdown', 'Monthly Budget Goals', 'Smart Savings Insights'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-700">
-                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
@@ -212,7 +212,7 @@ function Home() {
               {...fadeInRight}
               className="flex-1"
             >
-              <div className="bg-white p-2 rounded-2xl shadow-xl">
+              <div className="glass-card p-2 rounded-2xl shadow-xl">
                 <img
                   src={analyticsImg}
                   alt="Budget Analytics"
@@ -225,14 +225,14 @@ function Home() {
       </section>
 
       {/* Feature 4: Global Currency */}
-      <section className="py-24 bg-white">
+      <section className="py-24 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <motion.div
               {...fadeInLeft}
               className="flex-1"
             >
-              <div className="bg-white p-2 rounded-2xl shadow-xl">
+              <div className="glass-card p-2 rounded-2xl shadow-xl">
                 <img
                   src={currencyImg}
                   alt="Global Currency Support"
@@ -244,19 +244,19 @@ function Home() {
               {...fadeInRight}
               className="flex-1"
             >
-              <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-xl mb-6">
-                <svg className="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="inline-flex items-center justify-center p-3 glass rounded-xl mb-6 border border-indigo-500/30">
+                <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">Global Currency Support</h2>
-              <p className="text-lg text-slate-600 mb-6">
+              <h2 className="text-3xl font-bold text-white mb-4">Global Currency Support</h2>
+              <p className="text-lg text-slate-400 mb-6">
                 Travel freely and manage finances across borders. We support real-time currency conversion for USD, EUR, CNY, and more.
               </p>
               <ul className="space-y-3">
                 {['Real-time Exchange Rates', 'Multi-currency Wallets', 'Instant Conversion'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-700">
-                    <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={item} className="flex items-center gap-3 text-slate-300">
+                    <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
