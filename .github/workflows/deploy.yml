@@ -19,8 +19,11 @@ jobs:
           script: |
             cd /home/ubuntu/projects/Barbie
             
-            echo "📥 Pulling latest code..."
-            git pull origin main
+            echo "📥 Fetching latest code..."
+            git fetch origin main
+            
+            echo "🔄 Resetting to latest commit..."
+            git reset --hard origin/main
             
             echo "📦 Installing backend dependencies..."
             cd apps/backend
