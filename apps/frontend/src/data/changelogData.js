@@ -4,10 +4,13 @@
 export const changelog = [
     {
         version: "1.6.0",
-        date: "2026-01-15",
+        date: "2026-01-16",
         changes: [
-            "Fixed Dark Mode styling issues",
-            "Added GitHub Actions auto-deploy workflow"
+            "Refined glassmorphism effects with adjustable opacity",
+            "Fixed NavBar shadow visibility in light/dark modes",
+            "Fixed nav-active indicator visibility across themes",
+            "Fixed text colors on Records page for theme compatibility",
+            "Added detailed CSS comments for theme customization"
         ]
     },
     {
