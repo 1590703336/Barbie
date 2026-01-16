@@ -132,3 +132,31 @@ a {
   background: #cbd5e1;
   color: #0f172a;
 }
+
+/* Date input calendar icon - Light mode (dark icon) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
+  cursor: pointer;
+}
+
+/* Date input calendar icon - Dark mode (light icon) */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.1);
+  cursor: pointer;
+}
+
+/* Placeholder text color - Light mode */
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  /* slate-500 */
+  opacity: 1;
+}
+
+/* Placeholder text color - Dark mode */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #94a3b8;
+  /* slate-400 */
+  opacity: 1;
+}
