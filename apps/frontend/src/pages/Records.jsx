@@ -655,7 +655,7 @@ function Records() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-lg font-bold text-main">
                             {formatCurrency(
                               expense.amount ?? 0,
                               expense.currency ?? 'USD',
@@ -781,13 +781,13 @@ function Records() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-lg font-bold text-main">
                             {formatCurrency(
                               subscription.price ?? 0,
                               subscription.currency ?? 'USD',
                             )}
                           </p>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-secondary">
                             Status: {subscription.status}
                           </p>
                         </div>
@@ -968,7 +968,7 @@ function Records() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-emerald-600">
+                          <p className="text-lg font-bold text-main">
                             {formatCurrency(
                               income.amount ?? 0,
                               income.currency ?? 'USD',
