@@ -85,7 +85,7 @@ function Home() {
               <img
                 src={heroImg}
                 alt="Dashboard Mockup"
-                className="w-full h-auto rounded-2xl shadow-2xl transform rotate-y-12 hover:rotate-y-0 transition-transform duration-700 ease-out"
+                className="w-full h-auto rounded-2xl shadow-2xl transform rotate-y-12 transition-transform duration-700 ease-out"
               />
             </motion.div>
           </div>
