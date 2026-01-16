@@ -298,11 +298,12 @@ function CreateEntries() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 space-y-10">
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-slate-600">New entries</p>
-        <h1 className="text-3xl font-bold text-slate-900">
+
+        <p className="text-sm font-semibold text-indigo-400">New entries</p>
+        <h1 className="text-3xl font-bold text-main">
           Create subscriptions, budgets, and expenses
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-secondary">
           Fill in the details and submit; successful records attach to the current signed-in user.
         </p>
         {message ? (
@@ -344,10 +345,10 @@ function CreateEntries() {
             show: { opacity: 1, y: 0 },
           }}
           onSubmit={handleCreateBudget}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-2xl glass-card p-6"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create budget</h2>
+            <h2 className="text-lg font-semibold text-main">Create budget</h2>
             <ActionButton
               onClick={handleCreateBudget}
               disabled={loading}
@@ -358,7 +359,7 @@ function CreateEntries() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               value={budgetForm.category}
               onChange={(e) => handleBudgetChange('category', e.target.value)}
               required
@@ -371,7 +372,7 @@ function CreateEntries() {
               ))}
             </select>
             <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               value={budgetForm.currency}
               onChange={(e) => handleBudgetChange('currency', e.target.value)}
               required
@@ -384,7 +385,7 @@ function CreateEntries() {
               ))}
             </select>
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Limit"
               type="number"
               min={0}
@@ -393,7 +394,7 @@ function CreateEntries() {
               required
             />
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Month (1-12)"
               type="number"
               min={1}
@@ -403,7 +404,7 @@ function CreateEntries() {
               required
             />
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Year"
               type="number"
               min={2024}
@@ -420,10 +421,10 @@ function CreateEntries() {
             show: { opacity: 1, y: 0 },
           }}
           onSubmit={handleCreateExpense}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-2xl glass-card p-6"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create expense</h2>
+            <h2 className="text-lg font-semibold text-main">Create expense</h2>
             <ActionButton
               onClick={handleCreateExpense}
               disabled={loading}
@@ -434,7 +435,7 @@ function CreateEntries() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Title"
               value={expenseForm.title}
               onChange={(e) => handleExpenseChange('title', e.target.value)}
@@ -497,10 +498,10 @@ function CreateEntries() {
             show: { opacity: 1, y: 0 },
           }}
           onSubmit={handleCreateSubscription}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-2xl glass-card p-6"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create subscription</h2>
+            <h2 className="text-lg font-semibold text-main">Create subscription</h2>
             <ActionButton
               onClick={handleCreateSubscription}
               disabled={loading}
@@ -625,10 +626,10 @@ function CreateEntries() {
             show: { opacity: 1, y: 0 },
           }}
           onSubmit={handleCreateIncome}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-2xl glass-card p-6"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Create income</h2>
+            <h2 className="text-lg font-semibold text-main">Create income</h2>
             <ActionButton
               onClick={handleCreateIncome}
               disabled={loading}

@@ -1,0 +1,90 @@
+// Changelog data based on Git commit history
+// User-facing changes only: features and bug fixes
+
+export const changelog = [
+    {
+        version: "1.6.0",
+        date: "2026-01-15",
+        changes: [
+            "Fixed Dark Mode styling issues",
+            "Added GitHub Actions auto-deploy workflow"
+        ]
+    },
+    {
+        version: "1.5.0",
+        date: "2026-01-10",
+        changes: [
+            "Improved caching system with React Query",
+            "Fixed profile page cache issues",
+            "Dashboard and Records now remember selected date"
+        ]
+    },
+    {
+        version: "1.4.0",
+        date: "2026-01-07",
+        changes: [
+            "Added automatic logout on token expiration",
+            "Support for all currencies in profile and signup",
+            "Added currency conversion pairs feature",
+            "Added currency swap button",
+            "Display exchange rate update times"
+        ]
+    },
+    {
+        version: "1.3.0",
+        date: "2026-01-06",
+        changes: [
+            "Added Dark Mode support",
+            "Added Income tracking module",
+            "Fixed various bugs"
+        ]
+    },
+    {
+        version: "1.2.0",
+        date: "2026-01-05",
+        changes: [
+            "Improved category icon display",
+            "Updated category icons to detailed style",
+            "Enhanced navigation bar logic"
+        ]
+    },
+    {
+        version: "1.1.0",
+        date: "2026-01-04",
+        changes: [
+            "Fixed button animations",
+            "Redesigned homepage",
+            "Improved subscription renewal date calculation",
+            "Added page transition animations"
+        ]
+    },
+    {
+        version: "1.0.1",
+        date: "2026-01-01",
+        changes: [
+            "Filter expenses by month and year in Records page"
+        ]
+    },
+    {
+        version: "1.0.0",
+        date: "2025-12-30",
+        changes: [
+            "Enhanced budget enforcement and alerts",
+            "Added user profile page with password update",
+            "Implemented default currency feature",
+            "Added currency conversion module",
+            "Fixed timezone and crash issues"
+        ]
+    },
+    {
+        version: "0.9.0",
+        date: "2025-12-29",
+        changes: [
+            "Added expense tracking module",
+            "Added budget analytics",
+            "Added subscription management",
+            "Integrated API with frontend",
+            "Initial release"
+        ]
+    }
+]

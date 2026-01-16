@@ -111,17 +111,17 @@ const CurrencyRates = () => {
             {/* Currency Converter Section */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-slate-800">Currency Converter</h2>
+                    <h2 className="text-2xl font-bold text-main">Currency Converter</h2>
                     <button
                         onClick={handleAddPair}
-                        className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition text-sm font-medium"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition text-sm font-medium shadow-lg shadow-indigo-500/30"
                     >
                         + Add Pair
                     </button>
                 </div>
 
                 {convertPairs.length === 0 ? (
-                    <div className="bg-slate-50 rounded-lg p-6 text-center text-slate-500">
+                    <div className="glass-panel rounded-lg p-6 text-center text-secondary">
                         No convert pairs yet. Click "Add Pair" to create one.
                     </div>
                 ) : (
@@ -129,7 +129,7 @@ const CurrencyRates = () => {
                         {convertPairs.map((pair) => (
                             <div
                                 key={pair._id}
-                                className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
+                                className="glass-card rounded-xl p-4"
                             >
                                 <div className="flex flex-wrap items-center gap-3">
                                     {/* Amount input */}
@@ -138,14 +138,14 @@ const CurrencyRates = () => {
                                         placeholder="100"
                                         value={getAmount(pair._id)}
                                         onChange={(e) => handleAmountChange(pair._id, e.target.value)}
-                                        className="w-28 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                        className="w-28 px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-main focus:outline-none focus:border-indigo-500"
                                     />
 
                                     {/* From currency select */}
                                     <select
                                         value={pair.fromCurrency}
                                         onChange={(e) => handleUpdatePair(pair._id, { fromCurrency: e.target.value })}
-                                        className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                        className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-main focus:outline-none focus:border-indigo-500"
                                     >
                                         {currencies.map(c => (
                                             <option key={c} value={c}>{c}</option>
@@ -155,16 +155,16 @@ const CurrencyRates = () => {
                                     {/* Swap button */}
                                     <button
                                         onClick={() => handleSwapPair(pair)}
-                                        className="px-2 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition text-lg"
+                                        className="px-2 py-2 text-secondary hover:text-main hover:bg-white/10 rounded-lg transition text-lg"
                                         title="Swap currencies"
                                     >
                                         ⇄
                                     </button>
 
-                                    <span className="text-slate-400">=</span>
+                                    <span className="text-secondary">=</span>
 
                                     {/* Converted result */}
-                                    <div className="w-28 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
+                                    <div className="w-28 px-3 py-2 glass-panel rounded-lg text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                                         {convertAmount(getAmount(pair._id), pair.fromCurrency, pair.toCurrency) || '—'}
                                     </div>
 
@@ -172,7 +172,7 @@ const CurrencyRates = () => {
                                     <select
                                         value={pair.toCurrency}
                                         onChange={(e) => handleUpdatePair(pair._id, { toCurrency: e.target.value })}
-                                        className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                        className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-main focus:outline-none focus:border-indigo-500"
                                     >
                                         {currencies.map(c => (
                                             <option key={c} value={c}>{c}</option>
@@ -182,7 +182,7 @@ const CurrencyRates = () => {
                                     {/* Delete button */}
                                     <button
                                         onClick={() => handleDeletePair(pair._id)}
-                                        className="ml-auto px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition text-sm"
+                                        className="ml-auto px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition text-sm"
                                     >
                                         Delete
                                     </button>
@@ -194,15 +194,15 @@ const CurrencyRates = () => {
             </div>
 
             {/* Exchange Rates Table */}
-            <h1 className="text-3xl font-bold mb-2 text-slate-800">Current Exchange Rates (Base: USD)</h1>
+            <h1 className="text-3xl font-bold mb-2 text-main">Current Exchange Rates (Base: USD)</h1>
             {cacheTime && nextUpdateTime && (
-                <div className="mb-4 text-sm text-slate-500">
+                <div className="mb-4 text-sm text-secondary">
                     <p>Last updated: {cacheTime.toLocaleString()}</p>
                     <p>Next update: {nextUpdateTime.toLocaleString()}</p>
                 </div>
             )}
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 font-medium bg-slate-100 border-b">
+            <div className="glass-card rounded-lg overflow-hidden">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 font-medium bg-white/5 border-b border-white/10 text-muted">
                     <div>Currency</div>
                     <div>Rate</div>
                     <div>Currency</div>
@@ -211,8 +211,8 @@ const CurrencyRates = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
                     {Object.entries(rates).map(([currency, rate]) => (
                         <div key={currency} className="contents">
-                            <div className="text-slate-600 border-b pb-2">{currency}</div>
-                            <div className="font-semibold text-slate-800 border-b pb-2">{rate}</div>
+                            <div className="text-secondary border-b border-white/5 pb-2">{currency}</div>
+                            <div className="font-semibold text-main border-b border-white/5 pb-2">{rate}</div>
                         </div>
                     ))}
                 </div>

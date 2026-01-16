@@ -40,16 +40,16 @@ function Register() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 md:flex-row md:items-start">
       <div className="flex-1 space-y-4">
-        <p className="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
+        <p className="inline-flex rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
           Register account
         </p>
-        <h1 className="text-4xl font-bold text-slate-900">Create your account</h1>
-        <p className="text-base text-slate-600">
+        <h1 className="text-4xl font-bold text-main">Create your account</h1>
+        <p className="text-base text-secondary">
           After registering, you’ll be logged in automatically and redirected to the dashboard, where you can add subscriptions and expenses.
         </p>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
-          <p className="font-semibold">Form notes</p>
-          <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
+        <div className="rounded-2xl glass-panel p-4 text-sm text-muted shadow-sm">
+          <p className="font-semibold text-indigo-300">Form notes</p>
+          <ul className="mt-2 space-y-1 list-disc list-inside text-secondary">
             <li>Calls services/authService.register on submit</li>
             <li>On success, user info is stored in the Zustand global state</li>
             <li>On failure, an error message is shown</li>
@@ -58,11 +58,13 @@ function Register() {
       </div>
 
       <div className="w-full max-w-md space-y-3">
-        <RegisterForm onSubmit={handleRegister} loading={loading} />
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-        <p className="text-sm text-slate-600">
+        <div className="glass-card p-6 rounded-2xl">
+          <RegisterForm onSubmit={handleRegister} loading={loading} />
+        </div>
+        {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+        <p className="text-sm text-secondary">
           Already have an account?{' '}
-          <Link to="/login" className="text-slate-900 underline">
+          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 underline">
             Go to login
           </Link>
         </p>

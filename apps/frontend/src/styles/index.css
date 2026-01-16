@@ -11,124 +11,274 @@
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
+  --scheme: dark;
 
-  /* CSS Variables for colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-}
+  /* --- DARK THEME VARIABLES (Default) --- */
 
-[data-theme="dark"] {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --bg-app: #020617;
-  --text-app: #f1f5f9;
-}
+  /* Backgrounds */
+  --bg-deep: #030712;
+  --bg-gradient:
+    radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, transparent 100%);
 
-[data-theme="dark"] body {
-  background-color: var(--bg-app);
-  color: var(--text-app);
-}
+  /* Glass Effects - Heavy Blur iOS Style */
+  --glass-bg: rgba(17, 24, 39, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.12);
 
-/* Dark Mode Overrides for existing utility classes */
-[data-theme="dark"] .bg-white {
-  background-color: #1e293b;
-  /* slate-800 */
-}
+  /* ========== GLASS CARD (Dark Mode) ==========
+   * --glass-card-bg: rgba(R, G, B, OPACITY)
+   *   - R,G,B: 30,41,59 = slate-800 深灰蓝色
+   *   - OPACITY: 0.25 = 25% 不透明度 (越低越透明，毛玻璃效果越明显)
+   * 
+   * --glass-card-border: rgba(255,255,255, OPACITY)
+   *   - 白色边框，0.1 = 10% 不透明度
+   *
+   * --glass-card-shadow: 0 Y-offset BLUR SPREAD rgba(0,0,0, OPACITY)
+   *   - Y-offset: 8px 向下偏移
+   *   - BLUR: 32px 模糊半径
+   *   - SPREAD: 0 扩散
+   *   - OPACITY: 0.3 = 30% 阴影深度
+   */
+  --glass-card-bg: rgba(30, 41, 59, 0.5);
+  --glass-card-border: rgba(255, 255, 255, 0.1);
+  --glass-card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 
-[data-theme="dark"] .bg-slate-50 {
-  background-color: #0f172a;
-  /* slate-900 */
-}
+  --glass-panel-bg: rgba(15, 23, 42, 0.3);
+  --glass-panel-border: rgba(255, 255, 255, 0.08);
 
-[data-theme="dark"] .bg-white\/80 {
-  background-color: rgb(30 41 59 / 0.8);
-}
-
-[data-theme="dark"] .bg-slate-100 {
-  background-color: #334155;
-  /* slate-700 */
-}
-
-[data-theme="dark"] .text-slate-900 {
-  color: #f8fafc;
+  /* Text Colors */
+  --text-main: #f8fafc;
   /* slate-50 */
-}
-
-[data-theme="dark"] .text-slate-800 {
-  color: #f1f5f9;
-  /* slate-100 */
-}
-
-[data-theme="dark"] .text-slate-700 {
-  color: #e2e8f0;
-  /* slate-200 */
-}
-
-[data-theme="dark"] .text-slate-600 {
-  color: #cbd5e1;
-  /* slate-300 */
-}
-
-[data-theme="dark"] .text-slate-500 {
-  color: #94a3b8;
+  --text-secondary: #94a3b8;
   /* slate-400 */
+  --text-muted: #64748b;
+  /* slate-500 */
+
+  /* Inputs */
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-text: #f8fafc;
+  --input-placeholder: #64748b;
+  --input-focus-border: #818cf8;
+  /* indigo-400 */
+  --input-focus-ring: rgba(99, 102, 241, 0.2);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  /* Special */
+  /* Special */
+  /* Special */
+  --date-icon-bg: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="dark"] .border-slate-200,
-[data-theme="dark"] .border-slate-300 {
-  border-color: #334155;
-  /* slate-700 */
-}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --scheme: light;
 
-[data-theme="dark"] .hover\:bg-slate-100:hover {
-  background-color: #334155;
-}
+  /* --- LIGHT THEME VARIABLES --- */
 
-[data-theme="dark"] .hover\:text-slate-600:hover {
-  color: #94a3b8;
-}
+  /* Backgrounds: Light blue gradient close to white */
+  --bg-deep: #f0f9ff;
+  /* sky-50 */
+  --bg-gradient:
+    radial-gradient(circle at 0% 0%, rgba(224, 242, 254, 0.8) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(233, 213, 255, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(240, 249, 255, 1) 0%, transparent 100%);
 
-[data-theme="dark"] .shadow-sm,
-[data-theme="dark"] .shadow-md,
-[data-theme="dark"] .shadow-lg,
-[data-theme="dark"] .shadow-xl {
-  box-shadow: none;
-  /* Simplify shadows in dark mode or make them subtle */
-  background-color: #1e293b;
-  /* Ensure cards have background */
-}
+  /* Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(203, 213, 225, 0.6);
+  /* slate-300 */
 
-/* Global Transitions */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  /* ========== GLASS CARD (Light Mode) ==========
+   * --glass-card-bg: rgba(R, G, B, OPACITY)
+   *   - R,G,B: 255,255,255 = 白色
+   *   - OPACITY: 0.75 = 75% 不透明度 (降低此值可增强毛玻璃效果，如 0.4-0.6)
+   * 
+   * --glass-card-border: rgba(203,213,225, OPACITY)
+   *   - slate-300 灰色边框，0.6 = 60% 不透明度
+   *
+   * --glass-card-shadow: 0 Y-offset BLUR SPREAD rgba(0,0,0, OPACITY)
+   *   - Y-offset: 4px 向下偏移
+   *   - BLUR: 20px 模糊半径
+   *   - SPREAD: -2px 负扩散（阴影更紧凑）
+   *   - OPACITY: 0.1 = 10% 阴影深度 (Light mode 阴影应比 dark 浅)
+   */
+  --glass-card-bg: rgba(255, 255, 255, 0.25);
+  --glass-card-border: rgba(203, 213, 225, 0.6);
+  --glass-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+
+  --glass-panel-bg: rgba(241, 245, 249, 0.6);
+  /* slate-100 */
+  --glass-panel-border: rgba(203, 213, 225, 0.5);
+
+  /* Text Colors */
+  --text-main: #0f172a;
+  /* slate-900 */
+  --text-secondary: #475569;
+  /* slate-600 */
+  --text-muted: #94a3b8;
+  /* slate-400 */
+
+  /* Inputs */
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(203, 213, 225, 1);
+  /* slate-300 */
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #6366f1;
+  /* indigo-500 */
+  --input-focus-ring: rgba(99, 102, 241, 0.15);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(148, 163, 184, 0.5);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.6);
+
+  /* Special */
+  --date-icon-filter: none;
+  --date-icon-bg: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --nav-active-bg: rgba(0, 0, 0, 0.1);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
-  text-rendering: optimizeLegibility;
+  background-color: var(--bg-deep);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* --- UTILITY CLASSES FOR THEME --- */
+
+.text-main {
+  color: var(--text-main);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px) saturate(120%);
+  -webkit-backdrop-filter: blur(25px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.glass-card {
+  background: var(--glass-card-bg);
+  backdrop-filter: blur(40px) saturate(140%);
+  -webkit-backdrop-filter: blur(40px) saturate(140%);
+  border: 1px solid var(--glass-card-border);
+  box-shadow: var(--glass-card-shadow);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.glass-panel {
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(30px) saturate(130%);
+  border: 1px solid var(--glass-panel-border);
+  transition: background 0.3s, border-color 0.3s;
+}
+
+/* Links & text */
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+/* Inputs & Form Elements - Glass Style */
+input,
+select,
+textarea {
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  color-scheme: var(--scheme);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
+  /* Ensure background opacity increases slightly on focus in dark mode if needed, 
+     but keeping it simple for consistency */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Date Input Icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background-image: var(--date-icon-bg) !important;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Selection Color */
 ::selection {
-  background: #cbd5e1;
-  color: #0f172a;
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
 }

@@ -55,16 +55,16 @@ function Login() {
         animate={{ opacity: 1, x: 0 }}
         className="flex-1 space-y-4"
       >
-        <p className="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
+        <p className="inline-flex rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300 border border-indigo-500/30">
           Authentication
         </p>
-        <h1 className="text-4xl font-bold text-slate-900">Welcome back</h1>
-        <p className="text-base text-slate-600">
+        <h1 className="text-4xl font-bold text-main">Welcome back</h1>
+        <p className="text-base text-secondary">
           Use your account to sign in and manage your expenses and subscriptions. If you don’t have an account yet, please register first.
         </p>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
-          <p className="font-semibold">Frontend notes</p>
-          <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
+        <div className="rounded-2xl glass-panel p-4 text-sm text-muted shadow-sm">
+          <p className="font-semibold text-indigo-300">Frontend notes</p>
+          <ul className="mt-2 space-y-1 list-disc list-inside text-secondary">
             <li>Authentication state is stored in Zustand</li>
             <li>On success, users are redirected to the dashboard</li>
             <li>API calls are wrapped in services/authService</li>
@@ -78,15 +78,17 @@ function Login() {
         className="w-full max-w-md space-y-3"
       >
         {expiredMessage && (
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+          <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-200">
             {expiredMessage}
           </div>
         )}
-        <LoginForm onSubmit={handleLogin} loading={loading} />
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-        <p className="text-sm text-slate-600">
+        <div className="glass-card p-6 rounded-2xl">
+          <LoginForm onSubmit={handleLogin} loading={loading} />
+        </div>
+        {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+        <p className="text-sm text-secondary">
           Don’t have an account?{' '}
-          <Link to="/register" className="text-slate-900 underline">
+          <Link to="/register" className="text-indigo-400 hover:text-indigo-300 underline">
             Go to register
           </Link>
         </p>

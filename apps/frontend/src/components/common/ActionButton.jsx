@@ -67,7 +67,7 @@ export function ActionButton({
             onClick={handleClick}
             disabled={disabled || status === 'loading' || status === 'success'}
             className={`relative overflow-hidden rounded-lg px-4 py-2 font-medium transition-all ${status === 'success'
-                    ? 'bg-green-500 text-white border-transparent'
+                    ? 'bg-green-500 text-main border-transparent'
                     : status === 'error'
                         ? 'bg-rose-100 text-rose-700 border-rose-200'
                         : variants[variant]
