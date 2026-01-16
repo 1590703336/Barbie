@@ -46,7 +46,8 @@ function NavBar() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-active"
-                        className="absolute inset-0 bg-white/10 rounded-lg"
+                        className="absolute inset-0 rounded-lg"
+                        style={{ backgroundColor: 'var(--nav-active-bg)' }}
                         transition={{ type: 'spring', duration: 0.6 }}
                       />
                     )}
