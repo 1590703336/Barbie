@@ -196,7 +196,12 @@ export default function TrendLineChart({
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
-                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                        tickFormatter={(value) => {
+                            if (value >= 1000) {
+                                return `$${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`
+                            }
+                            return `$${value}`
+                        }}
                         width={50}
                     />
 

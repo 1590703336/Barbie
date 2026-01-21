@@ -28,6 +28,7 @@ import { useBudgetList, budgetKeys } from '../hooks/queries/useBudgetQueries'
 import { useIncomeList, incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { useUserSubscriptions, subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 
 const expenseCategories = [
   'Food',
@@ -302,6 +303,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -318,6 +320,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -384,6 +387,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -398,6 +402,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -423,6 +428,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -437,6 +443,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -466,13 +473,13 @@ function Records() {
             <label className="flex items-center gap-2 text-sm text-muted">
               Month
               <select
-                className="w-24 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
+                className="w-32 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
-                    {m}
+                    {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
                   </option>
                 ))}
               </select>

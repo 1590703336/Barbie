@@ -193,9 +193,7 @@ export default function CategoryPieChart({
                 {chartData.map((item, index) => (
                     <Motion.div
                         key={item.name}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all cursor-pointer ${activeIndex === index
-                                ? 'bg-white/10'
-                                : 'hover:bg-white/5'
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer chart-item-hover ${activeIndex === index ? 'chart-item-active' : ''
                             }`}
                         onMouseEnter={() => setActiveIndex(index)}
                         onMouseLeave={() => setActiveIndex(null)}

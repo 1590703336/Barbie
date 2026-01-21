@@ -16,6 +16,7 @@ import {
   BudgetProgressBars,
   MonthlyComparisonChart
 } from '../components/charts'
+import ChartSkeleton from '../components/common/ChartSkeleton'
 
 // Chart data hooks (mock data for now)
 import {
@@ -75,22 +76,24 @@ function Dashboard() {
     isLoading: incomeLoading
   } = useIncomeSummary({
     month: debouncedMonth,
-    year: debouncedYear
+    year: debouncedYear,
+    userId
   })
 
   // Chart data hooks - using selected month/year for category breakdown
   // Trend: uses granularity selector (weekly/monthly/yearly, 12 periods each)
-  const { data: trendData } = useTrendData({ granularity: trendGranularity, count: 12 })
+  // Trend: uses granularity selector (weekly/monthly/yearly, 12 periods each)
+  const { data: trendData, isLoading: trendLoading } = useTrendData({ granularity: trendGranularity, count: 12 })
   // Category breakdown: uses selected month/year from dashboard
-  const { data: categoryData } = useCategoryBreakdown({
+  const { data: categoryData, isLoading: categoryLoading } = useCategoryBreakdown({
     type: 'expense',
     month: debouncedMonth,
     year: debouncedYear
   })
   // Monthly comparison: 6 most recent months
-  const { data: comparisonData } = useMonthlyComparison({ months: 6 })
+  const { data: comparisonData, isLoading: comparisonLoading } = useMonthlyComparison({ months: 6 })
   // Budget usage: uses selected month/year, with budgetSummary as fallback
-  const { data: budgetUsageData } = useBudgetUsage({
+  const { data: budgetUsageData, isLoading: budgetUsageLoading } = useBudgetUsage({
     month: debouncedMonth,
     year: debouncedYear,
     budgetSummary
@@ -125,13 +128,13 @@ function Dashboard() {
             <label className="flex items-center gap-2 text-sm text-muted">
               Month
               <select
-                className="w-24 px-3 py-2 text-sm"
+                className="w-32 px-3 py-2 text-sm"
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
-                    {m}
+                    {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
                   </option>
                 ))}
               </select>
@@ -237,33 +240,50 @@ function Dashboard() {
                 ))}
               </select>
             </div>
-            <TrendLineChart
-              data={trendData}
-              title=""
-              height={280}
-            />
+            {trendLoading ? (
+              <ChartSkeleton height={280} />
+            ) : (
+              <TrendLineChart
+                data={trendData}
+                title=""
+                height={280}
+              />
+            )}
           </div>
 
           {/* Row 2: Pie Chart + Budget Progress */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <CategoryPieChart
-              data={categoryData}
-              title={`Expense Breakdown (${debouncedMonth}/${debouncedYear})`}
-              height={300}
-            />
-            <BudgetProgressBars
-              data={budgetUsageData}
-              title={`Budget Usage (${debouncedMonth}/${debouncedYear})`}
-              currency={currency}
-            />
+            {categoryLoading ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <CategoryPieChart
+                data={categoryData}
+                title={`Expense Breakdown (${debouncedMonth}/${debouncedYear})`}
+                height={300}
+              />
+            )}
+
+            {budgetUsageLoading ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <BudgetProgressBars
+                data={budgetUsageData}
+                title={`Budget Usage (${debouncedMonth}/${debouncedYear})`}
+                currency={currency}
+              />
+            )}
           </div>
 
           {/* Row 3: Monthly Comparison Chart (Full Width) */}
-          <MonthlyComparisonChart
-            data={comparisonData}
-            title="Monthly Comparison"
-            height={300}
-          />
+          {comparisonLoading ? (
+            <ChartSkeleton height={300} />
+          ) : (
+            <MonthlyComparisonChart
+              data={comparisonData}
+              title="Monthly Comparison"
+              height={300}
+            />
+          )}
 
           {/* Legacy Category Breakdown (kept for detailed view) */}
           {budgetSummary?.categoriesSummary?.length > 0 && (

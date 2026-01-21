@@ -122,27 +122,31 @@ All inputs automatically receive theme-aware styling via global CSS. Just use st
 ```
 
 ### Select Dropdowns
-Use `<select>` instead of number inputs for fixed ranges:
+Use `<select>` for fixed ranges. Use `Intl.DateTimeFormat` for dates to allow localization.
 
 ```jsx
-// Month selector
+// Month selector (names)
 <select
-  className="w-24 rounded-lg px-3 py-2 text-sm"
+  className="w-32 rounded-lg px-3 py-2 text-sm"
   value={month}
   onChange={(e) => setMonth(Number(e.target.value))}
 >
   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-    <option key={m} value={m}>{m}</option>
+    <option key={m} value={m}>
+      {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
+    </option>
   ))}
 </select>
 
-// Year selector
+// Year selector (dynamic range)
 <select
-  className="w-28 rounded-lg px-3 py-2 text-sm"
+  className="w-full rounded-lg px-3 py-2 text-sm"
   value={year}
   onChange={(e) => setYear(Number(e.target.value))}
+  required
 >
-  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+    // Range: Current year + 10 future years (exclude past)
+  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map((y) => (
     <option key={y} value={y}>{y}</option>
   ))}
 </select>
@@ -248,6 +252,59 @@ When using `ComposedChart` with both `Area` and `Line` for the same dataKey, add
 ```jsx
 <Area dataKey="income" legendType="none" />
 <Line dataKey="income" name="Income" />
+```
+
+### Chart Item Hover Effects
+For interactive list items in charts (legend items, progress bars, etc.), use theme-aware hover classes:
+
+| Class | Purpose |
+|-------|---------|
+| `.chart-item-hover` | Base hover transition |
+| `.chart-item-active` | Active/selected state |
+
+CSS Variables:
+- `--chart-item-hover-bg`: Background on hover
+  - Dark: `rgba(255, 255, 255, 0.1)` 
+  - Light: `rgba(0, 0, 0, 0.06)`
+- `--chart-item-hover-shadow`: Shadow on hover
+  - Dark: `0 4px 12px rgba(0, 0, 0, 0.3)`
+  - Light: `0 4px 16px rgba(0, 0, 0, 0.15)` ← Darker for visibility
+
+```jsx
+// ❌ BAD - Hardcoded opacity that's invisible in light mode
+<div className={`${isHovered ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+
+// ✅ GOOD - Theme-aware hover classes
+<div className={`chart-item-hover ${isHovered ? 'chart-item-active' : ''}`}>
+```
+
+> **Light Mode Consideration**: The glass-card background is very light, so hover shadows must be darker (0.15+ opacity) to be visible.
+
+### Skeleton Loading
+Use the standard Skeleton pattern for charts waiting for data, instead of random placeholders.
+
+```jsx
+import ChartSkeleton from '../components/common/ChartSkeleton'
+
+// ...
+{isLoading ? (
+  <ChartSkeleton height={300} />
+) : (
+  <ChartComponent data={data} />
+)}
+```
+
+### Compact Axis Formatting
+For Chart Y-Axes, use compact formatting for large numbers but raw numbers for small values (< 1000) to ensure readability.
+
+```javascript
+tickFormatter={(value) => {
+    // 1000 -> 1k, 1500 -> 1.5k, 500 -> 500
+    if (value >= 1000) {
+        return `$${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`
+    }
+    return `$${value}`
+}}
 ```
 
 ---
