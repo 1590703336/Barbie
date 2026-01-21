@@ -76,7 +76,8 @@ function Dashboard() {
     isLoading: incomeLoading
   } = useIncomeSummary({
     month: debouncedMonth,
-    year: debouncedYear
+    year: debouncedYear,
+    userId
   })
 
   // Chart data hooks - using selected month/year for category breakdown

@@ -6,6 +6,7 @@ import {
     deleteBudget,
     getBudgetSummary,
 } from '../../services/budgetService'
+import { analyticsKeys } from '../useChartData'
 
 // Query keys
 export const budgetKeys = {
@@ -40,6 +41,7 @@ export function useCreateBudget() {
         mutationFn: createBudget,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -50,6 +52,7 @@ export function useUpdateBudget() {
         mutationFn: ({ id, payload }) => updateBudget(id, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -60,6 +63,7 @@ export function useDeleteBudget() {
         mutationFn: deleteBudget,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }

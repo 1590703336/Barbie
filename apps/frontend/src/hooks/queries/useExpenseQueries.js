@@ -6,6 +6,7 @@ import {
     deleteExpense,
 } from '../../services/expenseService'
 import { budgetKeys } from './useBudgetQueries'
+import { analyticsKeys } from '../useChartData'
 
 // Query keys
 export const expenseKeys = {
@@ -29,9 +30,10 @@ export function useCreateExpense() {
     return useMutation({
         mutationFn: createExpense,
         onSuccess: () => {
-            // Expenses affect budget summaries, so invalidate both
+            // Expenses affect budget summaries and analytics, so invalidate all
             queryClient.invalidateQueries({ queryKey: expenseKeys.all })
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -43,6 +45,7 @@ export function useUpdateExpense() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: expenseKeys.all })
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -54,6 +57,7 @@ export function useDeleteExpense() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: expenseKeys.all })
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }

@@ -11,6 +11,7 @@ import { budgetKeys } from '../hooks/queries/useBudgetQueries'
 import { expenseKeys } from '../hooks/queries/useExpenseQueries'
 import { incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 
 const currencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
@@ -177,6 +178,7 @@ function CreateEntries() {
       setBudgetForm(initialBudget)
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create budget'
@@ -246,9 +248,10 @@ function CreateEntries() {
 
       setIsError(false)
       setExpenseForm(initialExpense)
-      // Invalidate cache so other pages refetch (expense affects budget too)
+      // Invalidate cache so other pages refetch (expense affects budget and analytics too)
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create expense'
@@ -284,6 +287,7 @@ function CreateEntries() {
       setIncomeForm(initialIncome)
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const msg =
         err?.response?.data?.message ?? err?.message ?? 'Failed to create income'

@@ -28,6 +28,7 @@ import { useBudgetList, budgetKeys } from '../hooks/queries/useBudgetQueries'
 import { useIncomeList, incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { useUserSubscriptions, subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 
 const expenseCategories = [
   'Food',
@@ -302,6 +303,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -318,6 +320,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -384,6 +387,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -398,6 +402,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -423,6 +428,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -437,6 +443,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
