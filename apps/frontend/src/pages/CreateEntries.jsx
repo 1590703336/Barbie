@@ -393,16 +393,19 @@ function CreateEntries() {
               onChange={(e) => handleBudgetChange('limit', e.target.value)}
               required
             />
-            <input
+            <select
               className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-              placeholder="Month (1-12)"
-              type="number"
-              min={1}
-              max={12}
               value={budgetForm.month}
               onChange={(e) => handleBudgetChange('month', e.target.value)}
               required
-            />
+            >
+              <option value="">Select month</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>
+                  {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
+                </option>
+              ))}
+            </select>
             <input
               className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Year"
