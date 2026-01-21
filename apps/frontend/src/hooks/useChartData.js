@@ -41,7 +41,6 @@ export function useTrendData({ granularity = 'monthly', count = 12 } = {}) {
         queryKey: analyticsKeys.trend({ granularity, count }),
         queryFn: () => getTrendData({ granularity, count }),
         staleTime: 5 * 60 * 1000, // 5 minutes
-        placeholderData: () => generateTrendData(granularity, count)
     })
 }
 
@@ -59,7 +58,6 @@ export function useCategoryBreakdown({ type = 'expense', month, year } = {}) {
         queryFn: () => getCategoryBreakdown({ type, month, year }),
         enabled: !!month && !!year,
         staleTime: 5 * 60 * 1000,
-        placeholderData: () => generateCategoryBreakdown(type, month, year)
     })
 }
 
@@ -73,7 +71,6 @@ export function useMonthlyComparison({ months = 6 } = {}) {
         queryKey: analyticsKeys.monthlyComparison({ months }),
         queryFn: () => getMonthlyComparison({ months }),
         staleTime: 5 * 60 * 1000,
-        placeholderData: () => generateMonthlyComparison(months)
     })
 }
 
@@ -91,6 +88,5 @@ export function useBudgetUsage({ month, year, budgetSummary = null } = {}) {
         queryFn: () => getBudgetUsage({ month, year }),
         enabled: !!month && !!year,
         staleTime: 5 * 60 * 1000,
-        placeholderData: () => generateBudgetUsage(budgetSummary)
     })
 }
