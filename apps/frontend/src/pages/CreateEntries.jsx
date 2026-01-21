@@ -406,15 +406,18 @@ function CreateEntries() {
                 </option>
               ))}
             </select>
-            <input
+            <select
               className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-              placeholder="Year"
-              type="number"
-              min={2024}
               value={budgetForm.year}
               onChange={(e) => handleBudgetChange('year', e.target.value)}
               required
-            />
+            >
+              {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
           </div>
         </motion.form>
 
