@@ -65,11 +65,19 @@ export const buildTrendExpensePipeline = (userId, startDate, endDate, granularit
     // Date grouping expression based on granularity
     let dateGroup;
     if (granularity === 'weekly') {
+        // Use $isoWeekYear and $isoWeek for reliable ISO week grouping
         dateGroup = {
-            $dateToString: {
-                format: '%G-W%V', // ISO week format: 2026-W03
-                date: '$date'
-            }
+            $concat: [
+                { $toString: { $isoWeekYear: '$date' } },
+                '-W',
+                {
+                    $cond: {
+                        if: { $lt: [{ $isoWeek: '$date' }, 10] },
+                        then: { $concat: ['0', { $toString: { $isoWeek: '$date' } }] },
+                        else: { $toString: { $isoWeek: '$date' } }
+                    }
+                }
+            ]
         };
     } else if (granularity === 'yearly') {
         dateGroup = { $year: '$date' };
@@ -106,11 +114,19 @@ export const buildTrendExpensePipeline = (userId, startDate, endDate, granularit
 export const buildTrendIncomePipeline = (userId, startDate, endDate, granularity) => {
     let dateGroup;
     if (granularity === 'weekly') {
+        // Use $isoWeekYear and $isoWeek for reliable ISO week grouping
         dateGroup = {
-            $dateToString: {
-                format: '%G-W%V',
-                date: '$date'
-            }
+            $concat: [
+                { $toString: { $isoWeekYear: '$date' } },
+                '-W',
+                {
+                    $cond: {
+                        if: { $lt: [{ $isoWeek: '$date' }, 10] },
+                        then: { $concat: ['0', { $toString: { $isoWeek: '$date' } }] },
+                        else: { $toString: { $isoWeek: '$date' } }
+                    }
+                }
+            ]
         };
     } else if (granularity === 'yearly') {
         dateGroup = { $year: '$date' };
