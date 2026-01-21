@@ -102,13 +102,38 @@ function CustomLegend({ payload }) {
     )
 }
 
-// Custom bar shape with rounded top corners
+// Custom bar shape with rounded top/bottom corners based on value
 function RoundedBar(props) {
-    const { fill, x, y, width, height } = props
+    const { fill, x, y, width, height, payload, dataKey } = props
     const radius = 4
 
-    if (height <= 0) return null
+    if (Math.abs(height) <= 0) return null
 
+    // Check if value is negative
+    // Recharts passes height as positive even for negative values, 
+    // but the y coordinate shifts. We can check the source data text.
+    const isNegative = payload && payload[dataKey] < 0
+
+    if (isNegative) {
+        // Rounded BOTTOM corners for negative values
+        return (
+            <path
+                d={`
+            M${x},${y}
+            L${x},${y + height - radius}
+            Q${x},${y + height} ${x + radius},${y + height}
+            L${x + width - radius},${y + height}
+            Q${x + width},${y + height} ${x + width},${y + height - radius}
+            L${x + width},${y}
+            Z
+          `}
+                fill={fill}
+                style={{ transition: 'all 0.3s ease' }}
+            />
+        )
+    }
+
+    // Rounded TOP corners for positive values
     return (
         <path
             d={`
@@ -225,7 +250,15 @@ export default function MonthlyComparisonChart({
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
-                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                        tickFormatter={(value) => {
+                            // Ensure proper handling of negative values for scale formatting
+                            const absValue = Math.abs(value)
+                            const prefix = value < 0 ? '-' : ''
+                            if (absValue >= 1000) {
+                                return `\$${prefix}${(absValue / 1000).toFixed(1).replace(/\.0$/, '')}k`
+                            }
+                            return `\$${value}`
+                        }}
                         width={50}
                     />
 

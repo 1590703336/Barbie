@@ -127,13 +127,13 @@ function Dashboard() {
             <label className="flex items-center gap-2 text-sm text-muted">
               Month
               <select
-                className="w-24 px-3 py-2 text-sm"
+                className="w-32 px-3 py-2 text-sm"
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
-                    {m}
+                    {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
                   </option>
                 ))}
               </select>
