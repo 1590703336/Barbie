@@ -68,3 +68,6 @@ typings/
 *.swo
 *~
 .DS_Store
+
+# Gemini Agent files
+.agent/

@@ -465,30 +465,31 @@ function Records() {
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-muted">
               Month
-              <input
+              <select
                 className="w-24 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                type="number"
-                min={1}
-                max={12}
                 value={month}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setMonth(value === '' ? '' : Number(value))
-                }}
-              />
+                onChange={(e) => setMonth(Number(e.target.value))}
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="flex items-center gap-2 text-sm text-muted">
               Year
-              <input
+              <select
                 className="w-28 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                type="number"
-                min={2024}
                 value={year}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setYear(value === '' ? '' : Number(value))
-                }}
-              />
+                onChange={(e) => setYear(Number(e.target.value))}
+              >
+                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </div>

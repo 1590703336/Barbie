@@ -37,48 +37,48 @@ function RegisterForm({ onSubmit, loading }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="space-y-4"
     >
       <div>
-        <label className="block text-sm font-medium text-slate-700">Name</label>
+        <label className="block text-sm font-medium text-muted">Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           placeholder="John Doe"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700">Email</label>
+        <label className="block text-sm font-medium text-muted">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           placeholder="you@example.com"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700">Password</label>
+        <label className="block text-sm font-medium text-muted">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+          className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           placeholder="At least 8 characters"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700">Default Currency</label>
+        <label className="block text-sm font-medium text-muted">Default Currency</label>
         <select
           value={defaultCurrency}
           onChange={(e) => setDefaultCurrency(e.target.value)}
           disabled={loadingCurrencies}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100"
+          className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
         >
           {currencies.map((currency) => (
             <option key={currency} value={currency}>
@@ -90,7 +90,7 @@ function RegisterForm({ onSubmit, loading }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-slate-900 px-4 py-2 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-400 shadow-lg shadow-indigo-500/30"
       >
         {loading ? 'Signing up...' : 'Sign up'}
       </button>
