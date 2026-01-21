@@ -10,6 +10,7 @@ import {
     useDeleteExpense,
 } from '../../../hooks/queries/useExpenseQueries'
 import { budgetKeys } from '../../../hooks/queries/useBudgetQueries'
+import { analyticsKeys } from '../../../hooks/useChartData'
 import * as expenseService from '../../../services/expenseService'
 
 // Mock the expense service
@@ -65,7 +66,7 @@ describe('useExpenseList', () => {
 })
 
 describe('useCreateExpense - Cross-invalidation', () => {
-    it('should invalidate BOTH expense and budget queries on success', async () => {
+    it('should invalidate expense, budget, and analytics queries on success', async () => {
         const mockCreated = { _id: '1', title: 'Lunch', amount: 15 }
         expenseService.createExpense.mockResolvedValue(mockCreated)
 
@@ -83,10 +84,11 @@ describe('useCreateExpense - Cross-invalidation', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-        // This is the critical test - expense mutations must invalidate budget queries too
+        // Expense mutations must invalidate expense, budget, and analytics queries
         expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: expenseKeys.all })
         expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: budgetKeys.all })
-        expect(invalidateSpy).toHaveBeenCalledTimes(2)
+        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: analyticsKeys.all })
+        expect(invalidateSpy).toHaveBeenCalledTimes(3)
     })
 })
 

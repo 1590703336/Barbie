@@ -62,12 +62,12 @@ describe('useIncomeSummary', () => {
         vi.clearAllMocks()
     })
 
-    it('should fetch income summary when month and year provided', async () => {
+    it('should fetch income summary when month, year and userId provided', async () => {
         const mockSummary = { totalIncome: 5000 }
         incomeService.getIncomeSummary.mockResolvedValue(mockSummary)
 
         const { result } = renderHook(
-            () => useIncomeSummary({ month: 1, year: 2024 }),
+            () => useIncomeSummary({ month: 1, year: 2024, userId: 'user123' }),
             { wrapper: createWrapper() }
         )
 
@@ -75,17 +75,17 @@ describe('useIncomeSummary', () => {
         expect(result.current.data).toEqual(mockSummary)
     })
 
-    it('should not require userId (different from list)', async () => {
+    it('should require userId (for multi-user data isolation)', async () => {
         incomeService.getIncomeSummary.mockResolvedValue({ totalIncome: 1000 })
 
         const { result } = renderHook(
-            () => useIncomeSummary({ month: 1, year: 2024 }),
+            () => useIncomeSummary({ month: 1, year: 2024 }),  // No userId
             { wrapper: createWrapper() }
         )
 
-        await waitFor(() => expect(result.current.isSuccess).toBe(true))
-        // Summary is user-scoped on backend via auth, not explicit userId
-        expect(incomeService.getIncomeSummary).toHaveBeenCalledWith({ month: 1, year: 2024 })
+        // Query should be disabled without userId
+        expect(result.current.fetchStatus).toBe('idle')
+        expect(incomeService.getIncomeSummary).not.toHaveBeenCalled()
     })
 })
 
