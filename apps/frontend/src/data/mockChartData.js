@@ -13,6 +13,28 @@ const formatMonth = (date) => {
     return `${year}-${month}`
 }
 
+// Helper to format date as YYYY-Www (ISO week)
+const formatWeek = (date) => {
+    const year = date.getFullYear()
+    const startOfYear = new Date(year, 0, 1)
+    const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000))
+    const week = Math.ceil((days + startOfYear.getDay() + 1) / 7)
+    return `${year}-W${String(week).padStart(2, '0')}`
+}
+
+// Helper to get period label based on granularity
+const getPeriodLabel = (date, granularity) => {
+    if (granularity === 'weekly') {
+        const weekNum = formatWeek(date).split('-W')[1]
+        return `W${weekNum}`
+    } else if (granularity === 'yearly') {
+        return String(date.getFullYear())
+    } else {
+        // monthly
+        return date.toLocaleDateString('en-US', { month: 'short' })
+    }
+}
+
 // Helper to get month name
 const getMonthName = (dateStr) => {
     const [year, month] = dateStr.split('-')
@@ -22,32 +44,48 @@ const getMonthName = (dateStr) => {
 
 /**
  * Generate trend data for line charts
- * @param {number} months - Number of months to generate (default: 6)
+ * @param {string} granularity - 'weekly' | 'monthly' | 'yearly' (default: 'monthly')
+ * @param {number} count - Number of periods to generate (default: 12)
  * @returns {Object} Trend data matching API spec
  */
-export function generateTrendData(months = 6) {
+export function generateTrendData(granularity = 'monthly', count = 12) {
     const series = []
     const now = new Date()
 
-    // Base values with some randomness
-    const baseIncome = 5000
-    const baseExpense = 3200
+    // Base values with some randomness - scale based on granularity
+    const scaleFactors = {
+        weekly: 0.25,    // 1/4 of monthly
+        monthly: 1,
+        yearly: 12       // 12x monthly
+    }
+    const scale = scaleFactors[granularity] || 1
 
-    for (let i = months - 1; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const monthStr = formatMonth(date)
+    const baseIncome = 5000 * scale
+    const baseExpense = 3200 * scale
+
+    for (let i = count - 1; i >= 0; i--) {
+        let date
+        if (granularity === 'weekly') {
+            date = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+        } else if (granularity === 'yearly') {
+            date = new Date(now.getFullYear() - i, 0, 1)
+        } else {
+            date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        }
 
         // Add realistic variation
-        const incomeVariation = (Math.random() - 0.5) * 1000
-        const expenseVariation = (Math.random() - 0.5) * 800
+        const incomeVariation = (Math.random() - 0.5) * 1000 * scale
+        const expenseVariation = (Math.random() - 0.5) * 800 * scale
 
         const income = Math.round((baseIncome + incomeVariation) * 100) / 100
         const expense = Math.round((baseExpense + expenseVariation) * 100) / 100
         const savings = Math.round((income - expense) * 100) / 100
 
         series.push({
-            date: monthStr,
-            monthName: getMonthName(monthStr),
+            date: granularity === 'weekly' ? formatWeek(date) :
+                granularity === 'yearly' ? String(date.getFullYear()) : formatMonth(date),
+            name: getPeriodLabel(date, granularity),
+            monthName: getPeriodLabel(date, granularity), // For backward compatibility
             income,
             expense,
             savings
@@ -67,7 +105,7 @@ export function generateTrendData(months = 6) {
         period: {
             start: series[0]?.date,
             end: series[series.length - 1]?.date,
-            granularity: 'monthly'
+            granularity
         },
         currency: 'CAD',
         series,
@@ -82,9 +120,11 @@ export function generateTrendData(months = 6) {
 /**
  * Generate category breakdown for pie charts
  * @param {string} type - 'expense' or 'income'
+ * @param {number} month - Month (1-12) for the breakdown
+ * @param {number} year - Year for the breakdown
  * @returns {Object} Category breakdown matching API spec
  */
-export function generateCategoryBreakdown(type = 'expense') {
+export function generateCategoryBreakdown(type = 'expense', month, year) {
     const expenseCategories = [
         { category: 'Food', amount: 850, count: 45 },
         { category: 'Transport', amount: 420, count: 22 },
@@ -112,10 +152,17 @@ export function generateCategoryBreakdown(type = 'expense') {
         percentage: Math.round((cat.amount / total) * 10000) / 100
     }))
 
+    // Use provided month/year or default to current date
+    const periodMonth = month || new Date().getMonth() + 1
+    const periodYear = year || new Date().getFullYear()
+    const periodStr = `${periodYear}-${String(periodMonth).padStart(2, '0')}`
+
     return {
         period: {
-            start: formatMonth(new Date()),
-            end: formatMonth(new Date())
+            month: periodMonth,
+            year: periodYear,
+            start: periodStr,
+            end: periodStr
         },
         currency: 'CAD',
         type,

