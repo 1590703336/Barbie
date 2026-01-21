@@ -39,7 +39,7 @@ function ProgressBar({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            className={`p-4 rounded-xl transition-all cursor-pointer ${isHovered ? 'bg-white/10' : 'hover:bg-white/5'
+            className={`p-4 rounded-xl cursor-pointer chart-item-hover ${isHovered ? 'chart-item-active' : ''
                 }`}
             onMouseEnter={() => onHover(index)}
             onMouseLeave={() => onHover(null)}

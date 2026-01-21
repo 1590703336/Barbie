@@ -250,6 +250,32 @@ When using `ComposedChart` with both `Area` and `Line` for the same dataKey, add
 <Line dataKey="income" name="Income" />
 ```
 
+### Chart Item Hover Effects
+For interactive list items in charts (legend items, progress bars, etc.), use theme-aware hover classes:
+
+| Class | Purpose |
+|-------|---------|
+| `.chart-item-hover` | Base hover transition |
+| `.chart-item-active` | Active/selected state |
+
+CSS Variables:
+- `--chart-item-hover-bg`: Background on hover
+  - Dark: `rgba(255, 255, 255, 0.1)` 
+  - Light: `rgba(0, 0, 0, 0.06)`
+- `--chart-item-hover-shadow`: Shadow on hover
+  - Dark: `0 4px 12px rgba(0, 0, 0, 0.3)`
+  - Light: `0 4px 16px rgba(0, 0, 0, 0.15)` ← Darker for visibility
+
+```jsx
+// ❌ BAD - Hardcoded opacity that's invisible in light mode
+<div className={`${isHovered ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+
+// ✅ GOOD - Theme-aware hover classes
+<div className={`chart-item-hover ${isHovered ? 'chart-item-active' : ''}`}>
+```
+
+> **Light Mode Consideration**: The glass-card background is very light, so hover shadows must be darker (0.15+ opacity) to be visible.
+
 ---
 
 ## Animation Guidelines

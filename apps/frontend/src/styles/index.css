@@ -76,6 +76,10 @@
 
   /* Chart */
   --chart-grid-line: rgba(255, 255, 255, 0.1);
+
+  /* Chart Item Hover */
+  --chart-item-hover-bg: rgba(255, 255, 255, 0.1);
+  --chart-item-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 :root[data-theme="light"] {
@@ -149,6 +153,10 @@
 
   /* Chart */
   --chart-grid-line: rgba(0, 0, 0, 0.1);
+
+  /* Chart Item Hover - darker shadow for light mode visibility */
+  --chart-item-hover-bg: rgba(0, 0, 0, 0.06);
+  --chart-item-hover-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 body {
@@ -201,6 +209,21 @@ body {
   backdrop-filter: blur(30px) saturate(130%);
   border: 1px solid var(--glass-panel-border);
   transition: background 0.3s, border-color 0.3s;
+}
+
+/* Chart item hover effect - for legend items and progress bars */
+.chart-item-hover {
+  transition: all 0.2s ease;
+}
+
+.chart-item-hover:hover {
+  background: var(--chart-item-hover-bg);
+  box-shadow: var(--chart-item-hover-shadow);
+}
+
+.chart-item-active {
+  background: var(--chart-item-hover-bg);
+  box-shadow: var(--chart-item-hover-shadow);
 }
 
 /* Links & text */
