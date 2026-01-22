@@ -3,6 +3,19 @@
 
 export const changelog = [
     {
+        version: "1.7.0",
+        date: "2026-01-22",
+        changes: [
+            "New Dashboard with interactive charts (Trend, Category Pie, Budget Progress)",
+            "Implemented Backend Analytics Module (Aggregation with MongoDB Pipelines)",
+            "Added Weekly/Monthly/Yearly trend analysis granularity",
+            "Redesigned Records page with modal-based editing",
+            "Improved UI consistency for Expenses, Incomes, Budgets, and Subscriptions",
+            "Updated button styling and glassmorphism effects",
+            "Enhanced empty state displays for record lists"
+        ]
+    },
+    {
         version: "1.6.0",
         date: "2026-01-16",
         changes: [
