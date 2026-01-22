@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const variants = {
     primary: 'bg-slate-900 text-white hover:bg-slate-800',
-    danger: 'border border-rose-200 text-rose-700 hover:bg-rose-50',
+    danger: 'bg-rose-600 text-white hover:bg-rose-500 shadow-md shadow-rose-500/20',
     outline: 'border border-slate-200 text-slate-700 hover:bg-slate-50',
 }
 
@@ -67,10 +67,10 @@ export function ActionButton({
             onClick={handleClick}
             disabled={disabled || status === 'loading' || status === 'success'}
             className={`relative overflow-hidden rounded-lg px-4 py-2 font-medium transition-all ${status === 'success'
-                    ? 'bg-green-500 text-main border-transparent'
-                    : status === 'error'
-                        ? 'bg-rose-100 text-rose-700 border-rose-200'
-                        : variants[variant]
+                ? 'bg-green-500 text-main border-transparent'
+                : status === 'error'
+                    ? 'bg-rose-100 text-rose-700 border-rose-200'
+                    : variants[variant]
                 } ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             whileHover={status === 'idle' && !disabled ? { scale: 1.02 } : {}}
             whileTap={status === 'idle' && !disabled ? { scale: 0.98 } : {}}
