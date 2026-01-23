@@ -7,7 +7,20 @@ export default defineConfig(({ mode }) => {
   // Use port 5500 for dev mode, 4273 for production
   const backendPort = mode === 'development' ? 5500 : 4273;
 
+  // ========================================
+  // BASE PATH 配置 - 根据部署环境选择一个
+  // ========================================
+  // 
+  // 【生产环境】部署到根路径 uofa.ink/
+  const base = '/';
+  //
+  // 【开发预览】部署到 uofa.ink/dev/
+  // const base = '/dev/';
+  //
+  // ========================================
+
   return {
+    base,  // ← 应用 base path
     plugins: [react(), tailwindcss()],
     server: {
       proxy: {
