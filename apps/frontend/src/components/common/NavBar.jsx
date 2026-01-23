@@ -80,69 +80,68 @@ function NavBar() {
           Barbie Cloud
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
-          <nav className="flex items-center gap-4">
-            {filteredNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `relative px-3 py-2 rounded-lg transition text-secondary hover:text-main`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span className="relative">{item.label}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-active"
-                        className="absolute inset-0 rounded-lg"
-                        style={{ backgroundColor: 'var(--nav-active-bg)' }}
-                        transition={{ type: 'spring', duration: 0.6 }}
-                      />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
+        {/* Desktop Navigation - Centered */}
+        <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
+          {filteredNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `relative px-3 py-2 rounded-lg transition text-secondary hover:text-main`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <span className="relative">{item.label}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-active"
+                      className="absolute inset-0 rounded-lg"
+                      style={{ backgroundColor: 'var(--nav-active-bg)' }}
+                      transition={{ type: 'spring', duration: 0.6 }}
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
 
-          <div className="flex items-center gap-6 text-sm">
-            <ThemeToggle />
-            <ChangelogButton />
-            {isAuthenticated ? (
-              <>
-                <span className="text-secondary">Hi, {user?.name ?? user?.email ?? 'User'}</span>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
-                  onClick={logout}
-                >
-                  Logout
-                </motion.button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="px-3 py-2 rounded-lg text-secondary hover:bg-white/10 hover:text-main"
-                >
-                  Log in
-                </Link>
-                <MotionLink
-                  to="/register"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30"
-                  style={{ color: 'rgba(255, 255, 255, 1)' }}
-                >
-                  Sign up
-                </MotionLink>
-              </>
-            )}
-          </div>
+        {/* Desktop Actions - Right */}
+        <div className="hidden md:flex items-center gap-6 text-sm">
+          <ThemeToggle />
+          <ChangelogButton />
+          {isAuthenticated ? (
+            <>
+              <span className="text-secondary">Hi, {user?.name ?? user?.email ?? 'User'}</span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
+                onClick={logout}
+              >
+                Logout
+              </motion.button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-3 py-2 rounded-lg text-secondary hover:bg-white/10 hover:text-main"
+              >
+                Log in
+              </Link>
+              <MotionLink
+                to="/register"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30"
+                style={{ color: 'rgba(255, 255, 255, 1)' }}
+              >
+                Sign up
+              </MotionLink>
+            </>
+          )}
         </div>
 
         {/* Placeholder for right side on mobile to balance flex if needed, 
@@ -225,7 +224,7 @@ function NavBar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </header >
   )
 }
 
