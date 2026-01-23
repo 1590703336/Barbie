@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
   // 【生产环境】部署到根路径 uofa.ink/
   const base = '/';
   //
-  // 【开发预览】部署到 uofa.ink/dev/
-  // const base = '/dev/';
+  // 【开发预览】部署到 uofa.ink/preview/
+  // const base = '/preview/';
   //
   // ========================================
 

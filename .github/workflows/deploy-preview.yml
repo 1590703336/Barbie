@@ -1,0 +1,50 @@
+name: Deploy Preview to AWS EC2
+
+on:
+  push:
+    branches:
+      - preview
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy Preview to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/projects/Barbie-preview
+            
+            echo "📥 Fetching latest code..."
+            git fetch origin preview
+            
+            echo "🔄 Resetting to latest commit..."
+            git reset --hard origin/preview
+            
+            echo "📦 Installing backend dependencies..."
+            cd apps/backend
+            npm install --production
+            
+            echo "🔄 Restarting preview backend..."
+            pm2 restart barbie-backend-preview || pm2 start npm --name "barbie-backend-preview" -- start
+            
+            echo "📝 Configuring frontend for preview..."
+            cd ../frontend
+            
+            # 修改 vite.config.js: 端口改为 4274，base 改为 /preview/
+            sed -i "s/const backendPort = mode === 'development' ? 5500 : 4273;/const backendPort = mode === 'development' ? 5500 : 4274;/" vite.config.js
+            sed -i "s|const base = '/';|// const base = '/';|" vite.config.js
+            sed -i "s|// const base = '/preview/';|const base = '/preview/';|" vite.config.js
+            
+            echo "📦 Installing frontend dependencies..."
+            npm install
+            
+            echo "🔨 Building frontend..."
+            npm run build
+            
+            echo "✅ Preview deployment completed!"
+            echo "🌐 Access at: https://uofa.ink/preview/"
