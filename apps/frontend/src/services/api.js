@@ -1,7 +1,13 @@
 import axios from 'axios'
 
+// Dynamically construct API base URL based on Vite's base path
+// Production (/): /api/v1
+// Preview (/preview/): /preview/api/v1
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, ''); // remove trailing slash
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL ?? `${basePath}/api/v1`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
+  baseURL: apiBaseURL,
   withCredentials: true,
 })
 
@@ -36,7 +42,7 @@ api.interceptors.response.use(
 
         // Redirect to login page if not already there
         if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login?expired=true'
+          window.location.href = `${basePath}/login?expired=true`
         }
       }
     }
