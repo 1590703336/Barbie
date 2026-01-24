@@ -255,9 +255,15 @@ Module/
 ```
 
 **Current Modules:**
-1. **Auth Module** - User registration, login, logout
-2. **User Module** - User CRUD operations
-3. **Subscription Module** - Subscription management
+1.  **Auth Module** - User registration, login, logout
+2.  **User Module** - User CRUD operations
+3.  **Subscription Module** - Subscription management
+4.  **Expenses Module**
+5.  **Budgets Module**
+6.  **Income Module**
+7.  **Currency Module**
+8.  **ConvertPair Module**
+9.  **Analytics Module**
 
 ### Frontend Components
 
@@ -294,7 +300,7 @@ services/
 - `PUT /users/:id` - Update user
 - `DELETE /users/:id` - Delete user
 
-#### Expeneses
+#### Expenses
 - `GET    /expenses`           → Getting all user’s expenses
 - `GET    /expenses/:id`       → Get single expense details
 - `POST   /expenses`           → Create expense for logged in user
