@@ -20,42 +20,59 @@
 
 | 目标 | 实现方式 |
 |------|----------|
-| **减少网络请求** | 使用内存缓存存储 API 响应 |
-| **请求去重** | 相同 key 的并发请求共享同一 Promise |
-| **数据一致性** | CUD 操作后自动失效相关缓存 |
-| **多用户安全** | Cache key 包含 userId 防止数据泄露 |
+| **减少网络请求** | React Query 自动缓存 API 响应 |
+| **请求去重** | React Query 自动去重相同 queryKey 的并发请求 |
+| **数据一致性** | Mutation 后通过 `invalidateQueries` 自动失效相关缓存 |
+| **多用户安全** | Query key 包含 userId 防止数据泄露 |
 | **快速首屏加载** | 首次渲染无延迟，仅后续变化防抖 |
 
 ---
 
 ## 核心组件
 
-### 1. simpleCache (内存缓存)
+### 1. QueryClient (React Query 缓存核心)
 
-**文件位置**: `apps/frontend/src/utils/simpleCache.js`
+**文件位置**: `apps/frontend/src/lib/queryClient.js`
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  simpleCache                                                │
-├─────────────────────────────────────────────────────────────┤
-│  cache = Map<string, CacheEntry>                            │
-│                                                             │
-│  CacheEntry = {                                             │
-│    value?: any,        // 缓存的数据                        │
-│    expiry?: number,    // 过期时间戳                        │
-│    promise?: Promise   // 进行中的请求 (用于去重)           │
-│  }                                                          │
-├─────────────────────────────────────────────────────────────┤
-│  API:                                                       │
-│  • getOrSet(key, fetcher, signal?, ttl?)  // 获取或设置缓存 │
-│  • delete(key)                             // 删除指定 key  │
-│  • invalidateByPrefix(prefix)              // 按前缀批量删除│
-│  • clear()                                 // 清空所有缓存  │
-│  • size()                                  // 获取缓存条数  │
-└─────────────────────────────────────────────────────────────┘
+```javascript
+import { QueryClient } from '@tanstack/react-query'
+
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 60 * 1000,     // 60 秒内数据视为 fresh，不会重新请求
+            gcTime: 5 * 60 * 1000,    // 5 分钟后垃圾回收未使用的缓存
+            retry: 1,                  // 失败后重试 1 次
+            refetchOnWindowFocus: false, // 窗口获焦时不自动重新请求
+        },
+    },
+})
 ```
 
-### 2. useDebouncedValue (防抖 Hook)
+**配置说明:**
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| `staleTime` | 60s | 数据在 60 秒内被视为 "新鲜"，不会触发后台重新请求 |
+| `gcTime` | 5min | 缓存数据在 5 分钟无人使用后被垃圾回收 |
+| `retry` | 1 | 请求失败后最多重试 1 次 |
+| `refetchOnWindowFocus` | false | 用户切换回窗口时不自动刷新数据 |
+
+### 2. Query Hooks (数据获取 Hooks)
+
+**文件位置**: `apps/frontend/src/hooks/queries/`
+
+```
+hooks/queries/
+├── useBudgetQueries.js      # 预算相关 queries 和 mutations
+├── useExpenseQueries.js     # 支出相关
+├── useIncomeQueries.js      # 收入相关
+├── useSubscriptionQueries.js # 订阅相关
+├── useUserQueries.js        # 用户相关
+└── useCurrencyQueries.js    # 汇率相关
+```
+
+### 3. useDebouncedValue (防抖 Hook)
 
 **文件位置**: `apps/frontend/src/hooks/useDebouncedValue.js`
 
@@ -70,141 +87,97 @@ function useDebouncedValue(value, delay = 500) {
 
 ## 缓存工作原理
 
-### getOrSet 流程图
-
-![getOrSet 流程图](./images/cache_getOrSet_flow.png)
-
-**流程说明:**
+### React Query 缓存流程
 
 ```
-调用 getOrSet(key, fetcher)
+调用 useQuery({ queryKey, queryFn })
          │
          ▼
-   ┌─────────────┐
-   │cache.has(key)?│
-   └─────────────┘
+   ┌─────────────────┐
+   │ 检查缓存是否存在 │
+   └─────────────────┘
          │
     ┌────┴────┐
-    是        否
-    │         │
-    ▼         │
-┌─────────┐   │
-│promise  │   │
-│存在?    │   │
-└─────────┘   │
-    │         │
-  ┌─┴──┐      │
-  是   否     │
-  │    │      │
-  ▼    ▼      │
-返回   检查    │
-promise expiry │
-(去重)  │      │
-        │      │
-   ┌────┴────┐ │
-   未过期  过期 │
-   │       │   │
-   ▼       ▼   ▼
- 返回    执行 fetcher
- value   ─────────────┐
-                      │
-                      ▼
-               cache.set(key, promise)
-                      │
-                      ▼
-              ┌───────────────┐
-              │  请求成功?     │
-              └───────────────┘
-                   │
-              ┌────┴────┐
-              是        否
-              │         │
-              ▼         ▼
-         signal已    cache.delete(key)
-         abort?      抛出 error
-              │
-         ┌────┴────┐
-         是        否
-         │         │
-         ▼         ▼
-    cache.delete  cache.set(key,
-         │        value + expiry)
-         │              │
-         └──────┬───────┘
-                ▼
-           返回 value
+    存在      不存在
+    │           │
+    ▼           ▼
+┌─────────┐   执行 queryFn
+│ stale?  │   ─────────────┐
+└─────────┘              │
+    │                    ▼
+  ┌─┴──┐          缓存结果
+  是   否         │
+  │    │          │
+  ▼    ▼          │
+后台刷新 返回     │
++返回   缓存     │
+缓存    值       │
+  │              │
+  └──────┬───────┘
+         ▼
+    返回数据给组件
 ```
 
-### 核心代码解析
+### Query 示例
 
 ```javascript
-async getOrSet(key, fetcher, signal, ttl = 60000) {
-    const cached = cache.get(key)
-    
-    // 1. 检查缓存
-    if (cached) {
-        // 如果有进行中的请求，返回同一个 Promise (请求去重)
-        if (cached.promise) return cached.promise
-        
-        // 如果未过期，返回缓存值
-        if (Date.now() < cached.expiry) return cached.value
-        
-        // 已过期，删除旧条目
-        cache.delete(key)
-    }
-    
-    // 2. 执行 fetcher 并缓存 Promise
-    const promise = fetcher()
-        .then((value) => {
-            // 请求成功，只有在未被取消时才缓存
-            if (!signal?.aborted) {
-                cache.set(key, { value, expiry: Date.now() + ttl })
-            }
-            return value
-        })
-        .catch((error) => {
-            // 请求失败，删除条目以允许重试
-            cache.delete(key)
-            throw error
-        })
-    
-    // 3. 立即缓存 Promise 以实现请求去重
-    cache.set(key, { promise })
-    return promise
+// useBudgetQueries.js
+export function useBudgetSummary({ month, year, userId }) {
+    return useQuery({
+        queryKey: budgetKeys.summary({ month, year, userId }),
+        queryFn: () => getBudgetSummary({ month, year, userId }),
+        enabled: !!userId && !!month && !!year,
+    })
 }
 ```
+
+**关键点:**
+- `queryKey` 是缓存的唯一标识
+- `queryFn` 是实际获取数据的函数
+- `enabled` 控制何时启用查询（例如等待 userId 可用）
 
 ---
 
 ## 缓存 Key 设计
 
-### 命名规范
+### Query Keys 工厂模式
 
-```
-{module}-{operation}-{userId}-{params...}
+每个服务使用工厂函数生成层级化的 query keys：
+
+```javascript
+// useBudgetQueries.js
+export const budgetKeys = {
+    all: ['budgets'],
+    lists: () => [...budgetKeys.all, 'list'],
+    list: (filters) => [...budgetKeys.lists(), filters],
+    summaries: () => [...budgetKeys.all, 'summary'],
+    summary: (filters) => [...budgetKeys.summaries(), filters],
+}
 ```
 
-### 各服务的 Cache Key
+### 各服务的 Query Keys
 
 | 服务 | Key 模式 | 示例 |
 |------|----------|------|
-| Budget | `budget-summary-{userId}-{month}-{year}` | `budget-summary-abc123-1-2026` |
-| Income | `income-summary-{month}-{year}` | `income-summary-1-2026` |
-| Subscription | `subscription-total-{userId}` | `subscription-total-abc123` |
-| Expense | `expense-list-{userId}-{month}-{year}` | `expense-list-abc123-1-2026` |
+| Budget | `['budgets', 'summary', { month, year, userId }]` | `['budgets', 'summary', { month: 1, year: 2026, userId: 'abc123' }]` |
+| Expense | `['expenses', 'list', { month, year, userId }]` | `['expenses', 'list', { month: 1, year: 2026, userId: 'abc123' }]` |
+| Income | `['incomes', 'summary', { month, year }]` | `['incomes', 'summary', { month: 1, year: 2026 }]` |
+| Subscription | `['subscriptions', 'total', userId]` | `['subscriptions', 'total', 'abc123']` |
+| User | `['users', 'detail', userId]` | `['users', 'detail', 'abc123']` |
+| Currency | `['currency', 'rates']` | `['currency', 'rates']` |
 
 ### 为什么 userId 很重要
 
 ```
 ❌ 错误示例 (不含 userId):
-   cache.set("budget-summary-1-2026", user1_data)
+   queryKey: ['budgets', 'summary', { month: 1, year: 2026 }]
    
    → User2 登录后访问同一月份
    → 返回 User1 的数据！(安全漏洞)
 
 ✅ 正确示例 (含 userId):
-   cache.set("budget-summary-user1-1-2026", user1_data)
-   cache.set("budget-summary-user2-1-2026", user2_data)
+   queryKey: ['budgets', 'summary', { month: 1, year: 2026, userId: 'user1' }]
+   queryKey: ['budgets', 'summary', { month: 1, year: 2026, userId: 'user2' }]
    
    → 每个用户有独立的缓存条目
 ```
@@ -213,34 +186,53 @@ async getOrSet(key, fetcher, signal, ttl = 60000) {
 
 ## 缓存失效策略
 
-### 1. 时间失效 (TTL)
+### 1. 时间失效 (Stale Time)
 
-默认 60 秒后自动过期，下次访问时重新获取最新数据。
+默认 60 秒后数据变为 "stale"，下次访问时在后台重新获取最新数据。
 
-### 2. 主动失效 (Prefix-based Invalidation)
+### 2. 主动失效 (Mutation Invalidation)
 
 ```javascript
-// ❌ 旧方式: 清空所有缓存
-simpleCache.clear()  // 删除所有服务的所有缓存
-
-// ✅ 新方式: 按前缀精准失效
-simpleCache.invalidateByPrefix('budget-')  // 只删除预算相关缓存
+// useBudgetQueries.js
+export function useCreateBudget() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createBudget,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+        },
+    })
+}
 ```
 
 ### 3. 各服务的失效规则
 
-![缓存失效规则](./images/cache_invalidation_flow.png)
+| 操作 | 失效的 Query Keys |
+|------|-------------------|
+| createBudget / updateBudget / deleteBudget | `budgetKeys.all` → `['budgets']` |
+| createExpense / updateExpense / deleteExpense | `expenseKeys.all` + `budgetKeys.all` |
+| createIncome / updateIncome / deleteIncome | `incomeKeys.all` → `['incomes']` |
+| createSubscription / updateSubscription / deleteSubscription | `subscriptionKeys.all` → `['subscriptions']` |
+| updateUser | `userKeys.detail(userId)` → `['users', 'detail', userId]` |
 
-**失效规则表:**
+> **跨服务依赖**: Expense 的 CUD 操作会同时失效 `expense` 和 `budget` 缓存，因为费用会影响预算摘要。
 
-| 操作 | 失效的缓存前缀 |
-|------|---------------|
-| createExpense / updateExpense / deleteExpense | `expense-` 和 `budget-` |
-| createBudget / updateBudget / deleteBudget | `budget-` |
-| createIncome / updateIncome / deleteIncome | `income-` |
-| createSubscription / updateSubscription / deleteSubscription | `subscription-` |
+### 跨服务失效示例
 
-> **注意**: Expense 的 CUD 操作会同时失效 `expense-` 和 `budget-` 缓存，因为费用会影响预算摘要。
+```javascript
+// useExpenseQueries.js
+export function useCreateExpense() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createExpense,
+        onSuccess: () => {
+            // Expenses affect budget summaries, so invalidate both
+            queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+            queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+        },
+    })
+}
+```
 
 ---
 
@@ -263,25 +255,21 @@ simpleCache.invalidateByPrefix('budget-')  // 只删除预算相关缓存
      │
      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ useEffect(() => fetchData(), [debouncedMonth])                  │
+│ useBudgetSummary({ month: debouncedMonth, year, userId })       │
 └─────────────────────────────────────────────────────────────────┘
      │
      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ budgetService.getBudgetSummary({month:1, userId})               │
-└─────────────────────────────────────────────────────────────────┘
-     │
-     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ simpleCache.getOrSet("budget-summary-user1-1-2026", fetcher)    │
+│ React Query 缓存检查                                             │
+│   queryKey: ['budgets', 'summary', { month:1, year:2026, userId }] │
 │                          │                                      │
 │                   检查缓存 → 未命中                              │
 │                          │                                      │
 │                          ▼                                      │
-│                   执行 API 请求                                  │
+│                   执行 queryFn (API 请求)                        │
 │                          │                                      │
 │                          ▼                                      │
-│                   存储结果 (TTL=60s)                             │
+│                   缓存结果 (staleTime=60s)                       │
 └─────────────────────────────────────────────────────────────────┘
      │
      ▼
@@ -337,10 +325,12 @@ function Dashboard() {
   const [month, setMonth] = useState(1)
   const debouncedMonth = useDebouncedValue(month, 500)
   
-  useEffect(() => {
-    // 只在 debouncedMonth 变化时触发请求
-    fetchData(debouncedMonth)
-  }, [debouncedMonth])
+  // 使用 debouncedMonth 作为 query 参数
+  const { data } = useBudgetSummary({
+    month: debouncedMonth,
+    year,
+    userId
+  })
 }
 ```
 
@@ -348,56 +338,69 @@ function Dashboard() {
 
 ## 最佳实践
 
-### 1. 选择正确的缓存范围
+### 1. 使用 Query Hooks 而非直接调用 Service
 
 ```javascript
-// ✅ 缓存聚合/摘要数据
-getBudgetSummary()  // 用户不太可能频繁修改
+// ✅ 推荐: 使用 React Query hooks
+const { data, isLoading, error } = useBudgetSummary({ month, year, userId })
 
-// ⚠️ 谨慎缓存列表数据
-listExpenses()      // 如果需要实时性，考虑更短的 TTL
-
-// ❌ 不缓存频繁变化的数据
-getNotifications()  // 需要实时更新
+// ❌ 不推荐: 直接调用 service + useState + useEffect
+const [data, setData] = useState(null)
+useEffect(() => {
+  getBudgetSummary({ month, year, userId }).then(setData)
+}, [month, year, userId])
 ```
 
-### 2. 设计正确的 Cache Key
+### 2. 设计正确的 Query Key
 
 ```javascript
-// ✅ 好的 key 设计
-`budget-summary-${userId}-${month}-${year}`
+// ✅ 好的 key 设计 - 包含所有影响查询的参数
+budgetKeys.summary({ month, year, userId })
 
-// ❌ 坏的 key 设计
-`budget-${month}`  // 缺少 userId，会导致用户数据混淆
+// ❌ 坏的 key 设计 - 缺少 userId
+['budgets', 'summary', { month, year }]  // 会导致用户数据混淆
 ```
 
 ### 3. 正确的失效时机
 
 ```javascript
-// ✅ CUD 操作后立即失效
-async function createBudget(data) {
-    const result = await api.post('/budgets', data)
-    simpleCache.invalidateByPrefix('budget-')  // 立即失效
-    return result
-}
+// ✅ Mutation 成功后立即失效
+useMutation({
+    mutationFn: createBudget,
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+    },
+})
 
 // ❌ 不失效可能导致数据不一致
-async function createBudget(data) {
-    return api.post('/budgets', data)
+useMutation({
+    mutationFn: createBudget,
     // 用户回到 Dashboard 看到的还是旧数据!
-}
+})
 ```
 
 ### 4. 处理跨模块依赖
 
 ```javascript
-// Expense 影响 Budget 摘要
-async function createExpense(data) {
-    const result = await api.post('/expenses', data)
-    simpleCache.invalidateByPrefix('expense-')
-    simpleCache.invalidateByPrefix('budget-')  // 费用影响预算!
-    return result
-}
+// Expense 影响 Budget 摘要，需要同时失效
+useMutation({
+    mutationFn: createExpense,
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+        queryClient.invalidateQueries({ queryKey: budgetKeys.all })  // 费用影响预算!
+    },
+})
+```
+
+### 5. 使用 enabled 控制查询时机
+
+```javascript
+// ✅ 等待必要参数就绪再执行查询
+useQuery({
+    queryKey: budgetKeys.summary({ month, year, userId }),
+    queryFn: () => getBudgetSummary({ month, year, userId }),
+    enabled: !!userId && !!month && !!year,  // userId 为空时不发请求
+})
 ```
 
 ---
@@ -410,15 +413,15 @@ async function createExpense(data) {
 apps/frontend/src/
 ├── __tests__/                         # 测试目录
 │   ├── setup.js                       # 测试配置
-│   ├── utils/
-│   │   └── simpleCache.test.js        # 14 tests
 │   ├── hooks/
-│   │   └── useDebouncedValue.test.js  # 13 tests
-│   └── services/
-│       ├── budgetService.test.js      # 10 tests
-│       ├── incomeService.test.js      # 10 tests
-│       ├── subscriptionService.test.js # 12 tests
-│       └── expenseService.test.js     # 13 tests
+│   │   ├── queries/                   # Query hooks 测试
+│   │   │   ├── useBudgetQueries.test.js
+│   │   │   ├── useExpenseQueries.test.js
+│   │   │   ├── useIncomeQueries.test.js
+│   │   │   └── useSubscriptionQueries.test.js
+│   │   └── useDebouncedValue.test.js  # 防抖 hook 测试
+│   └── integration/
+│       └── crossPageDataFlow.test.js  # 跨页面数据流集成测试
 ```
 
 ### 运行测试
@@ -429,19 +432,37 @@ cd apps/frontend
 # 运行所有测试
 npm run test:run
 
+# 运行 query hooks 测试
+npm test src/__tests__/hooks/queries
+
+# 运行集成测试
+npm test src/__tests__/integration
+
 # 监视模式
 npm run test
 ```
 
 ### 测试覆盖范围
 
-| 测试文件 | 测试数 | 覆盖内容 |
-|----------|--------|----------|
-| **simpleCache.test.js** | 14 | TTL、请求去重、abort 处理、前缀失效、多用户隔离 |
-| **useDebouncedValue.test.js** | 13 | 首次立即返回、防抖行为、清理、边界情况 |
-| **budgetService.test.js** | 10 | 带 userId 的缓存 key、CUD 失效 |
-| **incomeService.test.js** | 10 | Summary 缓存、失效隔离 |
-| **subscriptionService.test.js** | 12 | Total 缓存、所有变更类型 |
-| **expenseService.test.js** | 13 | List 缓存、跨服务失效 |
+| 测试文件 | 覆盖内容 |
+|----------|----------|
+| **useBudgetQueries.test.js** | Query keys 生成、缓存失效、enabled 条件 |
+| **useExpenseQueries.test.js** | 列表查询、跨服务失效 (expense → budget) |
+| **useIncomeQueries.test.js** | Summary 查询、失效隔离 |
+| **useSubscriptionQueries.test.js** | Total 查询、所有 mutation 类型 |
+| **useDebouncedValue.test.js** | 首次立即返回、防抖行为、清理、边界情况 |
+| **crossPageDataFlow.test.js** | 跨页面数据一致性、缓存共享 |
 
-**总计: 72 个测试 ✅**
+---
+
+## 附录：从 simpleCache 到 React Query 的迁移
+
+本项目最初设计使用自定义的 `simpleCache` 模块，后迁移到 React Query 以获得以下优势：
+
+| 特性 | simpleCache (旧) | React Query (现) |
+|------|------------------|------------------|
+| 请求状态管理 | 手动管理 loading/error | 自动提供 isLoading/error |
+| 后台刷新 | 需手动实现 | 自动支持 stale-while-revalidate |
+| DevTools | 无 | 提供可视化 DevTools |
+| 乐观更新 | 需手动实现 | 内置支持 |
+| 代码量 | 自定义逻辑 | 声明式配置 |

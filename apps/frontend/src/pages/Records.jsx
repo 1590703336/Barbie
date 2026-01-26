@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useQueryClient } from '@tanstack/react-query'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { ActionButton } from '../components/common/ActionButton'
 import { CategoryIcon } from '../components/common/CategoryIcon'
+import RecordModal from '../components/common/RecordModal'
 import {
   updateExpense,
   deleteExpense,
@@ -28,6 +30,7 @@ import { useBudgetList, budgetKeys } from '../hooks/queries/useBudgetQueries'
 import { useIncomeList, incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { useUserSubscriptions, subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 
 const expenseCategories = [
   'Food',
@@ -302,6 +305,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -318,6 +322,7 @@ function Records() {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -384,6 +389,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -398,6 +404,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -423,6 +430,7 @@ function Records() {
       })
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
@@ -437,6 +445,7 @@ function Records() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
     } catch (err) {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Delete failed'
@@ -444,629 +453,336 @@ function Records() {
       throw err
     }
   }
+  const [editingId, setEditingId] = useState(null)
+  const [editingType, setEditingType] = useState(null) // 'budget' | 'expense' | 'subscription' | 'income'
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
-      <div className="space-y-3">
-        <p className="text-sm font-semibold text-indigo-400">Records</p>
-        <h1 className="text-3xl font-bold text-main">
-          Manage budgets, expenses, and subscriptions
-        </h1>
-        <p className="text-sm text-secondary">
-          Update or delete any record you have created. Budgets, expenses, and incomes are filtered by month/year. Subscriptions show all records.
-        </p>
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <p className="text-sm font-semibold text-muted">Budget month & year</p>
-            <p className="text-xs text-secondary">
-              Filters budgets, expenses, and incomes. Subscriptions are not filtered.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm text-muted">
-              Month
-              <input
-                className="w-24 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                type="number"
-                min={1}
-                max={12}
-                value={month}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setMonth(value === '' ? '' : Number(value))
-                }}
-              />
-            </label>
-            <label className="flex items-center gap-2 text-sm text-muted">
-              Year
-              <input
-                className="w-28 rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                type="number"
-                min={2024}
-                value={year}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setYear(value === '' ? '' : Number(value))
-                }}
-              />
-            </label>
+  const openEditModal = (id, type) => {
+    setError('')
+    setEditingId(id)
+    setEditingType(type)
+  }
+
+  const closeEditModal = () => {
+    setEditingId(null)
+    setEditingType(null)
+  }
+
+  const getModalData = () => {
+    if (!editingId) return {}
+    let data = {}
+    switch (editingType) {
+      case 'budget': data = budgetEdits[editingId] || {}; break
+      case 'expense': data = expenseEdits[editingId] || {}; break
+      case 'subscription': data = subscriptionEdits[editingId] || {}; break
+      case 'income': data = incomeEdits[editingId] || {}; break
+    }
+    return { ...data, error }
+  }
+
+  const getModalOptions = () => {
+    switch (editingType) {
+      case 'budget':
+        return { categories: budgetCategories, currencies: budgetCurrencies }
+      case 'expense':
+        return { categories: expenseCategories, currencies: expenseCurrencies }
+      case 'subscription':
+        return {
+          categories: subscriptionCategories,
+          currencies: subscriptionCurrencies,
+          frequencies: subscriptionFrequencies,
+          statuses: subscriptionStatuses
+        }
+      case 'income':
+        return { categories: incomeCategories, currencies: incomeCurrencies }
+      default:
+        return {}
+    }
+  }
+
+  const handleModalChange = (field, value) => {
+    if (!editingId) return
+    switch (editingType) {
+      case 'budget': handleBudgetChange(editingId, field, value); break
+      case 'expense': handleExpenseChange(editingId, field, value); break
+      case 'subscription': handleSubscriptionChange(editingId, field, value); break
+      case 'income': handleIncomeChange(editingId, field, value); break
+    }
+  }
+
+  const handleModalSave = async () => {
+    if (!editingId) return
+    switch (editingType) {
+      case 'budget': await handleUpdateBudget(editingId); break
+      case 'expense': await handleUpdateExpense(editingId); break
+      case 'subscription': await handleUpdateSubscription(editingId); break
+      case 'income': await handleUpdateIncome(editingId); break
+    }
+  }
+
+  const handleModalDelete = async () => {
+    if (!editingId) return
+    switch (editingType) {
+      case 'budget': await handleDeleteBudget(editingId); break
+      case 'expense': await handleDeleteExpense(editingId); break
+      case 'subscription': await handleDeleteSubscription(editingId); break
+      case 'income': await handleDeleteIncome(editingId); break
+    }
+  }
+
+  const [activeTab, setActiveTab] = useState('expenses') // 'budgets' | 'expenses' | 'subscriptions' | 'incomes'
+
+  const tabs = [
+    { id: 'expenses', label: 'Expenses', icon: '💸' },
+    { id: 'budgets', label: 'Budgets', icon: '📊' },
+    { id: 'subscriptions', label: 'Subscriptions', icon: '🔄' },
+    { id: 'incomes', label: 'Incomes', icon: '💰' },
+  ]
+
+  // Common List Item Component
+  const ListItem = ({ icon, title, subtitle, amount, date, onClick, status }) => (
+    <div
+      onClick={onClick}
+      className="group flex items-center justify-between p-4 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-2xl hover:bg-white/5 transition-all cursor-pointer shadow-sm hover:shadow-md"
+    >
+      <div className="flex items-center gap-4">
+        {icon}
+        <div>
+          <p className="text-sm font-medium text-main group-hover:text-indigo-400 transition-colors">{title}</p>
+          <div className="flex items-center gap-2 text-xs text-secondary">
+            {subtitle}
+            {date && (
+              <>
+                <span>·</span>
+                <span>{date}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
+      <div className="text-right">
+        <p className="text-sm font-medium text-main">{amount}</p>
+        {status && (
+          <p className={`text-[10px] uppercase tracking-wider font-semibold ${status === 'active' ? 'text-emerald-500' : 'text-rose-500'
+            }`}>
+            {status}
+          </p>
+        )}
+      </div>
+    </div>
+  )
 
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          {error && <p className="text-rose-600 mb-4">{error}</p>}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+  // Section Header Component
+  const SectionHeader = ({ title, count }) => (
+    <div className="flex items-center justify-between py-2 px-1">
+      <h2 className="text-sm font-semibold text-secondary uppercase tracking-wider">{title}</h2>
+      <span className="text-xs text-secondary bg-[var(--bg-deep)] px-2.5 py-1 rounded-full border border-[var(--border-subtle)]">
+        {count}
+      </span>
+    </div>
+  )
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-main">Budgets</h2>
-                <span className="text-sm text-secondary">
-                  {budgets.length} for {month}/{year}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {budgets.map((budget) => {
-                  const id = budget.id || budget._id
-                  const form = budgetEdits[id] ?? {}
-                  return (
-                    <div
-                      key={id}
-                      className="rounded-xl glass-card p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CategoryIcon category={budget.category} className="h-12 w-12" />
-                          <div>
-                            <p className="text-base font-semibold text-main">
-                              {budget.category}
-                            </p>
-                            <p className="text-sm text-secondary">
-                              {budget.month}/{budget.year}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-main">
-                            {formatCurrency(
-                              budget.limit ?? 0,
-                              budget.currency ?? 'USD',
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.category ?? ''}
-                          onChange={(e) =>
-                            handleBudgetChange(id, 'category', e.target.value)
-                          }
-                        >
-                          <option value="">Select category</option>
-                          {budgetCategories.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.currency ?? ''}
-                          onChange={(e) =>
-                            handleBudgetChange(id, 'currency', e.target.value)
-                          }
-                        >
-                          <option value="">Select currency</option>
-                          {budgetCurrencies.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          min={0}
-                          value={form.limit ?? ''}
-                          onChange={(e) =>
-                            handleBudgetChange(id, 'limit', e.target.value)
-                          }
-                          placeholder="Limit"
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          min={1}
-                          max={12}
-                          value={form.month ?? ''}
-                          onChange={(e) =>
-                            handleBudgetChange(id, 'month', e.target.value)
-                          }
-                          placeholder="Month"
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          min={2024}
-                          value={form.year ?? ''}
-                          onChange={(e) =>
-                            handleBudgetChange(id, 'year', e.target.value)
-                          }
-                          placeholder="Year"
-                        />
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <div className="mt-3 flex gap-2">
-                          <ActionButton
-                            onClick={() => handleUpdateBudget(id)}
-                            successText="Updated!"
-                          >
-                            Update
-                          </ActionButton>
-                          <ActionButton
-                            variant="danger"
-                            onClick={() => handleDeleteBudget(id)}
-                            successText="Deleted!"
-                          >
-                            Delete
-                          </ActionButton>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-                {budgets.length === 0 ? (
-                  <p className="text-sm text-slate-500">No budgets yet</p>
-                ) : null}
-              </div>
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 space-y-8">
+      {/* Header Section - Restored to Top */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[var(--border-subtle)]">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-main">Records</h1>
+          <p className="text-sm text-secondary max-w-xl">
+            Manage your financial data. Switch between categories using the sidebar.
+          </p>
+        </div>
+
+        {/* Filters - Restored to Top */}
+        <div className="flex items-center gap-3">
+          <select
+            className="w-32 bg-transparent border-none py-1.5 px-3 text-sm text-main focus:ring-0 cursor-pointer hover:text-indigo-400 transition-colors"
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={m}>
+                {new Date(0, m - 1).toLocaleString('en-US', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+          <div className="h-4 w-[1px] bg-[var(--border-subtle)]"></div>
+          <select
+            className="w-24 bg-transparent border-none py-1.5 px-3 text-sm text-main focus:ring-0 cursor-pointer hover:text-indigo-400 transition-colors"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+          >
+            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left Sidebar Navigation */}
+        <aside className="lg:w-64">
+          <nav className="space-y-2">
+            {tabs.map((tab) => (
+              <motion.button
+                key={tab.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${activeTab === tab.id
+                  ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-sm'
+                  : 'text-secondary hover:text-main hover:bg-white/5 border border-transparent'
+                  }`}
+              >
+                <span className="text-base">{tab.icon}</span>
+                {tab.label}
+              </motion.button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 min-h-[400px]">
+          {loading ? (
+            <div className="h-64 flex items-center justify-center">
+              <LoadingSpinner />
             </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {error && (
+                  <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm">
+                    {error}
+                  </div>
+                )}
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-main">Expenses</h2>
-                <span className="text-sm text-secondary">
-                  Total {expenses.length}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {expenses.map((expense) => {
-                  const id = expense.id || expense._id
-                  const form = expenseEdits[id] ?? {}
-                  return (
-                    <div
-                      key={id}
-                      className="rounded-xl glass-card p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CategoryIcon category={expense.category} name={expense.title} className="h-12 w-12" />
-                          <div>
-                            <p className="text-base font-semibold text-main">
-                              {expense.title}
-                            </p>
-                            <p className="text-sm text-secondary">
-                              {expense.category} ·{' '}
-                              {formatDateForDisplay(expense.date)}
-                            </p>
-                          </div>
+                {/* Budgets Section */}
+                {activeTab === 'budgets' && (
+                  <div className="space-y-3">
+                    <SectionHeader title="Budgets" count={budgets.length} />
+                    <div className="space-y-3">
+                      {budgets.length > 0 ? (
+                        budgets.map((budget) => (
+                          <ListItem
+                            key={budget.id || budget._id}
+                            onClick={() => openEditModal(budget.id || budget._id, 'budget')}
+                            icon={<CategoryIcon category={budget.category} className="w-10 h-10" />}
+                            title={budget.category}
+                            subtitle={`${new Date(0, budget.month - 1).toLocaleString('default', { month: 'long' })} ${budget.year}`}
+                            amount={formatCurrency(budget.limit ?? 0, budget.currency ?? 'USD')}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-secondary text-sm bg-[var(--bg-panel)] rounded-2xl">
+                          No budgets found for this period.
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-main">
-                            {formatCurrency(
-                              expense.amount ?? 0,
-                              expense.currency ?? 'USD',
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.title ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'title', e.target.value)
-                          }
-                          placeholder="Title"
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          value={form.amount ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'amount', e.target.value)
-                          }
-                          placeholder="Amount"
-                        />
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.category ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'category', e.target.value)
-                          }
-                        >
-                          <option value="">Select category</option>
-                          {expenseCategories.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.currency ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'currency', e.target.value)
-                          }
-                        >
-                          <option value="">Select currency</option>
-                          {expenseCurrencies.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="date"
-                          value={form.date ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'date', e.target.value)
-                          }
-                        />
-                        <textarea
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm sm:col-span-2 text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.notes ?? ''}
-                          onChange={(e) =>
-                            handleExpenseChange(id, 'notes', e.target.value)
-                          }
-                          placeholder="Notes"
-                        />
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <div className="mt-3 flex gap-2">
-                          <ActionButton
-                            onClick={() => handleUpdateExpense(id)}
-                            successText="Updated!"
-                          >
-                            Update
-                          </ActionButton>
-                          <ActionButton
-                            variant="danger"
-                            onClick={() => handleDeleteExpense(id)}
-                            successText="Deleted!"
-                          >
-                            Delete
-                          </ActionButton>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  )
-                })}
-                {expenses.length === 0 ? (
-                  <p className="text-sm text-slate-500">No expenses yet</p>
-                ) : null}
-              </div>
-            </div>
+                  </div>
+                )}
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-main">Subscriptions</h2>
-                <span className="text-sm text-secondary">
-                  Total {subscriptions.length} (all)
-                </span>
-              </div>
-              <div className="space-y-3">
-                {subscriptions.map((subscription) => {
-                  const id = subscription.id || subscription._id
-                  const form = subscriptionEdits[id] ?? {}
-                  return (
-                    <div
-                      key={id}
-                      className="rounded-xl glass-card p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CategoryIcon category={subscription.category} name={subscription.name} className="h-12 w-12" />
-                          <div>
-                            <p className="text-base font-semibold text-main">
-                              {subscription.name}
-                            </p>
-                            <p className="text-sm text-secondary">
-                              {subscription.category} · {subscription.frequency}
-                            </p>
-                          </div>
+                {/* Expenses Section */}
+                {activeTab === 'expenses' && (
+                  <div className="space-y-3">
+                    <SectionHeader title="Expenses" count={expenses.length} />
+                    <div className="space-y-3">
+                      {expenses.length > 0 ? (
+                        expenses.map((expense) => (
+                          <ListItem
+                            key={expense.id || expense._id}
+                            onClick={() => openEditModal(expense.id || expense._id, 'expense')}
+                            icon={<CategoryIcon category={expense.category} name={expense.title} className="w-10 h-10" />}
+                            title={expense.title}
+                            subtitle={expense.category}
+                            date={formatDateForDisplay(expense.date)}
+                            amount={formatCurrency(expense.amount ?? 0, expense.currency ?? 'USD')}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-secondary text-sm bg-[var(--bg-panel)] rounded-2xl">
+                          No expenses found for this period.
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-main">
-                            {formatCurrency(
-                              subscription.price ?? 0,
-                              subscription.currency ?? 'USD',
-                            )}
-                          </p>
-                          <p className="text-sm text-secondary">
-                            Status: {subscription.status}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.name ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(id, 'name', e.target.value)
-                          }
-                          placeholder="Name"
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          value={form.price ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(id, 'price', e.target.value)
-                          }
-                          placeholder="Price"
-                        />
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.currency ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(id, 'currency', e.target.value)
-                          }
-                        >
-                          <option value="">Select currency</option>
-                          {subscriptionCurrencies.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.frequency ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(
-                              id,
-                              'frequency',
-                              e.target.value,
-                            )
-                          }
-                        >
-                          <option value="">Select frequency</option>
-                          {subscriptionFrequencies.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.category ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(
-                              id,
-                              'category',
-                              e.target.value,
-                            )
-                          }
-                        >
-                          <option value="">Select category</option>
-                          {subscriptionCategories.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.paymentMethod ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(
-                              id,
-                              'paymentMethod',
-                              e.target.value,
-                            )
-                          }
-                          placeholder="Payment method"
-                        />
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.status ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(id, 'status', e.target.value)
-                          }
-                        >
-                          <option value="">Select status</option>
-                          {subscriptionStatuses.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="date"
-                          value={form.startDate ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(
-                              id,
-                              'startDate',
-                              e.target.value,
-                            )
-                          }
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="date"
-                          value={form.renewalDate ?? ''}
-                          onChange={(e) =>
-                            handleSubscriptionChange(
-                              id,
-                              'renewalDate',
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <div className="mt-3 flex gap-2">
-                          <ActionButton
-                            onClick={() => handleUpdateSubscription(id)}
-                            successText="Updated!"
-                          >
-                            Update
-                          </ActionButton>
-                          <ActionButton
-                            variant="danger"
-                            onClick={() => handleDeleteSubscription(id)}
-                            successText="Deleted!"
-                          >
-                            Delete
-                          </ActionButton>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  )
-                })}
-                {subscriptions.length === 0 ? (
-                  <p className="text-sm text-slate-500">No subscriptions yet</p>
-                ) : null}
-              </div>
-            </div>
+                  </div>
+                )}
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-main">Incomes</h2>
-                <span className="text-sm text-secondary">
-                  {incomes.length} for {month}/{year}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {incomes.map((income) => {
-                  const id = income.id || income._id
-                  const form = incomeEdits[id] ?? {}
-                  return (
-                    <div
-                      key={id}
-                      className="rounded-xl glass-card p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
-                            <span className="text-2xl">💰</span>
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-main">
-                              {income.category}
-                            </p>
-                            <p className="text-sm text-secondary">
-                              {income.source || 'No source'} · {formatDateForDisplay(income.date)}
-                            </p>
-                          </div>
+                {/* Subscriptions Section */}
+                {activeTab === 'subscriptions' && (
+                  <div className="space-y-3">
+                    <SectionHeader title="Subscriptions" count={subscriptions.length} />
+                    <div className="space-y-3">
+                      {subscriptions.length > 0 ? (
+                        subscriptions.map((sub) => (
+                          <ListItem
+                            key={sub.id || sub._id}
+                            onClick={() => openEditModal(sub.id || sub._id, 'subscription')}
+                            icon={<CategoryIcon category={sub.category} name={sub.name} className="w-10 h-10" />}
+                            title={sub.name}
+                            subtitle={`${sub.category} · ${sub.frequency}`}
+                            status={sub.status}
+                            amount={formatCurrency(sub.price ?? 0, sub.currency ?? 'USD')}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-secondary text-sm bg-[var(--bg-panel)] rounded-2xl">
+                          No subscriptions found.
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-main">
-                            {formatCurrency(
-                              income.amount ?? 0,
-                              income.currency ?? 'USD',
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="number"
-                          value={form.amount ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'amount', e.target.value)
-                          }
-                          placeholder="Amount"
-                        />
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.currency ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'currency', e.target.value)
-                          }
-                        >
-                          <option value="">Select currency</option>
-                          {incomeCurrencies.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.category ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'category', e.target.value)
-                          }
-                        >
-                          <option value="">Select category</option>
-                          {incomeCategories.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.source ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'source', e.target.value)
-                          }
-                          placeholder="Source"
-                        />
-                        <input
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
-                          type="date"
-                          value={form.date ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'date', e.target.value)
-                          }
-                        />
-                        <textarea
-                          className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm sm:col-span-2 text-main focus:border-indigo-500 focus:outline-none"
-                          value={form.notes ?? ''}
-                          onChange={(e) =>
-                            handleIncomeChange(id, 'notes', e.target.value)
-                          }
-                          placeholder="Notes"
-                        />
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <div className="mt-3 flex gap-2">
-                          <ActionButton
-                            onClick={() => handleUpdateIncome(id)}
-                            successText="Updated!"
-                          >
-                            Update
-                          </ActionButton>
-                          <ActionButton
-                            variant="danger"
-                            onClick={() => handleDeleteIncome(id)}
-                            successText="Deleted!"
-                          >
-                            Delete
-                          </ActionButton>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  )
-                })}
-                {incomes.length === 0 ? (
-                  <p className="text-sm text-slate-500">No incomes yet</p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+                  </div>
+                )}
+
+                {/* Income Section */}
+                {activeTab === 'incomes' && (
+                  <div className="space-y-3">
+                    <SectionHeader title="Incomes" count={incomes.length} />
+                    <div className="space-y-3">
+                      {incomes.length > 0 ? (
+                        incomes.map((income) => (
+                          <ListItem
+                            key={income.id || income._id}
+                            onClick={() => openEditModal(income.id || income._id, 'income')}
+                            icon={<div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">💰</div>}
+                            title={income.category}
+                            subtitle={income.source || 'No source'}
+                            date={formatDateForDisplay(income.date)}
+                            amount={formatCurrency(income.amount ?? 0, income.currency ?? 'USD')}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-secondary text-sm bg-[var(--bg-panel)] rounded-2xl">
+                          No incomes found for this period.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </main>
+      </div>
+
+      {/* Edit Modal */}
+      <RecordModal
+        isOpen={!!editingId}
+        onClose={closeEditModal}
+        type={editingType}
+        data={getModalData()}
+        options={getModalOptions()}
+        onChange={handleModalChange}
+        onSave={handleModalSave}
+        onDelete={handleModalDelete}
+      />
     </div>
   )
 }

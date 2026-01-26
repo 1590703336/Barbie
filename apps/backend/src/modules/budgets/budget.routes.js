@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import  authorize  from '../../middlewares/auth.middleware.js';
+import authorize from '../../middlewares/auth.middleware.js';
 import * as budgetController from './budget.controllers.js';
-import budgetSchema from './budget.validator.js';
+import budgetSchema from './budget.validation.js';
 import validate from '../../middlewares/validate.middleware.js';
 
 // creating router for budget module

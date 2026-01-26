@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import {
-    createConvertPair,
-    updateConvertPair,
-    deleteConvertPair
-} from '../services/currencyService';
 import {
     useExchangeRates,
     useAvailableCurrencies,
     useConvertPairs,
-    currencyKeys
+    useCreateConvertPair,
+    useUpdateConvertPair,
+    useDeleteConvertPair
 } from '../hooks/queries/useCurrencyQueries';
 
 const CurrencyRates = () => {
-    const queryClient = useQueryClient();
     const [error, setError] = useState(null);
 
     // State for amounts in each pair (keyed by pair id)
@@ -23,6 +18,11 @@ const CurrencyRates = () => {
     const { data: ratesResponse, isLoading: ratesLoading } = useExchangeRates();
     const { data: currencies = [], isLoading: currenciesLoading } = useAvailableCurrencies();
     const { data: pairsResponse, isLoading: pairsLoading } = useConvertPairs();
+
+    // Mutation hooks
+    const createPairMutation = useCreateConvertPair();
+    const updatePairMutation = useUpdateConvertPair();
+    const deletePairMutation = useDeleteConvertPair();
 
     const rates = ratesResponse?.data || {};
     const convertPairs = pairsResponse?.data || [];
@@ -50,11 +50,10 @@ const CurrencyRates = () => {
     // Add new convert pair
     const handleAddPair = async () => {
         try {
-            await createConvertPair({
+            await createPairMutation.mutateAsync({
                 fromCurrency: 'USD',
                 toCurrency: 'EUR'
             });
-            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to create convert pair:', err);
             setError('Failed to create convert pair. Please log in first.');
@@ -64,8 +63,7 @@ const CurrencyRates = () => {
     // Update pair currencies
     const handleUpdatePair = async (id, updates) => {
         try {
-            await updateConvertPair(id, updates);
-            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
+            await updatePairMutation.mutateAsync({ id, data: updates });
         } catch (err) {
             console.error('Failed to update convert pair:', err);
         }
@@ -74,11 +72,13 @@ const CurrencyRates = () => {
     // Swap currencies in a pair
     const handleSwapPair = async (pair) => {
         try {
-            await updateConvertPair(pair._id, {
-                fromCurrency: pair.toCurrency,
-                toCurrency: pair.fromCurrency
+            await updatePairMutation.mutateAsync({
+                id: pair._id,
+                data: {
+                    fromCurrency: pair.toCurrency,
+                    toCurrency: pair.fromCurrency
+                }
             });
-            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to swap currencies:', err);
         }
@@ -87,12 +87,11 @@ const CurrencyRates = () => {
     // Delete pair
     const handleDeletePair = async (id) => {
         try {
-            await deleteConvertPair(id);
+            await deletePairMutation.mutateAsync(id);
             // Clean up amount state
             const newAmounts = { ...amounts };
             delete newAmounts[id];
             setAmounts(newAmounts);
-            queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() });
         } catch (err) {
             console.error('Failed to delete convert pair:', err);
         }
@@ -114,9 +113,10 @@ const CurrencyRates = () => {
                     <h2 className="text-2xl font-bold text-main">Currency Converter</h2>
                     <button
                         onClick={handleAddPair}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition text-sm font-medium shadow-lg shadow-indigo-500/30"
+                        disabled={createPairMutation.isPending}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition text-sm font-medium shadow-lg shadow-indigo-500/30 disabled:opacity-50"
                     >
-                        + Add Pair
+                        {createPairMutation.isPending ? 'Adding...' : '+ Add Pair'}
                     </button>
                 </div>
 
@@ -155,7 +155,8 @@ const CurrencyRates = () => {
                                     {/* Swap button */}
                                     <button
                                         onClick={() => handleSwapPair(pair)}
-                                        className="px-2 py-2 text-secondary hover:text-main hover:bg-white/10 rounded-lg transition text-lg"
+                                        disabled={updatePairMutation.isPending}
+                                        className="px-2 py-2 text-secondary hover:text-main hover:bg-white/10 rounded-lg transition text-lg disabled:opacity-50"
                                         title="Swap currencies"
                                     >
                                         ⇄
@@ -182,9 +183,10 @@ const CurrencyRates = () => {
                                     {/* Delete button */}
                                     <button
                                         onClick={() => handleDeletePair(pair._id)}
-                                        className="ml-auto px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition text-sm"
+                                        disabled={deletePairMutation.isPending}
+                                        className="ml-auto px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition text-sm disabled:opacity-50"
                                     >
-                                        Delete
+                                        {deletePairMutation.isPending ? 'Deleting...' : 'Delete'}
                                     </button>
                                 </div>
                             </div>

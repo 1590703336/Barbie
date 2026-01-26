@@ -62,9 +62,9 @@ describe('Cross-Page Integration: Income', () => {
         // Initial data that Dashboard would show
         incomeService.getIncomeSummary.mockResolvedValue({ totalIncome: 1000 })
 
-        // Mount "Dashboard" - useIncomeSummary
+        // Mount "Dashboard" - useIncomeSummary (requires userId for multi-user isolation)
         const { result: dashboardResult } = renderHook(
-            () => useIncomeSummary({ month: 1, year: 2024 }),
+            () => useIncomeSummary({ month: 1, year: 2024, userId: 'user123' }),
             { wrapper }
         )
 

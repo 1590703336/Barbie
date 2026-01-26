@@ -6,6 +6,7 @@ import {
     deleteIncome,
     getIncomeSummary,
 } from '../../services/incomeService'
+import { analyticsKeys } from '../useChartData'
 
 // Query keys
 export const incomeKeys = {
@@ -25,11 +26,11 @@ export function useIncomeList({ month, year, userId }) {
     })
 }
 
-export function useIncomeSummary({ month, year }) {
+export function useIncomeSummary({ month, year, userId }) {
     return useQuery({
-        queryKey: incomeKeys.summary({ month, year }),
+        queryKey: incomeKeys.summary({ month, year, userId }),
         queryFn: () => getIncomeSummary({ month, year }),
-        enabled: !!month && !!year,
+        enabled: !!month && !!year && !!userId,
     })
 }
 
@@ -40,6 +41,7 @@ export function useCreateIncome() {
         mutationFn: createIncome,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -50,6 +52,7 @@ export function useUpdateIncome() {
         mutationFn: ({ id, payload }) => updateIncome(id, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }
@@ -60,6 +63,7 @@ export function useDeleteIncome() {
         mutationFn: deleteIncome,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
         },
     })
 }

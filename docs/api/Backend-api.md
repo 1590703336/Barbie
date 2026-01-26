@@ -25,6 +25,7 @@ Tokens are obtained from the `/auth/sign-in` or `/auth/sign-up` endpoints.
 - [Subscriptions API](#subscriptions-api)
 - [Budgets API](#budgets-api)
 - [Income API](#income-api)
+- [Analytics API](#analytics-api)
 - [Error Responses](#error-responses)
 - [Request Examples](#request-examples)
 
@@ -1345,6 +1346,47 @@ const deleteSubscription = async (id) => {
   return response.data;
 };
 ```
+
+---
+
+---
+
+## Analytics API
+
+All analytics endpoints require authentication.
+Base path: `/analytics`
+
+### Get Trend Data
+**GET** `/analytics/trend`
+Get income/expense trend data grouped by period.
+
+**Query Parameters:**
+- `granularity` (string, optional) - 'day', 'week', 'month'
+- `count` (number, optional) - Number of periods
+
+### Get Category Breakdown
+**GET** `/analytics/category-breakdown`
+Get expense/income breakdown by category.
+
+**Query Parameters:**
+- `month` (number, required)
+- `year` (number, required)
+- `type` (string, optional) - 'income' or 'expense'
+
+### Get Monthly Comparison
+**GET** `/analytics/monthly-comparison`
+Compare income, expenses, and savings across months.
+
+**Query Parameters:**
+- `months` (number, optional) - Number of months to compare
+
+### Get Budget Usage
+**GET** `/analytics/budget-usage`
+Get budget utilization per category.
+
+**Query Parameters:**
+- `month` (number, required)
+- `year` (number, required)
 
 ---
 
