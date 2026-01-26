@@ -3,6 +3,17 @@
 
 export const changelog = [
     {
+        version: "1.8.0",
+        date: "2026-01-26",
+        changes: [
+            "New Searchable Currency Select using Headless UI",
+            "Fixed Light/Dark mode theming for dropdowns and mobile menu",
+            "Added comprehensive list of currency names",
+            "Dashboard now auto-refreshes on currency change",
+            "Standardized CSS variables in Design System"
+        ]
+    },
+    {
         version: "1.7.0",
         date: "2026-01-22",
         changes: [
