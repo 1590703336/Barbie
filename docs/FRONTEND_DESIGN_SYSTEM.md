@@ -388,6 +388,15 @@ tickFormatter={(value) => {
 }}
 ```
 
+### 🚫 No Internal Formatting Logic
+Chart components should **NEVER** contain internal currency formatting logic (e.g., hardcoded `$` or local `Intl.NumberFormat` instances).
+Always import and use the shared utility:
+```javascript
+import { formatCurrency } from '../../utils/formatCurrency'
+// ...
+{formatCurrency(value, currency)}
+```
+
 ---
 
 ## Animation Guidelines
@@ -616,7 +625,8 @@ Before submitting any UI code, verify:
 - [ ] Charts use CSS variable for grid lines
 - [ ] Framer Motion uses `Motion` alias
 - [ ] Currency values use `formatCurrency()` utility with user's default currency
-- [ ] Chart components receive `currency` prop
+- [ ] Chart components (including `BudgetProgressBars`) receive `currency` prop
+- [ ] NO internal currency formatting logic in components - always import utility
 - [ ] Month/Year selectors use `<select>` dropdowns, not number inputs
 - [ ] Mutations invalidate all related caches (including analytics for financial data)
 - [ ] User-specific queries include `userId` in query key
