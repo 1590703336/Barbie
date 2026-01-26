@@ -12,6 +12,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.13.2",
     "framer-motion": "^12.23.26",
