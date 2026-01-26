@@ -43,6 +43,18 @@ Theme is controlled by `data-theme` attribute on `:root`:
 
 ---
 
+### ⚠️ CRITICAL: Theme Switching Pitfalls
+**DO NOT use Tailwind's `dark:` modifier!**
+
+The `dark:` modifier relies on the system's preferred color scheme (via media query) or a `dark` class on the root element. However, our app uses a `data-theme` attribute to toggle themes manually.
+
+- ❌ **BAD**: `bg-white dark:bg-slate-900` (Will display dark mode if system is dark, even if app is in light mode)
+- ✅ **GOOD**: `bg-[var(--glass-card-bg)]` (Uses CSS variables that change based on `data-theme`)
+
+Always define theme values in `index.css` as CSS variables and use them in components.
+
+---
+
 ## Text Colors
 
 ### Text Hierarchy (MUST USE)

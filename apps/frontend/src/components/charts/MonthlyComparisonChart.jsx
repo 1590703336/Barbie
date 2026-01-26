@@ -22,9 +22,10 @@ import {
 } from 'recharts'
 import { motion as Motion } from 'framer-motion'
 import { CHART_COLORS } from '../../data/mockChartData'
+import { formatCurrency } from '../../utils/formatCurrency'
 
 // Custom tooltip
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, currency = 'USD' }) {
     if (!active || !payload || !payload.length) return null
 
     const income = payload.find(p => p.dataKey === 'income')
@@ -45,7 +46,7 @@ function CustomTooltip({ active, payload, label }) {
                             <span className="text-sm text-secondary">Income</span>
                         </span>
                         <span className="text-sm font-medium text-main">
-                            ${income.value.toLocaleString()}
+                            {formatCurrency(income.value, currency)}
                         </span>
                     </div>
                 )}
@@ -59,7 +60,7 @@ function CustomTooltip({ active, payload, label }) {
                             <span className="text-sm text-secondary">Expense</span>
                         </span>
                         <span className="text-sm font-medium text-main">
-                            ${expense.value.toLocaleString()}
+                            {formatCurrency(expense.value, currency)}
                         </span>
                     </div>
                 )}
@@ -76,7 +77,7 @@ function CustomTooltip({ active, payload, label }) {
                             className="text-sm font-medium"
                             style={{ color: savings.value >= 0 ? CHART_COLORS.savings : CHART_COLORS.expense }}
                         >
-                            {savings.value >= 0 ? '' : '-'}${Math.abs(savings.value).toLocaleString()}
+                            {savings.value >= 0 ? '' : '-'}{formatCurrency(Math.abs(savings.value), currency)}
                         </span>
                     </div>
                 )}
@@ -156,7 +157,8 @@ export default function MonthlyComparisonChart({
     title = 'Monthly Comparison',
     height = 320,
     showSavings = true,
-    animate = true
+    animate = true,
+    currency = 'USD'
 }) {
     const [activeIndex, setActiveIndex] = useState(null)
 
@@ -254,16 +256,19 @@ export default function MonthlyComparisonChart({
                             // Ensure proper handling of negative values for scale formatting
                             const absValue = Math.abs(value)
                             const prefix = value < 0 ? '-' : ''
+                            // Extract currency symbol
+                            const formatted = formatCurrency(1, currency)
+                            const symbol = formatted.replace(/[\d,\.\s]/g, '')
                             if (absValue >= 1000) {
-                                return `\$${prefix}${(absValue / 1000).toFixed(1).replace(/\.0$/, '')}k`
+                                return `${prefix}${symbol}${(absValue / 1000).toFixed(1).replace(/\.0$/, '')}k`
                             }
-                            return `\$${value}`
+                            return formatCurrency(value, currency)
                         }}
                         width={50}
                     />
 
                     <Tooltip
-                        content={<CustomTooltip />}
+                        content={<CustomTooltip currency={currency} />}
                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                     />
 
@@ -347,13 +352,13 @@ export default function MonthlyComparisonChart({
                     <div className="text-center">
                         <p className="text-xs text-muted uppercase tracking-wide">Avg Income</p>
                         <p className="text-base font-semibold" style={{ color: CHART_COLORS.income }}>
-                            ${data.averages.income.toLocaleString()}
+                            {formatCurrency(data.averages.income, currency)}
                         </p>
                     </div>
                     <div className="text-center">
                         <p className="text-xs text-muted uppercase tracking-wide">Avg Expense</p>
                         <p className="text-base font-semibold" style={{ color: CHART_COLORS.expense }}>
-                            ${data.averages.expense.toLocaleString()}
+                            {formatCurrency(data.averages.expense, currency)}
                         </p>
                     </div>
                     <div className="text-center">
@@ -362,7 +367,7 @@ export default function MonthlyComparisonChart({
                             className="text-base font-semibold"
                             style={{ color: data.averages.savings >= 0 ? CHART_COLORS.savings : CHART_COLORS.expense }}
                         >
-                            ${data.averages.savings.toLocaleString()}
+                            {formatCurrency(data.averages.savings, currency)}
                         </p>
                     </div>
                 </div>

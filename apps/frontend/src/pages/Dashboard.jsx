@@ -247,6 +247,7 @@ function Dashboard() {
                 data={trendData}
                 title=""
                 height={280}
+                currency={currency}
               />
             )}
           </div>
@@ -260,6 +261,7 @@ function Dashboard() {
                 data={categoryData}
                 title={`Expense Breakdown (${debouncedMonth}/${debouncedYear})`}
                 height={300}
+                currency={currency}
               />
             )}
 
@@ -282,6 +284,7 @@ function Dashboard() {
               data={comparisonData}
               title="Monthly Comparison"
               height={300}
+              currency={currency}
             />
           )}
 

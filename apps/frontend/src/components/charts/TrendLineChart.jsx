@@ -23,9 +23,10 @@ import {
 } from 'recharts'
 import { motion as Motion } from 'framer-motion'
 import { CHART_COLORS } from '../../data/mockChartData'
+import { formatCurrency } from '../../utils/formatCurrency'
 
 // Custom tooltip with glassmorphism styling
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, currency = 'USD' }) {
     if (!active || !payload || !payload.length) return null
 
     const income = payload.find(p => p.dataKey === 'income')
@@ -46,7 +47,7 @@ function CustomTooltip({ active, payload, label }) {
                             <span className="text-sm text-secondary">Income</span>
                         </span>
                         <span className="text-sm font-medium text-main">
-                            ${income.value.toLocaleString()}
+                            {formatCurrency(income.value, currency)}
                         </span>
                     </div>
                 )}
@@ -60,7 +61,7 @@ function CustomTooltip({ active, payload, label }) {
                             <span className="text-sm text-secondary">Expense</span>
                         </span>
                         <span className="text-sm font-medium text-main">
-                            ${expense.value.toLocaleString()}
+                            {formatCurrency(expense.value, currency)}
                         </span>
                     </div>
                 )}
@@ -71,7 +72,7 @@ function CustomTooltip({ active, payload, label }) {
                             className="text-sm font-medium"
                             style={{ color: savings >= 0 ? CHART_COLORS.income : CHART_COLORS.expense }}
                         >
-                            {savings >= 0 ? '+' : ''}{savings.toLocaleString()}
+                            {savings >= 0 ? '+' : ''}{formatCurrency(Math.abs(savings), currency)}
                         </span>
                     </div>
                 </div>
@@ -120,7 +121,8 @@ export default function TrendLineChart({
     title = 'Income & Expense Trend',
     height = 300,
     showGrid = true,
-    animate = true
+    animate = true,
+    currency = 'USD'
 }) {
     const [activeIndex, setActiveIndex] = useState(null)
 
@@ -198,15 +200,19 @@ export default function TrendLineChart({
                         tick={{ fill: 'var(--text-muted)', fontSize: 12 }}
                         tickFormatter={(value) => {
                             if (value >= 1000) {
-                                return `$${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`
+                                // Use currency symbol prefix
+                                const formatted = formatCurrency(value / 1000, currency)
+                                // Extract just the symbol for compact display
+                                const symbol = formatted.replace(/[\d,\.\s]/g, '')
+                                return `${symbol}${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`
                             }
-                            return `$${value}`
+                            return formatCurrency(value, currency)
                         }}
                         width={50}
                     />
 
                     <Tooltip
-                        content={<CustomTooltip />}
+                        content={<CustomTooltip currency={currency} />}
                         cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                     />
 
@@ -263,13 +269,13 @@ export default function TrendLineChart({
                     <div className="text-center">
                         <p className="text-xs text-muted uppercase tracking-wide">Total Income</p>
                         <p className="text-lg font-semibold" style={{ color: CHART_COLORS.income }}>
-                            ${data.totals.income.toLocaleString()}
+                            {formatCurrency(data.totals.income, currency)}
                         </p>
                     </div>
                     <div className="text-center">
                         <p className="text-xs text-muted uppercase tracking-wide">Total Expense</p>
                         <p className="text-lg font-semibold" style={{ color: CHART_COLORS.expense }}>
-                            ${data.totals.expense.toLocaleString()}
+                            {formatCurrency(data.totals.expense, currency)}
                         </p>
                     </div>
                     <div className="text-center">
@@ -278,7 +284,7 @@ export default function TrendLineChart({
                             className="text-lg font-semibold"
                             style={{ color: data.totals.savings >= 0 ? CHART_COLORS.income : CHART_COLORS.expense }}
                         >
-                            {data.totals.savings >= 0 ? '+' : ''}${data.totals.savings.toLocaleString()}
+                            {data.totals.savings >= 0 ? '+' : '-'}{formatCurrency(Math.abs(data.totals.savings), currency)}
                         </p>
                     </div>
                 </div>

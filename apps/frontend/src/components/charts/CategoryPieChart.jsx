@@ -18,6 +18,7 @@ import {
 } from 'recharts'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { CHART_COLORS } from '../../data/mockChartData'
+import { formatCurrency } from '../../utils/formatCurrency'
 
 // Render active (hovered) shape with expansion effect
 const renderActiveShape = (props) => {
@@ -63,7 +64,8 @@ export default function CategoryPieChart({
     height = 320,
     innerRadius = 60,
     outerRadius = 100,
-    animate = true
+    animate = true,
+    currency = 'USD'
 }) {
     const [activeIndex, setActiveIndex] = useState(null)
 
@@ -176,7 +178,7 @@ export default function CategoryPieChart({
                         >
                             <p className="text-sm text-muted mb-1">{centerContent.label}</p>
                             <p className="text-2xl font-bold text-main">
-                                ${centerContent.value.toLocaleString()}
+                                {formatCurrency(centerContent.value, currency)}
                             </p>
                             {centerContent.isActive && (
                                 <p className="text-sm text-secondary mt-1">

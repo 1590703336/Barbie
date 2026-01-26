@@ -5,6 +5,11 @@ import useStore from '../store/store'
 import { updateUser } from '../services/userService'
 import { useUser, userKeys } from '../hooks/queries/useUserQueries'
 import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
+import { budgetKeys } from '../hooks/queries/useBudgetQueries'
+import { incomeKeys } from '../hooks/queries/useIncomeQueries'
+import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import CurrencySelect from '../components/common/CurrencySelect'
 
@@ -46,6 +51,10 @@ function Profile() {
         setMessage({ type: '', text: '' })
 
         try {
+            // Get current currency before update to detect changes
+            const currentUser = userData?.data?.user || userData?.user || userData
+            const previousCurrency = currentUser?.defaultCurrency || 'USD'
+
             const payload = {
                 name,
                 email,
@@ -62,6 +71,16 @@ function Profile() {
 
             // Invalidate user cache
             queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) })
+
+            // If currency changed, invalidate all dashboard-related caches
+            // so they refetch and display with the new default currency
+            if (defaultCurrency !== previousCurrency) {
+                queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+                queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+                queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+                queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+                queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+            }
 
             if (password) {
                 // If password was changed, logout and redirect
