@@ -76,7 +76,7 @@ export default function CurrencySelect({
 
                     <Combobox.Options
                         anchor="bottom start"
-                        className="z-[9999] mt-1 max-h-60 w-[var(--input-width)] overflow-auto rounded-xl glass-card py-1 text-base shadow-2xl focus:outline-none sm:text-sm scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0"
+                        className="z-[9999] mt-1 max-h-60 w-[var(--input-width)] overflow-auto rounded-xl glass-card !bg-[var(--dropdown-bg)] py-1 text-base shadow-2xl focus:outline-none sm:text-sm scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0"
                     >
                         {filteredCurrencies.length === 0 && query !== '' ? (
                             <div className="relative cursor-default select-none px-4 py-3 text-secondary italic">
@@ -87,7 +87,7 @@ export default function CurrencySelect({
                                 <Combobox.Option
                                     key={currency}
                                     className={({ active }) =>
-                                        `relative cursor-default select-none py-2.5 pl-10 pr-4 transition-colors duration-150 ${active ? 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-300' : 'text-main'
+                                        `relative cursor-default select-none py-2.5 pl-10 pr-4 transition-colors duration-150 ${active ? 'bg-[var(--list-item-hover)] text-[var(--list-item-active-text)]' : 'text-main'
                                         }`
                                     }
                                     value={currency}
@@ -95,17 +95,17 @@ export default function CurrencySelect({
                                     {({ selected, active }) => (
                                         <>
                                             <span
-                                                className={`block truncate ${selected ? 'font-medium text-emerald-500 dark:text-emerald-400' : 'font-normal'
+                                                className={`block truncate ${selected ? 'font-medium text-[var(--list-item-selected-text)]' : 'font-normal'
                                                     }`}
                                             >
                                                 <span className="inline-block w-10">{currency}</span>
-                                                <span className={`ml-2 truncate text-xs ${active ? 'text-indigo-500 dark:text-indigo-300' : 'text-secondary'}`}>
+                                                <span className={`ml-2 truncate text-xs ${active ? 'text-[var(--list-item-active-text)]' : 'text-secondary'}`}>
                                                     {CURRENCY_NAMES[currency]}
                                                 </span>
                                             </span>
                                             {selected ? (
                                                 <span
-                                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-indigo-500 dark:text-indigo-300' : 'text-emerald-500'
+                                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-[var(--list-item-active-text)]' : 'text-[var(--list-item-selected-text)]'
                                                         }`}
                                                 >
                                                     <CheckIcon className="h-5 w-5" aria-hidden="true" />
