@@ -13,6 +13,8 @@ This document defines the UI patterns, styling conventions, and code standards f
 - [Component Patterns](#component-patterns)
 - [Charts](#charts)
 - [Animation Guidelines](#animation-guidelines)
+- [Currency Formatting](#currency-formatting)
+- [Cache Management](#cache-management)
 - [Code Conventions](#code-conventions)
 
 ---
@@ -40,6 +42,18 @@ Theme is controlled by `data-theme` attribute on `:root`:
 1. Add to dark theme block (`:root { ... }`)
 2. Add to light theme block (`:root[data-theme="light"] { ... }`)
 3. Create utility class if needed
+
+---
+
+### ⚠️ CRITICAL: Theme Switching Pitfalls
+**DO NOT use Tailwind's `dark:` modifier!**
+
+The `dark:` modifier relies on the system's preferred color scheme (via media query) or a `dark` class on the root element. However, our app uses a `data-theme` attribute to toggle themes manually.
+
+- ❌ **BAD**: `bg-white dark:bg-slate-900` (Will display dark mode if system is dark, even if app is in light mode)
+- ✅ **GOOD**: `bg-[var(--glass-card-bg)]` (Uses CSS variables that change based on `data-theme`)
+
+Always define theme values in `index.css` as CSS variables and use them in components.
 
 ---
 
@@ -151,6 +165,50 @@ Use `<select>` for fixed ranges. Use `Intl.DateTimeFormat` for dates to allow lo
   ))}
 </select>
 ```
+
+### Combobox / Searchable Select
+For searchable dropdowns, use Headless UI Combobox with `anchor` positioning. This ensures the dropdown floats correctly above other content.
+
+**Critical Styling Rules**:
+- **Background**: Use `!bg-[var(--dropdown-bg)]` to ensure opacity in dark mode but glass effect in light mode.
+- **Positioning**: Use `anchor="bottom start"` (Headless UI v2) to avoid z-index/overflow clipping.
+- **Hover/Active**: Use `bg-[var(--list-item-hover)]` and `text-[var(--list-item-active-text)]`.
+
+```jsx
+<Combobox value={selected} onChange={setSelected}>
+  <div className="relative">
+    <Combobox.Input
+      className="w-full !bg-[var(--input-bg)] !border-none text-[var(--input-text)]"
+    />
+    <Combobox.Options
+      anchor="bottom start"
+      className="z-[9999] w-[var(--input-width)] rounded-xl glass-card !bg-[var(--dropdown-bg)]"
+    >
+      {items.map((item) => (
+        <Combobox.Option
+          key={item.id}
+          value={item}
+          className={({ active }) =>
+            `relative py-2 px-4 ${
+              active ? 'bg-[var(--list-item-hover)] text-[var(--list-item-active-text)]' : 'text-main'
+            }`
+          }
+        >
+          {item.name}
+        </Combobox.Option>
+      ))}
+    </Combobox.Options>
+  </div>
+</Combobox>
+```
+
+### CSS Variables for Lists
+- `--dropdown-bg`: The background color of the dropdown list.
+  - Dark Mode: `rgba(15, 23, 42, 0.95)` (Nearly opaque)
+  - Light Mode: `var(--glass-card-bg)` (Glassy white)
+- `--list-item-hover`: Background color for hovered items.
+- `--list-item-active-text`: Text color for hovered/active items.
+- `--list-item-selected-text`: Text color for selected (checked) items.
 
 ### Form Input Styling Reference
 CSS variables for inputs:
@@ -307,6 +365,29 @@ tickFormatter={(value) => {
 }}
 ```
 
+### ⚠️ Chart Currency Props
+All chart components that display monetary values MUST accept a `currency` prop and use `formatCurrency()`:
+
+```jsx
+// ✅ GOOD - Pass currency to chart components
+<TrendLineChart data={trendData} currency={currency} />
+<CategoryPieChart data={categoryData} currency={currency} />
+<MonthlyComparisonChart data={comparisonData} currency={currency} />
+<BudgetProgressBars data={budgetData} currency={currency} />
+```
+
+Chart Y-axis formatting with dynamic currency symbol:
+```javascript
+tickFormatter={(value) => {
+    const formatted = formatCurrency(1, currency)
+    const symbol = formatted.replace(/[\d,\.\s]/g, '')
+    if (value >= 1000) {
+        return `${symbol}${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`
+    }
+    return formatCurrency(value, currency)
+}}
+```
+
 ---
 
 ## Animation Guidelines
@@ -332,6 +413,149 @@ import { motion as Motion } from 'framer-motion'
   animate={{ opacity: 1, x: 0 }}
   transition={{ duration: 0.4, delay: index * 0.1 }}
 >
+```
+
+---
+
+## Currency Formatting
+
+### The `formatCurrency` Utility
+Always use the utility function for displaying monetary values:
+
+```javascript
+import { formatCurrency } from '../utils/formatCurrency'
+
+// Usage
+formatCurrency(1234.56, 'USD')  // "$1,235"
+formatCurrency(1234.56, 'CNY')  // "CN¥1,235"
+formatCurrency(1234.56, 'EUR')  // "€1,235"
+formatCurrency(1234.56, 'CAD')  // "CA$1,235"
+```
+
+### ❌ NEVER Hardcode Currency Symbols
+```jsx
+// ❌ BAD - Hardcoded $ symbol
+<p>${value.toLocaleString()}</p>
+
+// ✅ GOOD - Uses user's default currency
+<p>{formatCurrency(value, currency)}</p>
+```
+
+### Getting User's Default Currency
+```javascript
+// In components, get currency from user object in store
+const user = useStore((state) => state.user)
+const currency = user?.defaultCurrency || 'USD'
+```
+
+### Chart Components
+All chart components displaying monetary values must:
+1. Accept a `currency` prop
+2. Use `formatCurrency()` for all displayed amounts
+3. Extract symbol for compact axis labels
+
+See [Chart Currency Props](#-chart-currency-props) section above.
+
+---
+
+## Cache Management
+
+This application uses **React Query** for server state management. Understanding cache invalidation is critical for data consistency.
+
+### QueryClient Configuration
+Located in `src/lib/queryClient.js`:
+
+| Config | Value | Description |
+|--------|-------|-------------|
+| `staleTime` | 60s | Data is fresh for 1 minute |
+| `gcTime` | 5min | Garbage collect after 5 minutes |
+| `retry` | 1 | Only retry once on failure |
+| `refetchOnWindowFocus` | false | Don't auto-refetch on window focus |
+
+### Query Key Factories
+Query keys are defined in hook files:
+
+```javascript
+// src/hooks/queries/useBudgetQueries.js
+export const budgetKeys = {
+    all: ['budgets'],
+    lists: () => [...budgetKeys.all, 'list'],
+    list: (filters) => [...budgetKeys.lists(), filters],
+    summaries: () => [...budgetKeys.all, 'summary'],
+    summary: (filters) => [...budgetKeys.summaries(), filters],
+}
+
+// src/hooks/useChartData.js
+export const analyticsKeys = {
+    all: ['analytics'],
+    trend: (params) => ['analytics', 'trend', params],
+    categoryBreakdown: (params) => ['analytics', 'category-breakdown', params],
+    // ...
+}
+```
+
+### Cache Invalidation Patterns
+
+#### When Creating/Updating/Deleting Data
+Use mutation hooks that automatically invalidate related caches:
+
+```javascript
+// In useExpenseQueries.js
+export function useCreateExpense() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: createExpense,
+        onSuccess: () => {
+            // Expenses affect budget summaries and analytics
+            queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+            queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+        },
+    })
+}
+```
+
+#### Cross-Service Invalidation Rules
+
+| Action | Invalidates |
+|--------|-------------|
+| Create/Update/Delete **Expense** | `expenseKeys.all`, `budgetKeys.all`, `analyticsKeys.all` |
+| Create/Update/Delete **Income** | `incomeKeys.all`, `analyticsKeys.all` |
+| Create/Update/Delete **Budget** | `budgetKeys.all`, `analyticsKeys.all` |
+| Create/Update/Delete **Subscription** | `subscriptionKeys.all` |
+| **User updates default currency** | ALL dashboard keys (see below) |
+| **Login** | `queryClient.clear()` |
+| **Logout** | `queryClient.clear()` |
+
+#### Currency Change Invalidation
+When user changes their default currency in Profile, ALL dashboard-related caches must be invalidated:
+
+```javascript
+// In Profile.jsx handleSubmit
+if (defaultCurrency !== previousCurrency) {
+    queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+    queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+    queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+    queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+    queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+}
+```
+
+### ⚠️ Important Cache Considerations
+
+1. **Always include `userId` in query keys** for user-specific data
+2. **Invalidate related caches** when data changes (e.g., expenses affect budgets)
+3. **Clear all cache on login/logout** to prevent data leakage between users
+4. **Currency changes require full invalidation** since amounts need to be reformatted
+
+### Manual Cache Invalidation
+For pages using direct service calls (not mutation hooks), manually invalidate:
+
+```javascript
+const queryClient = useQueryClient()
+
+// After successful operation
+queryClient.invalidateQueries({ queryKey: relevantKeys.all })
 ```
 
 ---
@@ -372,15 +596,6 @@ export const budgetKeys = {
 }
 ```
 
-### Currency Formatting
-Always use the utility function:
-```javascript
-import { formatCurrency } from '../utils/formatCurrency'
-
-// Usage
-formatCurrency(1234.56, 'CAD') // "$1,234.56"
-```
-
 ### Date Formatting
 Use `Date.UTC()` for timezone-safe date handling in queries:
 ```javascript
@@ -400,5 +615,9 @@ Before submitting any UI code, verify:
 - [ ] No hardcoded `bg-white` or `text-white` in components
 - [ ] Charts use CSS variable for grid lines
 - [ ] Framer Motion uses `Motion` alias
-- [ ] Currency values use `formatCurrency()` utility
+- [ ] Currency values use `formatCurrency()` utility with user's default currency
+- [ ] Chart components receive `currency` prop
 - [ ] Month/Year selectors use `<select>` dropdowns, not number inputs
+- [ ] Mutations invalidate all related caches (including analytics for financial data)
+- [ ] User-specific queries include `userId` in query key
+

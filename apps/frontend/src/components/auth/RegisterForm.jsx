@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getAvailableCurrencies } from '../../services/currencyService'
+import CurrencySelect from '../common/CurrencySelect'
 
 function RegisterForm({ onSubmit, loading }) {
   const [email, setEmail] = useState('')
@@ -73,19 +74,13 @@ function RegisterForm({ onSubmit, loading }) {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-muted">Default Currency</label>
-        <select
+        <CurrencySelect
+          label="Default Currency"
           value={defaultCurrency}
-          onChange={(e) => setDefaultCurrency(e.target.value)}
+          onChange={setDefaultCurrency}
+          currencies={currencies}
           disabled={loadingCurrencies}
-          className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-        >
-          {currencies.map((currency) => (
-            <option key={currency} value={currency}>
-              {currency}
-            </option>
-          ))}
-        </select>
+        />
       </div>
       <button
         type="submit"

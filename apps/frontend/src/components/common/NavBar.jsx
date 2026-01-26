@@ -157,7 +157,7 @@ function NavBar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
+            className="md:hidden overflow-hidden border-t border-[var(--glass-border)] bg-[var(--dropdown-bg)] backdrop-blur-xl"
           >
             <div className="flex flex-col p-4 gap-4">
               <nav className="flex flex-col gap-2">
@@ -167,7 +167,7 @@ function NavBar() {
                     to={item.to}
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
-                      `px-4 py-3 rounded-lg text-secondary hover:bg-slate-100 dark:hover:bg-slate-900 ${isActive ? 'bg-slate-100 dark:bg-slate-900 text-main font-medium' : ''
+                      `px-4 py-3 rounded-lg text-secondary transition-colors duration-200 hover:bg-[var(--nav-active-bg)] ${isActive ? 'bg-[var(--nav-active-bg)] text-main font-medium' : ''
                       }`
                     }
                   >
@@ -176,7 +176,7 @@ function NavBar() {
                 ))}
               </nav>
 
-              <div className="border-t border-slate-200 dark:border-slate-800 pt-4 flex flex-col gap-4">
+              <div className="border-t border-[var(--glass-border)] pt-4 flex flex-col gap-4">
                 <div className="flex items-center justify-between px-4">
                   <span className="text-sm text-secondary">Dark Mode</span>
                   <ThemeToggle />
@@ -192,7 +192,7 @@ function NavBar() {
                       Signed in as {user?.name ?? user?.email ?? 'User'}
                     </span>
                     <button
-                      className="w-full rounded-lg bg-slate-900 px-4 py-3 text-white hover:bg-slate-800 text-center"
+                      className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 text-center font-medium transition-all"
                       onClick={() => {
                         logout()
                         setIsOpen(false)
@@ -206,14 +206,14 @@ function NavBar() {
                     <Link
                       to="/login"
                       onClick={() => setIsOpen(false)}
-                      className="w-full text-center px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 text-secondary hover:bg-slate-50 dark:hover:bg-slate-900"
+                      className="w-full text-center px-4 py-3 rounded-lg border border-[var(--glass-border)] text-secondary hover:bg-[var(--nav-active-bg)] hover:text-main transition-colors"
                     >
                       Log in
                     </Link>
                     <Link
                       to="/register"
                       onClick={() => setIsOpen(false)}
-                      className="w-full text-center rounded-lg bg-indigo-600 px-4 py-3 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30"
+                      className="w-full text-center rounded-lg bg-indigo-600 px-4 py-3 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30 font-medium transition-all"
                     >
                       Sign up
                     </Link>

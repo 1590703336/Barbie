@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CurrencySelect from '../components/common/CurrencySelect';
 import {
     useExchangeRates,
     useAvailableCurrencies,
@@ -142,15 +143,13 @@ const CurrencyRates = () => {
                                     />
 
                                     {/* From currency select */}
-                                    <select
+                                    <CurrencySelect
                                         value={pair.fromCurrency}
-                                        onChange={(e) => handleUpdatePair(pair._id, { fromCurrency: e.target.value })}
-                                        className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-main focus:outline-none focus:border-indigo-500"
-                                    >
-                                        {currencies.map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
+                                        onChange={(val) => handleUpdatePair(pair._id, { fromCurrency: val })}
+                                        currencies={currencies}
+                                        className="w-32 sm:w-48"
+                                        placeholder="From"
+                                    />
 
                                     {/* Swap button */}
                                     <button
@@ -170,15 +169,13 @@ const CurrencyRates = () => {
                                     </div>
 
                                     {/* To currency select */}
-                                    <select
+                                    <CurrencySelect
                                         value={pair.toCurrency}
-                                        onChange={(e) => handleUpdatePair(pair._id, { toCurrency: e.target.value })}
-                                        className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-main focus:outline-none focus:border-indigo-500"
-                                    >
-                                        {currencies.map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
+                                        onChange={(val) => handleUpdatePair(pair._id, { toCurrency: val })}
+                                        currencies={currencies}
+                                        className="w-32 sm:w-48"
+                                        placeholder="To"
+                                    />
 
                                     {/* Delete button */}
                                     <button

@@ -83,6 +83,12 @@
   /* Chart Item Hover */
   --chart-item-hover-bg: rgba(255, 255, 255, 0.1);
   --chart-item-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  /* Dropdown & List Items */
+  --dropdown-bg: rgba(15, 23, 42, 0.95);
+  --list-item-hover: rgba(99, 102, 241, 0.15);
+  --list-item-active-text: #a5b4fc;
+  --list-item-selected-text: #34d399;
 }
 
 :root[data-theme="light"] {
@@ -163,6 +169,12 @@
   /* Chart Item Hover - darker shadow for light mode visibility */
   --chart-item-hover-bg: rgba(0, 0, 0, 0.06);
   --chart-item-hover-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+  /* Dropdown & List Items */
+  --dropdown-bg: var(--glass-card-bg);
+  --list-item-hover: rgba(99, 102, 241, 0.1);
+  --list-item-active-text: #4f46e5;
+  --list-item-selected-text: #059669;
 }
 
 body {

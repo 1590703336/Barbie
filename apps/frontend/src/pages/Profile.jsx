@@ -5,7 +5,13 @@ import useStore from '../store/store'
 import { updateUser } from '../services/userService'
 import { useUser, userKeys } from '../hooks/queries/useUserQueries'
 import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
+import { budgetKeys } from '../hooks/queries/useBudgetQueries'
+import { incomeKeys } from '../hooks/queries/useIncomeQueries'
+import { expenseKeys } from '../hooks/queries/useExpenseQueries'
+import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
+import { analyticsKeys } from '../hooks/useChartData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
+import CurrencySelect from '../components/common/CurrencySelect'
 
 function Profile() {
     const navigate = useNavigate()
@@ -45,6 +51,10 @@ function Profile() {
         setMessage({ type: '', text: '' })
 
         try {
+            // Get current currency before update to detect changes
+            const currentUser = userData?.data?.user || userData?.user || userData
+            const previousCurrency = currentUser?.defaultCurrency || 'USD'
+
             const payload = {
                 name,
                 email,
@@ -61,6 +71,16 @@ function Profile() {
 
             // Invalidate user cache
             queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) })
+
+            // If currency changed, invalidate all dashboard-related caches
+            // so they refetch and display with the new default currency
+            if (defaultCurrency !== previousCurrency) {
+                queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+                queryClient.invalidateQueries({ queryKey: incomeKeys.all })
+                queryClient.invalidateQueries({ queryKey: expenseKeys.all })
+                queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+                queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+            }
 
             if (password) {
                 // If password was changed, logout and redirect
@@ -131,17 +151,11 @@ function Profile() {
                         <p className="mb-2 text-xs text-slate-500">
                             Only affects new records. Existing records retain their currency.
                         </p>
-                        <select
+                        <CurrencySelect
                             value={defaultCurrency}
-                            onChange={(e) => setDefaultCurrency(e.target.value)}
-                            className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        >
-                            {currencies.map((currency) => (
-                                <option key={currency} value={currency} className="bg-slate-900">
-                                    {currency}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={setDefaultCurrency}
+                            currencies={currencies}
+                        />
                     </div>
 
                     <div className="border-t border-slate-700/50 pt-6">
