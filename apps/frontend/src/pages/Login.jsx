@@ -78,7 +78,7 @@ function Login() {
         className="w-full max-w-md space-y-3"
       >
         {expiredMessage && (
-          <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-200">
+          <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-800 dark:text-amber-200">
             {expiredMessage}
           </div>
         )}
