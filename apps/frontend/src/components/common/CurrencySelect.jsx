@@ -54,10 +54,15 @@ export default function CurrencySelect({
             {label && <label className="block text-sm font-medium text-muted mb-1">{label}</label>}
             <Combobox value={value} onChange={onChange} disabled={disabled}>
                 <div className="relative mt-1">
-                    <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-slate-800/50 text-left border border-slate-700 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 sm:text-sm transition-all duration-200">
+                    <div className="relative w-full cursor-default overflow-hidden rounded-lg text-left border sm:text-sm transition-all duration-200"
+                        style={{
+                            backgroundColor: 'var(--input-bg)',
+                            borderColor: 'var(--input-border)',
+                            color: 'var(--input-text)'
+                        }}>
                         <Combobox.Input
-                            className="w-full !border-none py-2.5 pl-3 pr-10 text-sm leading-5 text-main !bg-transparent focus:ring-0 placeholder-slate-500"
-                            displayValue={(currency) => currency ? `${currency} - ${CURRENCY_NAMES[currency] || currency}` : ''}
+                            className="w-full !border-none py-2.5 pl-3 pr-10 text-sm leading-5 !text-[var(--input-text)] !bg-transparent focus:ring-0 placeholder-slate-500"
+                            displayValue={(currency) => currency ? `${currency}${CURRENCY_NAMES[currency] ? ' - ' + CURRENCY_NAMES[currency] : ''}` : ''}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder={placeholder}
                         />
@@ -68,54 +73,50 @@ export default function CurrencySelect({
                             />
                         </Combobox.Button>
                     </div>
-                    <Transition
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                        afterLeave={() => setQuery('')}
+
+                    <Combobox.Options
+                        anchor="bottom start"
+                        className="z-[9999] mt-1 max-h-60 w-[var(--input-width)] overflow-auto rounded-xl glass-card py-1 text-base shadow-2xl focus:outline-none sm:text-sm scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0"
                     >
-                        <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-                            {filteredCurrencies.length === 0 && query !== '' ? (
-                                <div className="relative cursor-default select-none px-4 py-3 text-secondary italic">
-                                    No currency found.
-                                </div>
-                            ) : (
-                                filteredCurrencies.map((currency) => (
-                                    <Combobox.Option
-                                        key={currency}
-                                        className={({ active }) =>
-                                            `relative cursor-default select-none py-2.5 pl-10 pr-4 transition-colors duration-150 ${active ? 'bg-indigo-600/20 text-indigo-300' : 'text-main'
-                                            }`
-                                        }
-                                        value={currency}
-                                    >
-                                        {({ selected, active }) => (
-                                            <>
+                        {filteredCurrencies.length === 0 && query !== '' ? (
+                            <div className="relative cursor-default select-none px-4 py-3 text-secondary italic">
+                                No currency found.
+                            </div>
+                        ) : (
+                            filteredCurrencies.map((currency) => (
+                                <Combobox.Option
+                                    key={currency}
+                                    className={({ active }) =>
+                                        `relative cursor-default select-none py-2.5 pl-10 pr-4 transition-colors duration-150 ${active ? 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-300' : 'text-main'
+                                        }`
+                                    }
+                                    value={currency}
+                                >
+                                    {({ selected, active }) => (
+                                        <>
+                                            <span
+                                                className={`block truncate ${selected ? 'font-medium text-emerald-500 dark:text-emerald-400' : 'font-normal'
+                                                    }`}
+                                            >
+                                                <span className="inline-block w-10">{currency}</span>
+                                                <span className={`ml-2 truncate text-xs ${active ? 'text-indigo-500 dark:text-indigo-300' : 'text-secondary'}`}>
+                                                    {CURRENCY_NAMES[currency]}
+                                                </span>
+                                            </span>
+                                            {selected ? (
                                                 <span
-                                                    className={`block truncate ${selected ? 'font-medium text-emerald-400' : 'font-normal'
+                                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-indigo-500 dark:text-indigo-300' : 'text-emerald-500'
                                                         }`}
                                                 >
-                                                    <span className="inline-block w-10">{currency}</span>
-                                                    <span className={`ml-2 truncate text-xs ${active ? 'text-indigo-300' : 'text-slate-500'}`}>
-                                                        {CURRENCY_NAMES[currency]}
-                                                    </span>
+                                                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                 </span>
-                                                {selected ? (
-                                                    <span
-                                                        className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-indigo-300' : 'text-emerald-500'
-                                                            }`}
-                                                    >
-                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                                                    </span>
-                                                ) : null}
-                                            </>
-                                        )}
-                                    </Combobox.Option>
-                                ))
-                            )}
-                        </Combobox.Options>
-                    </Transition>
+                                            ) : null}
+                                        </>
+                                    )}
+                                </Combobox.Option>
+                            ))
+                        )}
+                    </Combobox.Options>
                 </div>
             </Combobox>
         </div>
