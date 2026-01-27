@@ -45,12 +45,22 @@ function AdminFinancials() {
     })
 
     // Service returns unwrapped data: { data: [...], etc }
-    const trendData = (financials?.data || []).map(item => ({
-        period: item.period,
+    // Transform to the format expected by TrendLineChart: { series: [...], totals: {...} }
+    const rawData = (financials?.data || []).map(item => ({
+        monthName: item.period,
         income: item.income || 0,
         expense: item.expense || 0,
-        savings: item.savings || 0,
+        savings: (item.income || 0) - (item.expense || 0),
     }))
+
+    const trendData = {
+        series: rawData,
+        totals: {
+            income: rawData.reduce((sum, item) => sum + item.income, 0),
+            expense: rawData.reduce((sum, item) => sum + item.expense, 0),
+            savings: rawData.reduce((sum, item) => sum + item.savings, 0),
+        }
+    }
 
     const expenseCategoryData = (expenseCategories?.data || []).map(item => ({
         category: item.category,
@@ -95,46 +105,39 @@ function AdminFinancials() {
             </div>
 
             {/* Financial Trend Chart */}
-            <Motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-card rounded-2xl p-6"
-            >
-                <h3 className="text-lg font-semibold text-main mb-4">Platform Financial Trends (12 Months)</h3>
-                {financialsLoading ? (
+            {financialsLoading ? (
+                <Motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card rounded-2xl p-6"
+                >
+                    <h3 className="text-lg font-semibold text-main mb-4">Platform Financial Trends (12 Months)</h3>
                     <div className="h-80 flex items-center justify-center">
                         <LoadingSpinner />
                     </div>
-                ) : (
-                    <div className="h-80">
-                        <TrendLineChart data={trendData} currency="USD" />
-                    </div>
-                )}
-            </Motion.div>
+                </Motion.div>
+            ) : (
+                <TrendLineChart
+                    data={trendData}
+                    currency="USD"
+                    title="Platform Financial Trends (12 Months)"
+                    height={320}
+                />
+            )}
 
             {/* Categories and Budget Compliance Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Expense Categories */}
-                <Motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="glass-card rounded-2xl p-6"
-                >
-                    <h3 className="text-lg font-semibold text-main mb-4">
-                        Expense Categories - {new Date(0, month - 1).toLocaleString('en-US', { month: 'long' })} {year}
-                    </h3>
-                    <div className="h-64">
-                        <CategoryPieChart data={expenseCategoryData} currency="USD" />
-                    </div>
-                    <div className="mt-4 text-center">
-                        <p className="text-sm text-secondary">
-                            Total: <span className="text-main font-semibold">
-                                {formatCurrency(expenseCategories?.grandTotal || 0, 'USD')}
-                            </span>
-                        </p>
-                    </div>
-                </Motion.div>
+                <CategoryPieChart
+                    data={{
+                        categories: expenseCategoryData,
+                        total: expenseCategories?.grandTotal || 0,
+                        type: 'expense'
+                    }}
+                    currency="USD"
+                    title={`Expense Categories - ${new Date(0, month - 1).toLocaleString('en-US', { month: 'long' })} ${year}`}
+                    height={280}
+                />
 
                 {/* Budget Compliance */}
                 <Motion.div

@@ -11,12 +11,11 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { CHART_COLORS } from '../../data/mockChartData'
 
 function AdminCurrency() {
-    const { data: currencyData, isLoading } = useQuery({
+    const { data: currencyData, isLoading, error } = useQuery({
         queryKey: ['admin', 'currency', 'stats'],
         queryFn: getCurrencyStats,
     })
 
-    // Service returns unwrapped data directly: { uniqueCurrencies, totalPairs, popularPairs, ... }
     // Calculate total conversions for progress bars
     const totalConversions = currencyData?.popularPairs?.reduce((sum, pair) => sum + pair.count, 0) || 1
 
@@ -28,11 +27,23 @@ function AdminCurrency() {
                 <p className="text-secondary mt-1">Platform-wide currency usage and conversion trends</p>
             </div>
 
-            {isLoading ? (
+            {/* Loading State */}
+            {isLoading && (
                 <div className="flex justify-center py-12">
                     <LoadingSpinner />
                 </div>
-            ) : (
+            )}
+
+            {/* Error State */}
+            {error && (
+                <div className="glass-card rounded-2xl p-6 text-center">
+                    <p className="text-rose-400">Failed to load currency data</p>
+                    <p className="text-sm text-muted mt-2">{error.message}</p>
+                </div>
+            )}
+
+            {/* Data loaded successfully */}
+            {!isLoading && !error && (
                 <>
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -178,7 +189,7 @@ function AdminCurrency() {
                                     >
                                         <p className="text-lg font-bold text-main">{item.currency}</p>
                                         <p className="text-sm text-purple-400">{item.count} users</p>
-                                        <p className="text-xs text-muted">{item.percentage?.toFixed(1) ?? 0}%</p>
+                                        <p className="text-xs text-muted">{item.percentage ?? 0}%</p>
                                     </Motion.div>
                                 ))}
                             </div>
