@@ -218,3 +218,53 @@ router.post('/', validate(expenseSchema), controller.create);
 5.  **Controller**: Stitch it together + Auth checks.
 6.  **Routes**: Define URL + Apply Middleware.
 7.  **Tests**: Unit test the controller flow.
+
+---
+
+## Admin Module Architecture
+
+The admin module follows a specialized pattern distinct from regular user modules:
+
+### Directory Structure
+```
+modules/admin/
+├── admin.auth.controller.js    # Admin login/logout endpoints
+├── admin.auth.service.js       # JWT with short expiry (30min)
+├── admin.auth.validation.js    # Joi schemas for admin auth
+├── admin.auth.routes.js        # /api/admin/auth/* endpoints
+├── admin.dashboard.controller.js  # Platform analytics endpoints
+├── admin.dashboard.service.js     # Cross-user aggregations
+└── admin.dashboard.routes.js      # /api/admin/* endpoints
+```
+
+### Admin Authentication
+-   **Separate from user auth**: Uses `admin_token` vs regular `auth_token`
+-   **Short-lived sessions**: 30-minute expiry by default (configurable via `ADMIN_SESSION_DURATION`)
+-   **Role verification**: Both token claim (`isAdmin: true`) AND database role (`user.role === 'admin'`) are verified
+
+### Admin Middleware
+```javascript
+// middlewares/admin.middleware.js
+export const requireAdmin = async (req, res, next) => {
+    // 1. Extract and verify JWT
+    // 2. Check isAdmin claim in token
+    // 3. Verify user still has admin role in DB
+    // 4. Attach user to req.user, set req.isAdmin = true
+};
+```
+
+### Admin API Routes
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/admin/auth/sign-in` | Admin login |
+| `POST /api/admin/auth/sign-out` | Admin logout |
+| `POST /api/admin/auth/refresh` | Session refresh |
+| `GET /api/admin/overview` | Platform KPIs |
+| `GET /api/admin/users` | Paginated user list |
+| `GET /api/admin/users/:id` | User detail with activity |
+| `PATCH /api/admin/users/:id/role` | Change user role |
+| `DELETE /api/admin/users/:id` | Delete user + cascade data |
+| `GET /api/admin/analytics/financials` | Platform financials |
+| `GET /api/admin/analytics/categories` | Category distribution |
+| `GET /api/admin/subscriptions/health` | Subscription metrics |
+

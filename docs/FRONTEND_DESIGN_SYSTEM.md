@@ -631,3 +631,66 @@ Before submitting any UI code, verify:
 - [ ] Mutations invalidate all related caches (including analytics for financial data)
 - [ ] User-specific queries include `userId` in query key
 
+---
+
+## Admin Dashboard UI Patterns
+
+The admin dashboard uses a **purple accent theme** to distinguish it from the user-facing app (which uses indigo).
+
+### File Structure
+```
+src/
+├── components/admin/
+│   └── AdminLayout.jsx        # Sidebar navigation + session timer
+├── pages/admin/
+│   ├── AdminLogin.jsx         # Dedicated admin login
+│   ├── AdminDashboard.jsx     # Platform KPIs + charts
+│   ├── AdminUsers.jsx         # User management table
+│   ├── AdminFinancials.jsx    # Financial analytics
+│   └── AdminSubscriptions.jsx # Subscription health
+├── services/
+│   └── adminService.js        # Dedicated admin API client
+└── store/slices/
+    └── adminAuthSlice.js      # Separate from user auth
+```
+
+### Admin Route Structure
+```jsx
+// App.jsx - Admin routes are completely separate
+if (isAdminRoute) {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        {/* ... */}
+      </Route>
+    </Routes>
+  )
+}
+```
+
+### Admin Color Scheme
+| Element | User App | Admin Dashboard |
+|---------|----------|-----------------|
+| Primary accent | `indigo-500` | `purple-500` |
+| Active nav | `bg-indigo-500/20` | `bg-purple-500/20` |
+| Buttons | `from-indigo-500` | `from-purple-500` |
+
+### Session Management
+- **Auto-logout**: Sessions expire after 30 minutes
+- **Session timer**: Displayed in sidebar, shows remaining time
+- **Click to refresh**: Clicking the timer refreshes the session
+- **Expiry warning**: Timer turns red when < 5 minutes remaining
+
+### Reusing Chart Components
+Admin pages reuse the same chart components as the user dashboard:
+```jsx
+import { TrendLineChart, CategoryPieChart } from '../../components/charts'
+
+// Same props, just with platform-wide data
+<TrendLineChart data={platformTrendData} currency="USD" />
+```
+
+
