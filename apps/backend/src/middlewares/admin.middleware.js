@@ -7,7 +7,7 @@
 
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env.js';
-import User from '../modules/user/user.model.js';
+import * as userRepository from '../modules/user/user.repository.js';
 
 /**
  * Require Admin Middleware
@@ -54,7 +54,8 @@ export const requireAdmin = async (req, res, next) => {
         }
 
         // Fetch user and verify admin role still exists
-        const user = await User.findById(decoded.userId).select('-password');
+        // Use repository to ensure consistent data access and respect clean architecture
+        const user = await userRepository.findById(decoded.userId);
 
         if (!user) {
             return res.status(401).json({

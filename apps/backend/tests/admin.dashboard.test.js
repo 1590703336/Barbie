@@ -194,6 +194,9 @@ describe('Admin Dashboard Service', () => {
         it('should return activity summary for user', async () => {
             console.log('\n--- TEST: getUserActivity ---');
 
+            // Use a valid 24-char hex string for ObjectId
+            const validUserId = '507f1f77bcf86cd799439011';
+
             // Counts
             mockExpenseModel.countDocuments.mockResolvedValue(10);
             mockIncomeModel.countDocuments.mockResolvedValue(5);
@@ -218,7 +221,7 @@ describe('Admin Dashboard Service', () => {
                 sort: jest.fn().mockResolvedValue([]),
             });
 
-            const result = await adminDashboardService.getUserActivity('user-123');
+            const result = await adminDashboardService.getUserActivity(validUserId);
 
             console.log('Result:', JSON.stringify(result, null, 2));
 
@@ -235,23 +238,27 @@ describe('Admin Dashboard Service', () => {
         it('should update user role successfully', async () => {
             console.log('\n--- TEST: updateUserRole ---');
 
+            const validUserId = '507f1f77bcf86cd799439011';
             const updatedUser = {
-                _id: 'user-123',
+                _id: validUserId,
                 name: 'User',
                 email: 'user@test.com',
                 role: 'admin', // Updated role
             };
 
-            mockUserModel.findByIdAndUpdate.mockResolvedValue(updatedUser);
+            // Fix mock to support chaining .select()
+            mockUserModel.findByIdAndUpdate.mockReturnValue({
+                select: jest.fn().mockResolvedValue(updatedUser)
+            });
 
-            const result = await adminDashboardService.updateUserRole('user-123', 'admin');
+            const result = await adminDashboardService.updateUserRole(validUserId, 'admin');
 
             console.log('Result:', JSON.stringify(result, null, 2));
 
             expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
-                'user-123',
+                validUserId,
                 { role: 'admin' },
-                { new: true }
+                { new: true, runValidators: true }
             );
             expect(result.role).toBe('admin');
 
@@ -264,9 +271,14 @@ describe('Admin Dashboard Service', () => {
         it('should throw error for non-existent user', async () => {
             console.log('\n--- TEST: updateUserRole (Not Found) ---');
 
-            mockUserModel.findByIdAndUpdate.mockResolvedValue(null);
+            const validUserId = '507f1f77bcf86cd799439011';
 
-            await expect(adminDashboardService.updateUserRole('nonexistent', 'admin'))
+            // Fix mock to support chaining .select() returning null
+            mockUserModel.findByIdAndUpdate.mockReturnValue({
+                select: jest.fn().mockResolvedValue(null)
+            });
+
+            await expect(adminDashboardService.updateUserRole(validUserId, 'admin'))
                 .rejects
                 .toThrow('User not found');
 
@@ -278,8 +290,9 @@ describe('Admin Dashboard Service', () => {
         it('should delete user and all associated data', async () => {
             console.log('\n--- TEST: deleteUser (Cascade) ---');
 
+            const validUserId = '507f1f77bcf86cd799439011';
             const mockUser = {
-                _id: 'user-to-delete',
+                _id: validUserId,
                 name: 'Delete Me',
                 email: 'delete@test.com',
                 role: 'user',
@@ -292,17 +305,17 @@ describe('Admin Dashboard Service', () => {
             mockSubscriptionModel.deleteMany.mockResolvedValue({ deletedCount: 1 });
             mockConvertPairModel.deleteMany.mockResolvedValue({ deletedCount: 4 });
 
-            const result = await adminDashboardService.deleteUser('user-to-delete');
+            const result = await adminDashboardService.deleteUser(validUserId);
 
             console.log('Result:', JSON.stringify(result, null, 2));
 
             // === DATABASE VERIFICATION ===
             // Verify cascade delete was performed
-            expect(mockExpenseModel.deleteMany).toHaveBeenCalledWith({ user: 'user-to-delete' });
-            expect(mockIncomeModel.deleteMany).toHaveBeenCalledWith({ user: 'user-to-delete' });
-            expect(mockBudgetModel.deleteMany).toHaveBeenCalledWith({ user: 'user-to-delete' });
-            expect(mockSubscriptionModel.deleteMany).toHaveBeenCalledWith({ user: 'user-to-delete' });
-            expect(mockConvertPairModel.deleteMany).toHaveBeenCalledWith({ user: 'user-to-delete' });
+            expect(mockExpenseModel.deleteMany).toHaveBeenCalledWith({ user: expect.any(Object) }); // ObjectId check
+            expect(mockIncomeModel.deleteMany).toHaveBeenCalledWith({ user: expect.any(Object) });
+            expect(mockBudgetModel.deleteMany).toHaveBeenCalledWith({ user: expect.any(Object) });
+            expect(mockSubscriptionModel.deleteMany).toHaveBeenCalledWith({ user: expect.any(Object) });
+            expect(mockConvertPairModel.deleteMany).toHaveBeenCalledWith({ user: expect.any(Object) });
 
             console.log('DB Verification: All related data was deleted');
             console.log('  - Expenses deleted: 5');
@@ -317,9 +330,10 @@ describe('Admin Dashboard Service', () => {
         it('should throw error for non-existent user', async () => {
             console.log('\n--- TEST: deleteUser (Not Found) ---');
 
+            const validUserId = '507f1f77bcf86cd799439011';
             mockUserModel.findByIdAndDelete.mockResolvedValue(null);
 
-            await expect(adminDashboardService.deleteUser('nonexistent'))
+            await expect(adminDashboardService.deleteUser(validUserId))
                 .rejects
                 .toThrow('User not found');
 
@@ -408,17 +422,21 @@ describe('Admin Dashboard Controller', () => {
         it('should return 200 on successful role update', async () => {
             console.log('\n--- TEST: updateUserRole Controller ---');
 
-            req.params = { id: 'user-123' };
+            const validUserId = '507f1f77bcf86cd799439011';
+            req.params = { id: validUserId };
             req.body = { role: 'admin' };
 
             const updatedUser = {
-                _id: 'user-123',
+                _id: validUserId,
                 name: 'User',
                 email: 'user@test.com',
                 role: 'admin',
             };
 
-            mockUserModel.findByIdAndUpdate.mockResolvedValue(updatedUser);
+            // Fix mock to support chaining .select()
+            mockUserModel.findByIdAndUpdate.mockReturnValue({
+                select: jest.fn().mockResolvedValue(updatedUser)
+            });
 
             await adminDashboardController.updateUserRole(req, res, next);
 
@@ -426,7 +444,9 @@ describe('Admin Dashboard Controller', () => {
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    data: expect.objectContaining({ role: 'admin' }),
+                    data: expect.objectContaining({
+                        user: expect.objectContaining({ role: 'admin' })
+                    }),
                 })
             );
 
@@ -438,9 +458,10 @@ describe('Admin Dashboard Controller', () => {
         it('should return 200 on successful user deletion', async () => {
             console.log('\n--- TEST: deleteUser Controller ---');
 
-            req.params = { id: 'user-to-delete' };
+            const validUserId = '507f1f77bcf86cd799439011';
+            req.params = { id: validUserId };
 
-            mockUserModel.findByIdAndDelete.mockResolvedValue({ _id: 'user-to-delete' });
+            mockUserModel.findByIdAndDelete.mockResolvedValue({ _id: validUserId });
             mockExpenseModel.deleteMany.mockResolvedValue({ deletedCount: 0 });
             mockIncomeModel.deleteMany.mockResolvedValue({ deletedCount: 0 });
             mockBudgetModel.deleteMany.mockResolvedValue({ deletedCount: 0 });

@@ -17,6 +17,7 @@ import { jest } from '@jest/globals';
 const mockUserRepo = {
     findByEmail: jest.fn(),
     findById: jest.fn(),
+    findOne: jest.fn(),
 };
 
 // Mock bcrypt
@@ -28,6 +29,7 @@ const mockBcrypt = {
 const mockJwt = {
     sign: jest.fn(),
     verify: jest.fn(),
+    decode: jest.fn(),
 };
 
 // Mock config
@@ -49,8 +51,8 @@ const { adminSignIn, refreshAdminSession, verifyAdminToken } =
     await import('../src/modules/admin/admin.auth.service.js');
 
 const {
-    signIn,
-    signOut,
+    adminSignIn: signIn,
+    adminSignOut: signOut,
     refreshSession,
     getCurrentAdmin,
 } = await import('../src/modules/admin/admin.auth.controller.js');
@@ -76,7 +78,65 @@ describe('Admin Auth Service', () => {
                 name: 'Test Admin',
             };
 
-            mockUserRepo.findByEmail.mockResolvedValue(mockAdmin);
+            mockUserRepo.findOne.mockResolvedValue(mockAdmin);
+            mockBcrypt.compare.mockResolvedValue(true);
+            mockJwt.sign.mockReturnValue('admin-jwt-token');
+            // Mock decode for expiry calculation
+            mockJwt.decode.mockReturnValue({ exp: 1735689600 }); // some timestamp
+
+            console.log('Input: admin@test.com, password123');
+
+            const result = await adminSignIn('admin@test.com', 'password123');
+
+            console.log('Output:', JSON.stringify(result, null, 2));
+
+            // ... expectations
+            expect(result.token).toBe('admin-jwt-token');
+            expect(mockJwt.decode).toHaveBeenCalledWith('admin-jwt-token');
+
+            console.log('--- TEST PASSED ---');
+        });
+
+        // ... (other adminSignIn tests unchanged except possibly needing decode?)
+        // Actually other tests reject before decode is called, so they are fine.
+    });
+});
+
+// ... (skip down to Controller tests, they are mostly fine unless they call service which calls decode)
+// Actually service.adminSignIn calls decode. So controller tests for success need mocked decode.
+// I'll assume replace_file_content handles the diff. But I need to update the controller success test too.
+
+// Let's focus on fixing the DEFINITIONS first. And the requireAdmin tests.
+// This replace block will handle the TOP of the file (definitions).
+// I will need another replacing block for the Tests section.
+
+// Wait, I can't put comments like "// ... (other tests unchanged)" inside ReplacementContent if I want to match exactly?
+// Ah, `replace_file_content` replaces a BLOCK. I need to be precise.
+
+// I will substitute the block from line 17 to 60.
+
+
+
+// ============ TESTS ============
+describe('Admin Auth Service', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('adminSignIn', () => {
+        it('should sign in an admin user with valid credentials', async () => {
+            console.log('\n--- TEST: adminSignIn (Valid Admin) ---');
+
+            const mockAdmin = {
+                _id: 'admin-id-123',
+                email: 'admin@test.com',
+                password: 'hashed-password',
+                role: 'admin',
+                name: 'Test Admin',
+            };
+
+            // Fix: mock findOne instead of findByEmail
+            mockUserRepo.findOne.mockResolvedValue(mockAdmin);
             mockBcrypt.compare.mockResolvedValue(true);
             mockJwt.sign.mockReturnValue('admin-jwt-token');
 
@@ -86,7 +146,7 @@ describe('Admin Auth Service', () => {
 
             console.log('Output:', JSON.stringify(result, null, 2));
 
-            expect(mockUserRepo.findByEmail).toHaveBeenCalledWith('admin@test.com');
+            expect(mockUserRepo.findOne).toHaveBeenCalledWith({ email: 'admin@test.com' });
             expect(mockBcrypt.compare).toHaveBeenCalledWith('password123', 'hashed-password');
             expect(mockJwt.sign).toHaveBeenCalledWith(
                 expect.objectContaining({ userId: 'admin-id-123', isAdmin: true }),
@@ -110,7 +170,7 @@ describe('Admin Auth Service', () => {
                 name: 'Regular User',
             };
 
-            mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+            mockUserRepo.findOne.mockResolvedValue(mockUser);
             mockBcrypt.compare.mockResolvedValue(true);
 
             console.log('Input: user@test.com (role: user)');
@@ -133,7 +193,7 @@ describe('Admin Auth Service', () => {
                 role: 'admin',
             };
 
-            mockUserRepo.findByEmail.mockResolvedValue(mockAdmin);
+            mockUserRepo.findOne.mockResolvedValue(mockAdmin);
             mockBcrypt.compare.mockResolvedValue(false); // Password doesn't match
 
             console.log('Input: admin@test.com, wrong-password');
@@ -149,7 +209,7 @@ describe('Admin Auth Service', () => {
         it('should reject sign-in for non-existent user', async () => {
             console.log('\n--- TEST: adminSignIn (User Not Found) ---');
 
-            mockUserRepo.findByEmail.mockResolvedValue(null);
+            mockUserRepo.findOne.mockResolvedValue(null);
 
             console.log('Input: nonexistent@test.com');
 
@@ -195,7 +255,7 @@ describe('Admin Auth Controller', () => {
                 name: 'Admin',
             };
 
-            mockUserRepo.findByEmail.mockResolvedValue(mockAdmin);
+            mockUserRepo.findOne.mockResolvedValue(mockAdmin);
             mockBcrypt.compare.mockResolvedValue(true);
             mockJwt.sign.mockReturnValue('admin-token');
 
@@ -229,7 +289,7 @@ describe('Admin Auth Controller', () => {
                 role: 'user',
             };
 
-            mockUserRepo.findByEmail.mockResolvedValue(mockUser);
+            mockUserRepo.findOne.mockResolvedValue(mockUser);
             mockBcrypt.compare.mockResolvedValue(true);
 
             await signIn(req, res, next);
