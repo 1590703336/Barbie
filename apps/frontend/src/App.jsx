@@ -9,6 +9,8 @@ import ProtectedRoute from './components/common/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import CreateEntries from './pages/CreateEntries'
 import Records from './pages/Records'
@@ -61,6 +63,8 @@ function App() {
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
               <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+              <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+              <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
               <Route
                 path="/dashboard"
                 element={

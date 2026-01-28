@@ -224,6 +224,8 @@ Barbie/
 - **Authentication**: JWT (jsonwebtoken 9.0)
 - **Password Hashing**: bcryptjs 3.0
 - **Data Validation**: Joi 18.0
+- **Email**: Nodemailer 6.9
+- **Token Storage**: Upstash Redis (for password reset tokens)
 - **Security**: Arcjet 1.0-beta (optional)
 - **Logging**: Morgan
 - **Environment**: dotenv
@@ -292,6 +294,9 @@ services/
 - `POST /auth/sign-up` - User registration
 - `POST /auth/sign-in` - User login
 - `POST /auth/sign-out` - User logout
+- `POST /auth/forgot-password` - Request password reset (sends email with token)
+- `POST /auth/reset-password` - Reset password using token
+- `GET /auth/verify-reset-token/:token` - Verify if reset token is valid
 
 #### Users
 - `GET /users` - List all users
