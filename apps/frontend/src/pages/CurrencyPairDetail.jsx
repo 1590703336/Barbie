@@ -174,6 +174,7 @@ export default function CurrencyPairDetail() {
                     toCurrency={pair.toCurrency}
                     title={`${pair.fromCurrency}/${pair.toCurrency} Rate History`}
                     height={350}
+                    granularity={granularity}
                 />
             )}
 

@@ -17,7 +17,7 @@ export const getRates = async (req, res, next) => {
 
 export const getHistoricalRatesHandler = async (req, res, next) => {
     try {
-        const { from, to, start, end } = req.query;
+        const { from, to, start, end, granularity } = req.query;
 
         if (!from || !to || !start || !end) {
             return res.status(400).json({
@@ -26,7 +26,7 @@ export const getHistoricalRatesHandler = async (req, res, next) => {
             });
         }
 
-        const data = await getHistoricalRates(from, to, start, end);
+        const data = await getHistoricalRates(from, to, start, end, granularity || 'monthly');
         res.status(200).json({
             success: true,
             data
