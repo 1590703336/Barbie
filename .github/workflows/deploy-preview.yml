@@ -29,16 +29,27 @@ jobs:
             cd apps/backend
             npm install --production
             
-            echo "🔄 Restarting preview backend..."
+            echo "� Configuring backend .env for preview..."
+            # Update PORT from 4273 to 4274 (using regex)
+            sed -i "s/^PORT=.*/PORT=4274/" .env.production.local
+            # Update SERVER_URL to use port 4274 (using regex)
+            sed -i "s|^SERVER_URL=.*|SERVER_URL=http://localhost:4274|" .env.production.local
+            # Update FRONTEND_URL for preview path (using regex)
+            sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=https://uofa.ink/preview|" .env.production.local
+            
+            echo "�🔄 Restarting preview backend..."
             pm2 restart barbie-backend-preview || pm2 start npm --name "barbie-backend-preview" -- start
             
             echo "📝 Configuring frontend for preview..."
             cd ../frontend
             
             # 修改 vite.config.js: 端口改为 4274，base 改为 /preview/
-            sed -i "s/const backendPort = mode === 'development' ? 5500 : 4273;/const backendPort = mode === 'development' ? 5500 : 4274;/" vite.config.js
-            sed -i "s|const base = '/';|// const base = '/';|" vite.config.js
-            sed -i "s|// const base = '/preview/';|const base = '/preview/';|" vite.config.js
+            # Update backend port
+            sed -i "s/const backendPort = .*;/const backendPort = mode === 'development' ? 5500 : 4274;/" vite.config.js
+            # Comment out root base path
+            sed -i "s|.*const base = '/';|  // const base = '/';|" vite.config.js
+            # Uncomment preview base path
+            sed -i "s|.*// const base = '/preview/';|  const base = '/preview/';|" vite.config.js
             
             echo "📦 Installing frontend dependencies..."
             npm install
