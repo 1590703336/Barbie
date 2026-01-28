@@ -37,7 +37,7 @@
    *
    * --glass-card-shadow: 0 Y-offset BLUR SPREAD rgba(0,0,0, OPACITY)
    *   - Y-offset: 8px 向下偏移
-   *   - BLUR: 32px 模糊半径
+   *   - BLUR: 32px 模糊半径g
    *   - SPREAD: 0 扩散
    *   - OPACITY: 0.3 = 30% 阴影深度
    */

@@ -19,3 +19,18 @@ export function signOut() {
   return Promise.resolve({ success: true, message: 'Logout successful' })
 }
 
+export async function forgotPassword(email) {
+  const response = await api.post('/auth/forgot-password', { email })
+  return response.data ?? {}
+}
+
+export async function resetPassword(token, password, confirmPassword) {
+  const response = await api.post('/auth/reset-password', { token, password, confirmPassword })
+  return response.data ?? {}
+}
+
+export async function verifyResetToken(token) {
+  const response = await api.get(`/auth/verify-reset-token/${token}`)
+  return response.data ?? {}
+}
+
