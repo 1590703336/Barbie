@@ -29,6 +29,14 @@ jobs:
             cd apps/backend
             npm install --production
             
+            echo "🔧 Configuring backend .env for preview..."
+            # Update PORT from 4273 to 4274
+            sed -i "s/PORT=4273/PORT=4274/" .env.production.local
+            # Update SERVER_URL to use port 4274
+            sed -i "s|SERVER_URL=http://localhost:4273|SERVER_URL=http://localhost:4274|" .env.production.local
+            # Update FRONTEND_URL for preview path
+            sed -i "s|FRONTEND_URL=.*|FRONTEND_URL=https://uofa.ink/preview|" .env.production.local
+            
             echo "🔄 Restarting preview backend..."
             pm2 restart barbie-backend-preview || pm2 start npm --name "barbie-backend-preview" -- start
             

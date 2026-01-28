@@ -4,8 +4,11 @@
 export const changelog = [
     {
         version: "1.9.0",
-        date: "2026-01-27",
+        date: "2026-01-28",
         changes: [
+            "Implemented Forgot Password and Reset Password functionality",
+            "Added password visibility toggle for all password input fields",
+            "Enhanced email sending with improved reliability",
             "Added currency trend charts"
         ]
     },
