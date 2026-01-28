@@ -25,6 +25,7 @@ Tokens are obtained from the `/auth/sign-in` or `/auth/sign-up` endpoints.
 - [Subscriptions API](#subscriptions-api)
 - [Budgets API](#budgets-api)
 - [Income API](#income-api)
+- [Currency API](#currency-api)
 - [Analytics API](#analytics-api)
 - [Error Responses](#error-responses)
 - [Request Examples](#request-examples)
@@ -877,11 +878,12 @@ Retrieve all budget categories for a given month and year.
 ```
 ---
 
-### Currency API
+## Currency API
 
 ### Get Exchange Rates
 
-Get live currency exchange rates.
+Get live currency exchange rates (Cached for 5 minutes).
+**Data Source:** [ExchangeRate-API](https://www.exchangerate-api.com/)
 
 **Endpoint:** `GET /currencies`
 
@@ -896,6 +898,51 @@ Get live currency exchange rates.
     "GBP": 0.79,
     "JPY": 110.5,
     "CNY": 7.2
+  },
+  "cacheDuration": 300000,
+  "nextUpdateTime": "2025-01-28T10:05:00.000Z"
+}
+```
+
+---
+
+### Get Historical Rates
+
+Get historical exchange rate trends for a currency pair (Cached for 24 hours).
+Supports server-side data aggregation for performance.
+**Data Source:** [Frankfurter API](https://api.frankfurter.dev/) (ECB Data)
+
+**Endpoint:** `GET /currencies/history`
+
+**Authentication:** Not required
+
+**Query Parameters:**
+- `from` (string, required) - Base currency code (e.g., USD)
+- `to` (string, required) - Target currency code (e.g., EUR)
+- `start` (string, required) - Start date (YYYY-MM-DD)
+- `end` (string, required) - End date (YYYY-MM-DD)
+- `granularity` (string, optional) - Aggregation level: 'weekly' | 'monthly' | 'yearly' (default: 'monthly')
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "base": "USD",
+    "target": "EUR",
+    "startDate": "2023-01-01",
+    "endDate": "2023-12-31",
+    "granularity": "monthly",
+    "series": [
+      {
+        "date": "2023-01-15",
+        "rate": 0.92
+      },
+      {
+        "date": "2023-02-15",
+        "rate": 0.93
+      }
+    ]
   }
 }
 ```
@@ -1348,6 +1395,45 @@ const deleteSubscription = async (id) => {
 ```
 
 ---
+
+---
+
+## Admin API
+
+Base path: `/api/admin`
+
+### Get User Growth Trend
+
+Get user registration growth data trend (new users vs total users).
+
+**Endpoint:** `GET /users/growth`
+
+**Authentication:** Required (Admin Token)
+
+**Query Parameters:**
+- `granularity` (string, optional) - 'monthly' (default), 'weekly', 'yearly'
+- `count` (number, optional) - Number of periods to return (default: 12)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "granularity": "monthly",
+  "periodLabel": "month",
+  "data": [
+    {
+      "period": "2025-01",
+      "newUsers": 50,
+      "totalUsers": 1200
+    },
+    {
+      "period": "2025-02",
+      "newUsers": 80,
+      "totalUsers": 1280
+    }
+  ]
+}
+```
 
 ---
 

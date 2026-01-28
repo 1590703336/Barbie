@@ -88,7 +88,7 @@ describe('AdminLogin', () => {
     it('should render login form', () => {
         render(<AdminLogin />, { wrapper: createWrapper() })
 
-        expect(screen.getByText(/admin portal/i)).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: /admin portal/i })).toBeInTheDocument()
         expect(screen.getByLabelText(/admin email/i)).toBeInTheDocument()
         expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
@@ -193,16 +193,14 @@ describe('AdminDashboard', () => {
 
     it('should display KPIs after loading', async () => {
         adminService.getPlatformOverview.mockResolvedValue({
-            data: {
-                users: { total: 100, admins: 5, newThisMonth: 10 },
-                transactions: { total: 500 },
-                volume: { totalIncomeUSD: 50000, totalExpenseUSD: 30000, netCashFlowUSD: 20000 },
-                subscriptions: { active: 25 },
-            },
+            users: { total: 100, admins: 5, newThisMonth: 10 },
+            transactions: { total: 500 },
+            volume: { totalIncomeUSD: 50000, totalExpenseUSD: 30000, netCashFlowUSD: 20000 },
+            subscriptions: { active: 25 },
         })
-        adminService.getUserGrowthTrend.mockResolvedValue({ data: { data: [] } })
-        adminService.getPlatformFinancials.mockResolvedValue({ data: { data: [] } })
-        adminService.getCategoryDistribution.mockResolvedValue({ data: { data: [] } })
+        adminService.getUserGrowthTrend.mockResolvedValue({ data: [] })
+        adminService.getPlatformFinancials.mockResolvedValue({ data: [] })
+        adminService.getCategoryDistribution.mockResolvedValue({ data: [] })
 
         render(<AdminDashboard />, { wrapper: createWrapper() })
 

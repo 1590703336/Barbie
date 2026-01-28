@@ -75,6 +75,13 @@ Date consistency is critical.
     assertOwnerOrAdmin(resource.user, req.user);
     ```
 
+### Rule #6: External API & Caching
+*   **Isolation**: External API calls (e.g., currency, payments) must happen **only** in the Service layer.
+*   **Caching**: Expensive or rate-limited external calls **must** be cached.
+    *   **Short-term**: 5-10 mins for volatile data (e.g., live rates).
+    *   **Long-term**: 24h+ for historical/stable data.
+
+
 ## 4. API & Error Handling
 
 ### Request Validation
@@ -128,6 +135,49 @@ it('should create expense', async () => {
   expect(mockRepo.create).toHaveBeenCalled();
 });
 ```
+
+## 6. Data Visualization & Chart Standards
+
+To prevent mismatches between frontend chart libraries (e.g., Recharts) and backend data, adhere to these rules:
+
+### Rule #1: Domain-Specific Fields
+*   ❌ **AVOID** generic field names like `count`, `value`, or `data`.
+*   ✅ **USE** domain-specific names: `newUsers`, `activeSubscriptions`, `totalIncome`, `expenseAmount`.
+*   **Why?** Frontend components often map multiple data lines. `count` is ambiguous when plotting "New Users" vs "Total Users".
+
+### Rule #2: Cumulative Totals
+*   When a chart shows growth (e.g., User Growth), **ALWAYS** return the cumulative total alongside the periodic count.
+*   **Do not** rely on the frontend to calculate running totals, as it requires fetching all historical data.
+
+### Rule #3: Response Format Example
+```javascript
+// GET /api/admin/users/growth
+{
+  "success": true,
+  "data": [
+    {
+      "period": "2025-01",
+      "newUsers": 50,      // Specific
+      "totalUsers": 1200   // Cumulative (Pre-calculated)
+    },
+    {
+      "period": "2025-02",
+      "newUsers": 80,
+      "totalUsers": 1280
+    }
+  ]
+}
+  ]
+}
+```
+
+### Rule #4: Server-Side Aggregation
+*   **Performance**: For large datasets (e.g., yearly history), **do not** send thousands of raw data points to the frontend.
+*   **Aggregation**: Aggregate data on the server based on the requested view (granularity).
+    *   **Weekly View**: Daily points.
+    *   **Monthly View**: Weekly averages.
+    *   **Yearly View**: Monthly averages.
+
 
 ## 7. Module Spotlight: Budgets Architecture
 
