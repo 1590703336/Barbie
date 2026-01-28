@@ -4,6 +4,10 @@ let ratesCache = null;
 let cacheTime = 0;
 const CACHE_DURATION = 3600 * 1000; // 1 hour
 
+// Historical rates cache (keyed by from-to-start-end)
+const historicalCache = new Map();
+const HISTORICAL_CACHE_DURATION = 24 * 3600 * 1000; // 24 hours (historical data doesn't change)
+
 export const getExchangeRates = async () => {
     const now = Date.now();
     if (ratesCache && (now - cacheTime < CACHE_DURATION)) {
@@ -32,6 +36,53 @@ export const getExchangeRatesWithMeta = async () => {
         cacheDuration: CACHE_DURATION,
         nextUpdateTime: cacheTime + CACHE_DURATION
     };
+};
+
+/**
+ * Get historical exchange rates from Frankfurter API
+ * @param {string} fromCurrency - Base currency (e.g., 'USD')
+ * @param {string} toCurrency - Target currency (e.g., 'EUR')
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @returns {Object} Historical rates data
+ */
+export const getHistoricalRates = async (fromCurrency, toCurrency, startDate, endDate) => {
+    const cacheKey = `${fromCurrency}-${toCurrency}-${startDate}-${endDate}`;
+    const now = Date.now();
+
+    // Check cache
+    const cached = historicalCache.get(cacheKey);
+    if (cached && (now - cached.timestamp < HISTORICAL_CACHE_DURATION)) {
+        return cached.data;
+    }
+
+    try {
+        const url = `https://api.frankfurter.dev/v1/${startDate}..${endDate}?base=${fromCurrency}&symbols=${toCurrency}`;
+        const response = await axios.get(url);
+
+        // Transform data for easier frontend consumption
+        const rates = response.data.rates;
+        const series = Object.entries(rates).map(([date, rateObj]) => ({
+            date,
+            rate: rateObj[toCurrency]
+        })).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const result = {
+            base: response.data.base,
+            target: toCurrency,
+            startDate: response.data.start_date,
+            endDate: response.data.end_date,
+            series
+        };
+
+        // Cache the result
+        historicalCache.set(cacheKey, { data: result, timestamp: now });
+
+        return result;
+    } catch (error) {
+        console.error('Error fetching historical rates:', error);
+        throw new Error('Failed to fetch historical exchange rates');
+    }
 };
 
 export const convertToUSD = async (amount, currencyCode) => {
@@ -63,3 +114,4 @@ export const convertFromUSD = async (amountUSD, targetCurrency) => {
     // Example: 100 USD * 0.92 = 92.00 EUR
     return Number((amountUSD * rate).toFixed(2));
 };
+

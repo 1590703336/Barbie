@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import CreateEntries from './pages/CreateEntries'
 import Records from './pages/Records'
 import CurrencyRates from './pages/CurrencyRates'
+import CurrencyPairDetail from './pages/CurrencyPairDetail'
 import Profile from './pages/Profile'
 
 // Admin pages (lazy load for code-splitting)
@@ -96,6 +97,16 @@ function App() {
                   <ProtectedRoute>
                     <PageTransition>
                       <CurrencyRates />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/rates/:pairId"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <CurrencyPairDetail />
                     </PageTransition>
                   </ProtectedRoute>
                 }

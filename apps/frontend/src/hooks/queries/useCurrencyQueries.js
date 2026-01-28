@@ -6,6 +6,7 @@ import {
     createConvertPair,
     updateConvertPair,
     deleteConvertPair,
+    getHistoricalRates,
 } from '../../services/currencyService'
 
 // Query keys
@@ -14,6 +15,7 @@ export const currencyKeys = {
     rates: () => [...currencyKeys.all, 'rates'],
     currencies: () => [...currencyKeys.all, 'currencies'],
     convertPairs: () => [...currencyKeys.all, 'convertPairs'],
+    historicalRates: (params) => [...currencyKeys.all, 'historical', params],
 }
 
 // Queries
@@ -37,6 +39,43 @@ export function useConvertPairs() {
     return useQuery({
         queryKey: currencyKeys.convertPairs(),
         queryFn: getConvertPairs,
+    })
+}
+
+/**
+ * Hook for fetching historical exchange rates
+ * @param {Object} options
+ * @param {string} options.fromCurrency - Base currency
+ * @param {string} options.toCurrency - Target currency
+ * @param {string} options.granularity - 'weekly' | 'monthly' | 'yearly'
+ */
+export function useHistoricalRates({ fromCurrency, toCurrency, granularity = 'monthly' } = {}) {
+    // Calculate date range based on granularity
+    const getDateRange = () => {
+        const end = new Date()
+        const start = new Date()
+
+        if (granularity === 'weekly') {
+            start.setDate(start.getDate() - 84) // 12 weeks
+        } else if (granularity === 'yearly') {
+            start.setFullYear(start.getFullYear() - 5) // 5 years
+        } else {
+            start.setMonth(start.getMonth() - 12) // 12 months
+        }
+
+        return {
+            startDate: start.toISOString().split('T')[0],
+            endDate: end.toISOString().split('T')[0]
+        }
+    }
+
+    const { startDate, endDate } = getDateRange()
+
+    return useQuery({
+        queryKey: currencyKeys.historicalRates({ fromCurrency, toCurrency, granularity }),
+        queryFn: () => getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate }),
+        enabled: !!fromCurrency && !!toCurrency,
+        staleTime: 60 * 60 * 1000, // 1 hour - historical data is stable
     })
 }
 
@@ -71,3 +110,4 @@ export function useDeleteConvertPair() {
         },
     })
 }
+

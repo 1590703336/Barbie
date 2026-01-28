@@ -11,6 +11,21 @@ export async function getAvailableCurrencies() {
     return Object.keys(rates).sort()
 }
 
+/**
+ * Get historical exchange rates for a currency pair
+ * @param {Object} params
+ * @param {string} params.fromCurrency - Base currency (e.g., 'USD')
+ * @param {string} params.toCurrency - Target currency (e.g., 'EUR')
+ * @param {string} params.startDate - Start date (YYYY-MM-DD)
+ * @param {string} params.endDate - End date (YYYY-MM-DD)
+ */
+export async function getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate }) {
+    const response = await api.get('/currencies/history', {
+        params: { from: fromCurrency, to: toCurrency, start: startDate, end: endDate }
+    })
+    return response.data
+}
+
 // Convert Pairs API
 export async function getConvertPairs() {
     const response = await api.get('/convert-pairs')
@@ -31,3 +46,4 @@ export async function deleteConvertPair(id) {
     const response = await api.delete(`/convert-pairs/${id}`)
     return response.data
 }
+
