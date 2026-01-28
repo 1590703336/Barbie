@@ -18,10 +18,11 @@ export async function getAvailableCurrencies() {
  * @param {string} params.toCurrency - Target currency (e.g., 'EUR')
  * @param {string} params.startDate - Start date (YYYY-MM-DD)
  * @param {string} params.endDate - End date (YYYY-MM-DD)
+ * @param {string} params.granularity - 'weekly' | 'monthly' | 'yearly'
  */
-export async function getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate }) {
+export async function getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate, granularity }) {
     const response = await api.get('/currencies/history', {
-        params: { from: fromCurrency, to: toCurrency, start: startDate, end: endDate }
+        params: { from: fromCurrency, to: toCurrency, start: startDate, end: endDate, granularity }
     })
     return response.data
 }

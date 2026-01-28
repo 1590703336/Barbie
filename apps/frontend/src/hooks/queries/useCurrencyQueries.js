@@ -73,7 +73,7 @@ export function useHistoricalRates({ fromCurrency, toCurrency, granularity = 'mo
 
     return useQuery({
         queryKey: currencyKeys.historicalRates({ fromCurrency, toCurrency, granularity }),
-        queryFn: () => getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate }),
+        queryFn: () => getHistoricalRates({ fromCurrency, toCurrency, startDate, endDate, granularity }),
         enabled: !!fromCurrency && !!toCurrency,
         staleTime: 60 * 60 * 1000, // 1 hour - historical data is stable
     })

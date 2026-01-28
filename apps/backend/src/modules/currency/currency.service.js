@@ -44,10 +44,11 @@ export const getExchangeRatesWithMeta = async () => {
  * @param {string} toCurrency - Target currency (e.g., 'EUR')
  * @param {string} startDate - Start date in YYYY-MM-DD format
  * @param {string} endDate - End date in YYYY-MM-DD format
- * @returns {Object} Historical rates data
+ * @param {string} granularity - 'weekly' | 'monthly' | 'yearly' - determines aggregation level
+ * @returns {Object} Historical rates data (aggregated)
  */
-export const getHistoricalRates = async (fromCurrency, toCurrency, startDate, endDate) => {
-    const cacheKey = `${fromCurrency}-${toCurrency}-${startDate}-${endDate}`;
+export const getHistoricalRates = async (fromCurrency, toCurrency, startDate, endDate, granularity = 'monthly') => {
+    const cacheKey = `${fromCurrency}-${toCurrency}-${startDate}-${endDate}-${granularity}`;
     const now = Date.now();
 
     // Check cache
@@ -58,20 +59,31 @@ export const getHistoricalRates = async (fromCurrency, toCurrency, startDate, en
 
     try {
         const url = `https://api.frankfurter.dev/v1/${startDate}..${endDate}?base=${fromCurrency}&symbols=${toCurrency}`;
-        const response = await axios.get(url);
+        const response = await axios.get(url, { timeout: 15000 }); // 15s timeout
 
         // Transform data for easier frontend consumption
         const rates = response.data.rates;
-        const series = Object.entries(rates).map(([date, rateObj]) => ({
+        let series = Object.entries(rates).map(([date, rateObj]) => ({
             date,
             rate: rateObj[toCurrency]
         })).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Aggregate data based on granularity to improve performance
+        // Weekly: keep daily data (max ~84 points)
+        // Monthly: aggregate to weekly averages (max ~52 points)
+        // Yearly: aggregate to monthly averages (max ~60 points)
+        if (granularity === 'monthly' && series.length > 100) {
+            series = aggregateToWeekly(series);
+        } else if (granularity === 'yearly') {
+            series = aggregateToMonthly(series);
+        }
 
         const result = {
             base: response.data.base,
             target: toCurrency,
             startDate: response.data.start_date,
             endDate: response.data.end_date,
+            granularity,
             series
         };
 
@@ -84,6 +96,57 @@ export const getHistoricalRates = async (fromCurrency, toCurrency, startDate, en
         throw new Error('Failed to fetch historical exchange rates');
     }
 };
+
+/**
+ * Aggregate daily rates to weekly averages
+ */
+function aggregateToWeekly(series) {
+    const weeks = {};
+    series.forEach(item => {
+        const date = new Date(item.date);
+        // Get ISO week start (Monday)
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay() + 1);
+        const weekKey = weekStart.toISOString().split('T')[0];
+
+        if (!weeks[weekKey]) {
+            weeks[weekKey] = { sum: 0, count: 0 };
+        }
+        weeks[weekKey].sum += item.rate;
+        weeks[weekKey].count += 1;
+    });
+
+    return Object.entries(weeks)
+        .map(([date, { sum, count }]) => ({
+            date,
+            rate: sum / count
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+/**
+ * Aggregate daily rates to monthly averages
+ */
+function aggregateToMonthly(series) {
+    const months = {};
+    series.forEach(item => {
+        const monthKey = item.date.substring(0, 7); // YYYY-MM
+
+        if (!months[monthKey]) {
+            months[monthKey] = { sum: 0, count: 0 };
+        }
+        months[monthKey].sum += item.rate;
+        months[monthKey].count += 1;
+    });
+
+    return Object.entries(months)
+        .map(([monthKey, { sum, count }]) => ({
+            date: `${monthKey}-15`, // Mid-month for display
+            rate: sum / count
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
 
 export const convertToUSD = async (amount, currencyCode) => {
     if (currencyCode === 'USD') return amount;

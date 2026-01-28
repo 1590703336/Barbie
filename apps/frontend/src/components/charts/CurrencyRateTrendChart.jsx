@@ -80,7 +80,8 @@ export default function CurrencyRateTrendChart({
     title = 'Exchange Rate Trend',
     height = 300,
     showGrid = true,
-    animate = true
+    animate = true,
+    granularity = 'monthly'
 }) {
     const [activeIndex, setActiveIndex] = useState(null)
 
@@ -89,9 +90,9 @@ export default function CurrencyRateTrendChart({
         if (!data?.series) return []
         return data.series.map(item => ({
             ...item,
-            name: formatDate(item.date)
+            name: formatDate(item.date, granularity)
         }))
-    }, [data])
+    }, [data, granularity])
 
     // Calculate stats
     const stats = useMemo(() => {
@@ -191,7 +192,7 @@ export default function CurrencyRateTrendChart({
                         name="Rate"
                         stroke={RATE_COLOR}
                         strokeWidth={3}
-                        dot={{ r: 0 }}
+                        dot={{ r: 3, fill: RATE_COLOR, strokeWidth: 0 }}
                         activeDot={<CustomActiveDot fill={RATE_COLOR} />}
                         animationDuration={animate ? 1500 : 0}
                         animationEasing="ease-out"
@@ -235,8 +236,18 @@ export default function CurrencyRateTrendChart({
     )
 }
 
-// Helper to format date for display
-function formatDate(dateStr) {
+// Helper to format date for display based on granularity
+function formatDate(dateStr, granularity) {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    if (granularity === 'yearly') {
+        // For yearly view, show "Jan 24" format
+        return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    } else if (granularity === 'monthly') {
+        // For monthly view, show "Jan 15" format
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    } else {
+        // For weekly view, show "Jan 15" format
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }
 }
+
