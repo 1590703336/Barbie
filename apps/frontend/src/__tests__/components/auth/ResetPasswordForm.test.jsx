@@ -35,7 +35,7 @@ describe('ResetPasswordForm', () => {
         fireEvent.change(screen.getByLabelText(/^New Password/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/^Confirm Password/i), { target: { value: 'mismatch' } })
 
-        const button = screen.getByRole('button')
+        const button = screen.getByRole('button', { name: /Reset Password/i })
         expect(button).toBeDisabled()
     })
 
@@ -63,7 +63,7 @@ describe('ResetPasswordForm', () => {
     it('disables submit button when loading is true', () => {
         render(<ResetPasswordForm loading={true} />)
 
-        const button = screen.getByRole('button')
+        const button = screen.getByRole('button', { name: /Resetting.../i })
         expect(button).toBeDisabled()
     })
 })

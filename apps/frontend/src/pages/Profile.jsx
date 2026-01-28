@@ -12,6 +12,7 @@ import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { analyticsKeys } from '../hooks/useChartData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import CurrencySelect from '../components/common/CurrencySelect'
+import PasswordInput from '../components/common/PasswordInput'
 
 function Profile() {
     const navigate = useNavigate()
@@ -162,12 +163,10 @@ function Profile() {
                         <h3 className="mb-4 text-base font-semibold text-main">Change Password</h3>
                         <div>
                             <label className="block text-sm font-medium text-muted">New Password</label>
-                            <input
-                                type="password"
+                            <PasswordInput
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Leave blank to keep current password"
-                                className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             />
                             <p className="mt-1 text-xs text-slate-500">
                                 Changing your password will log you out of all devices.

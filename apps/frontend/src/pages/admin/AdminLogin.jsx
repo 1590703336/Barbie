@@ -10,6 +10,7 @@ import { motion as Motion } from 'framer-motion'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { adminSignIn } from '../../services/adminService'
 import useStore from '../../store/store'
+import PasswordInput from '../../components/common/PasswordInput'
 
 function AdminLogin() {
     const navigate = useNavigate()
@@ -127,15 +128,14 @@ function AdminLogin() {
                             <label htmlFor="password" className="block text-sm font-medium text-secondary mb-2">
                                 Password
                             </label>
-                            <input
+                            <PasswordInput
                                 id="password"
-                                type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full rounded-lg px-4 py-3 text-main bg-slate-800/50 border border-slate-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                                placeholder="••••••••"
                                 required
                                 disabled={loading}
+                                placeholder="••••••••"
+                                inputClassName="px-4 py-3 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                             />
                         </div>
 
