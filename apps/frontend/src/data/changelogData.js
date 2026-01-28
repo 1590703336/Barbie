@@ -3,6 +3,13 @@
 
 export const changelog = [
     {
+        version: "1.9.0",
+        date: "2026-01-27",
+        changes: [
+            "Added currency trend charts"
+        ]
+    },
+    {
         version: "1.8.0",
         date: "2026-01-26",
         changes: [
