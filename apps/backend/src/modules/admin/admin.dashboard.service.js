@@ -3,15 +3,13 @@
  * 
  * Business logic and aggregation pipelines for platform-wide analytics.
  * Uses Date.UTC() for all date calculations to avoid timezone bugs.
+ * 
+ * NOTE: This service follows Clean Architecture - it does NOT import models directly.
+ * All database access is delegated to admin.analytics.repository.js
  */
 
 import mongoose from 'mongoose';
-import User from '../user/user.model.js';
-import Expense from '../expenses/expense.model.js';
-import Income from '../income/income.model.js';
-import Budget from '../budgets/budget.model.js';
-import Subscription from '../subscription/subscription.model.js';
-import ConvertPair from '../convertPair/convertPair.model.js';
+import * as analyticsRepo from './admin.analytics.repository.js';
 
 /**
  * Get Platform Overview Statistics
@@ -24,37 +22,37 @@ export const getPlatformOverview = async () => {
     const endOfLastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59, 999));
 
     // Total users
-    const totalUsers = await User.countDocuments();
-    const adminCount = await User.countDocuments({ role: 'admin' });
+    const totalUsers = await analyticsRepo.countUsers();
+    const adminCount = await analyticsRepo.countUsers({ role: 'admin' });
     const userCount = totalUsers - adminCount;
 
     // New users this month
-    const newUsersThisMonth = await User.countDocuments({
+    const newUsersThisMonth = await analyticsRepo.countUsers({
         createdAt: { $gte: startOfMonth }
     });
 
     // New users last month (for comparison)
-    const newUsersLastMonth = await User.countDocuments({
+    const newUsersLastMonth = await analyticsRepo.countUsers({
         createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }
     });
 
     // Total transactions (expenses + income)
-    const totalExpenses = await Expense.countDocuments();
-    const totalIncomes = await Income.countDocuments();
+    const totalExpenses = await analyticsRepo.countExpenses();
+    const totalIncomes = await analyticsRepo.countIncomes();
     const totalTransactions = totalExpenses + totalIncomes;
 
     // Total volume in USD
-    const expenseVolumeResult = await Expense.aggregate([
+    const expenseVolumeResult = await analyticsRepo.aggregateExpenses([
         { $group: { _id: null, total: { $sum: '$amountUSD' } } }
     ]);
-    const incomeVolumeResult = await Income.aggregate([
+    const incomeVolumeResult = await analyticsRepo.aggregateIncomes([
         { $group: { _id: null, total: { $sum: '$amountUSD' } } }
     ]);
     const totalExpenseVolume = expenseVolumeResult[0]?.total || 0;
     const totalIncomeVolume = incomeVolumeResult[0]?.total || 0;
 
     // Active subscriptions
-    const activeSubscriptions = await Subscription.countDocuments({ status: 'active' });
+    const activeSubscriptions = await analyticsRepo.countSubscriptions({ status: 'active' });
 
     return {
         users: {
@@ -129,10 +127,10 @@ export const getUserGrowthTrend = async (granularity = 'monthly', count = 12) =>
         }
     ];
 
-    const results = await User.aggregate(pipeline);
+    const results = await analyticsRepo.aggregateUsers(pipeline);
 
     // Get total user count before the start date to calculate running total
-    const usersBeforeStart = await User.countDocuments({ createdAt: { $lt: startDate } });
+    const usersBeforeStart = await analyticsRepo.countUsers({ createdAt: { $lt: startDate } });
 
     // Transform data to include newUsers and running totalUsers
     let runningTotal = usersBeforeStart;
@@ -183,8 +181,8 @@ export const getPlatformFinancials = async (months = 6) => {
     ];
 
     const [expenses, incomes] = await Promise.all([
-        Expense.aggregate(expensePipeline),
-        Income.aggregate(incomePipeline)
+        analyticsRepo.aggregateExpenses(expensePipeline),
+        analyticsRepo.aggregateIncomes(incomePipeline)
     ]);
 
     // Merge into unified series
@@ -224,8 +222,6 @@ export const getCategoryDistribution = async (type = 'expense', month, year) => 
     const startDate = new Date(Date.UTC(targetYear, targetMonth - 1, 1));
     const endDate = new Date(Date.UTC(targetYear, targetMonth, 0, 23, 59, 59, 999));
 
-    const Model = type === 'income' ? Income : Expense;
-
     const pipeline = [
         { $match: { date: { $gte: startDate, $lte: endDate } } },
         {
@@ -246,7 +242,9 @@ export const getCategoryDistribution = async (type = 'expense', month, year) => 
         }
     ];
 
-    const results = await Model.aggregate(pipeline);
+    const results = type === 'income'
+        ? await analyticsRepo.aggregateIncomes(pipeline)
+        : await analyticsRepo.aggregateExpenses(pipeline);
 
     const grandTotal = results.reduce((sum, item) => sum + item.total, 0);
 
@@ -272,7 +270,7 @@ export const getBudgetCompliance = async (month, year) => {
     const targetYear = year || now.getUTCFullYear();
 
     // Get all budgets for the period
-    const budgets = await Budget.find({ month: targetMonth, year: targetYear });
+    const budgets = await analyticsRepo.findBudgets({ month: targetMonth, year: targetYear });
 
     if (budgets.length === 0) {
         return {
@@ -292,7 +290,7 @@ export const getBudgetCompliance = async (month, year) => {
     let overBudget = 0;
 
     for (const budget of budgets) {
-        const expenseTotal = await Expense.aggregate([
+        const expenseTotal = await analyticsRepo.aggregateExpenses([
             {
                 $match: {
                     user: budget.user,
@@ -327,7 +325,7 @@ export const getBudgetCompliance = async (month, year) => {
  * Get Subscription Health Metrics
  */
 export const getSubscriptionHealth = async () => {
-    const statusCounts = await Subscription.aggregate([
+    const statusCounts = await analyticsRepo.aggregateSubscriptions([
         {
             $group: {
                 _id: '$status',
@@ -337,7 +335,7 @@ export const getSubscriptionHealth = async () => {
         }
     ]);
 
-    const categoryCounts = await Subscription.aggregate([
+    const categoryCounts = await analyticsRepo.aggregateSubscriptions([
         { $match: { status: 'active' } },
         {
             $group: {
@@ -372,7 +370,7 @@ export const getSubscriptionHealth = async () => {
  */
 export const getPopularCurrencyPairs = async () => {
     // Get popular conversion pairs
-    const pairCounts = await ConvertPair.aggregate([
+    const pairCounts = await analyticsRepo.aggregateConvertPairs([
         {
             $group: {
                 _id: { from: '$fromCurrency', to: '$toCurrency' },
@@ -392,21 +390,21 @@ export const getPopularCurrencyPairs = async () => {
     ]);
 
     // Get total conversion pairs count
-    const totalPairs = await ConvertPair.countDocuments();
+    const totalPairs = await analyticsRepo.countConvertPairs();
 
     // Get unique currencies used across the platform (from expenses, incomes, subscriptions)
     const [expenseCurrencies, incomeCurrencies, subscriptionCurrencies] = await Promise.all([
-        Expense.distinct('currency'),
-        Income.distinct('currency'),
-        Subscription.distinct('currency')
+        analyticsRepo.distinctExpenseCurrencies(),
+        analyticsRepo.distinctIncomeCurrencies(),
+        analyticsRepo.distinctSubscriptionCurrencies()
     ]);
 
     const allCurrencies = new Set([...expenseCurrencies, ...incomeCurrencies, ...subscriptionCurrencies]);
     const uniqueCurrencies = allCurrencies.size;
 
     // Get default currency distribution with percentages
-    const totalUsers = await User.countDocuments();
-    const currencyUsage = await User.aggregate([
+    const totalUsers = await analyticsRepo.countUsers();
+    const currencyUsage = await analyticsRepo.aggregateUsers([
         {
             $group: {
                 _id: '$defaultCurrency',
@@ -464,12 +462,12 @@ export const getAllUsers = async (options = {}) => {
     const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
     const [users, total] = await Promise.all([
-        User.find(query)
-            .select('-password -__v')
-            .sort({ [sortBy]: sortDirection })
-            .skip(skip)
-            .limit(limit),
-        User.countDocuments(query)
+        analyticsRepo.findUsers(query, {
+            skip,
+            limit,
+            sort: { [sortBy]: sortDirection }
+        }),
+        analyticsRepo.countUsers(query)
     ]);
 
     return {
@@ -494,26 +492,26 @@ export const getUserActivity = async (userId) => {
 
     // Get counts
     const [expenseCount, incomeCount, budgetCount, subscriptionCount] = await Promise.all([
-        Expense.countDocuments({ user: userObjectId }),
-        Income.countDocuments({ user: userObjectId }),
-        Budget.countDocuments({ user: userObjectId }),
-        Subscription.countDocuments({ user: userObjectId })
+        analyticsRepo.countExpenses({ user: userObjectId }),
+        analyticsRepo.countIncomes({ user: userObjectId }),
+        analyticsRepo.findBudgets({ user: userObjectId }).then(b => b.length),
+        analyticsRepo.countSubscriptions({ user: userObjectId })
     ]);
 
     // Get totals
     const [totalExpense, totalIncome] = await Promise.all([
-        Expense.aggregate([
+        analyticsRepo.aggregateExpenses([
             { $match: { user: userObjectId } },
             { $group: { _id: null, total: { $sum: '$amountUSD' } } }
         ]),
-        Income.aggregate([
+        analyticsRepo.aggregateIncomes([
             { $match: { user: userObjectId } },
             { $group: { _id: null, total: { $sum: '$amountUSD' } } }
         ])
     ]);
 
     // Get expenses grouped by month (last 6 months)
-    const expensesByMonth = await Expense.aggregate([
+    const expensesByMonth = await analyticsRepo.aggregateExpenses([
         { $match: { user: userObjectId, date: { $gte: sixMonthsAgo } } },
         {
             $group: {
@@ -536,7 +534,7 @@ export const getUserActivity = async (userId) => {
     ]);
 
     // Get incomes grouped by month (last 6 months)
-    const incomesByMonth = await Income.aggregate([
+    const incomesByMonth = await analyticsRepo.aggregateIncomes([
         { $match: { user: userObjectId, date: { $gte: sixMonthsAgo } } },
         {
             $group: {
@@ -559,14 +557,10 @@ export const getUserActivity = async (userId) => {
     ]);
 
     // Get all subscriptions
-    const subscriptions = await Subscription.find({ user: userObjectId })
-        .select('name price currency amountUSD category status frequency startDate renewalDate')
-        .sort({ renewalDate: 1 });
+    const subscriptions = await analyticsRepo.findSubscriptionsByUser(userId);
 
     // Get all budgets
-    const budgets = await Budget.find({ user: userObjectId })
-        .select('category limit currency year month')
-        .sort({ year: -1, month: -1 });
+    const budgets = await analyticsRepo.findBudgetsByUser(userId);
 
     return {
         counts: {
@@ -617,11 +611,7 @@ export const getUserActivity = async (userId) => {
  * Update User Role
  */
 export const updateUserRole = async (userId, newRole) => {
-    const user = await User.findByIdAndUpdate(
-        userId,
-        { role: newRole },
-        { new: true, runValidators: true }
-    ).select('-password -__v');
+    const user = await analyticsRepo.updateUserById(userId, { role: newRole });
 
     if (!user) {
         const error = new Error('User not found');
@@ -636,19 +626,17 @@ export const updateUserRole = async (userId, newRole) => {
  * Delete User and All Associated Data
  */
 export const deleteUser = async (userId) => {
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-
     // Delete all user data (cascade delete)
     await Promise.all([
-        Expense.deleteMany({ user: userObjectId }),
-        Income.deleteMany({ user: userObjectId }),
-        Budget.deleteMany({ user: userObjectId }),
-        Subscription.deleteMany({ user: userObjectId }),
-        ConvertPair.deleteMany({ user: userObjectId })
+        analyticsRepo.deleteExpensesByUser(userId),
+        analyticsRepo.deleteIncomesByUser(userId),
+        analyticsRepo.deleteBudgetsByUser(userId),
+        analyticsRepo.deleteSubscriptionsByUser(userId),
+        analyticsRepo.deleteConvertPairsByUser(userId)
     ]);
 
     // Delete the user
-    const user = await User.findByIdAndDelete(userId);
+    const user = await analyticsRepo.deleteUserById(userId);
 
     if (!user) {
         const error = new Error('User not found');
