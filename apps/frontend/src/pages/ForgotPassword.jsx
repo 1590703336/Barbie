@@ -88,7 +88,7 @@ function ForgotPassword() {
                         <div className="glass-card p-6 rounded-2xl">
                             <ForgotPasswordForm onSubmit={handleForgotPassword} loading={loading} />
                         </div>
-                        {error && <p className="text-sm text-rose-400">{error}</p>}
+                        {error && <p className="text-sm text-error">{error}</p>}
                         <p className="text-sm text-secondary">
                             Remember your password?{' '}
                             <Link to="/login" className="text-indigo-400 hover:text-indigo-300 underline">

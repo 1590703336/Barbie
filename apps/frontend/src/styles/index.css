@@ -203,6 +203,23 @@ body {
   color: var(--text-muted);
 }
 
+/* ========== MESSAGE STATES ========== */
+/* Error, success, and warning text colors with high specificity */
+.text-error {
+  color: #fb7185 !important;
+  /* rose-400 */
+}
+
+.text-success {
+  color: #34d399 !important;
+  /* emerald-400 */
+}
+
+.text-warning {
+  color: #fbbf24 !important;
+  /* amber-400 */
+}
+
 /* Glassmorphism Utilities */
 .glass {
   background: var(--glass-bg);
@@ -261,7 +278,8 @@ h6 {
   letter-spacing: -0.025em;
 }
 
-p {
+/* Use :where() for lowest specificity so Tailwind classes can override */
+:where(p) {
   color: var(--text-secondary);
 }
 
