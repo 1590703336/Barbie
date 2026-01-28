@@ -74,7 +74,10 @@ export const deleteToken = async (token) => {
  * Send password reset email
  */
 export const sendResetEmail = async (email, token) => {
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
+    const baseUrl = FRONTEND_URL || 'http://localhost:4173';
+    console.log(`[DEBUG_EMAIL] FRONTEND_URL from env: ${FRONTEND_URL}`);
+    console.log(`[DEBUG_EMAIL] Using baseUrl: ${baseUrl}`);
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
     const mailOptions = {
         from: EMAIL_FROM || 'noreply@subscriptiontracker.com',
@@ -114,14 +117,15 @@ export const sendResetEmail = async (email, token) => {
     try {
         const info = await transporter.sendMail(mailOptions);
 
+        console.log(`[EMAIL_SUCCESS] Sent to ${email}. Response: ${info.response}`);
+
         if (NODE_ENV === 'development') {
-            console.log('[DEV] Email sent! Preview URL:', nodemailer.getTestMessageUrl(info));
+            console.log('[DEV] Preview URL:', nodemailer.getTestMessageUrl(info));
         }
 
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('[EMAIL ERROR] Failed to send reset email:', error.message);
-        // Log internally but don't expose to user
+        console.error(`[EMAIL_FAILURE] Failed to send to ${email}:`, error.message);
         return { success: false, error: error.message };
     }
 };

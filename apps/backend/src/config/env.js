@@ -1,6 +1,16 @@
 import { config } from "dotenv";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const envFile = `.env.${process.env.NODE_ENV || 'development'}.local`;
+config({ path: path.resolve(process.cwd(), envFile) });
+
+console.log(`[CONFIG] Loading from: ${path.resolve(process.cwd(), envFile)}`);
+console.log(`[CONFIG] FRONTEND_URL: ${process.env.FRONTEND_URL || 'MISSING'}`);
+
 
 export const {
     PORT,

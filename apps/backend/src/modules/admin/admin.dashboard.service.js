@@ -131,10 +131,25 @@ export const getUserGrowthTrend = async (granularity = 'monthly', count = 12) =>
 
     const results = await User.aggregate(pipeline);
 
+    // Calculate cumulative total users for the chart
+    // 1. Get total users before the start date
+    const startingTotal = await User.countDocuments({ createdAt: { $lt: startDate } });
+
+    // 2. Map and calculate running total
+    let runningTotal = startingTotal;
+    const formattedData = results.map(item => {
+        runningTotal += item.count;
+        return {
+            period: item.period,
+            newUsers: item.count,
+            totalUsers: runningTotal
+        };
+    });
+
     return {
         granularity,
         periodLabel,
-        data: results
+        data: formattedData
     };
 };
 
