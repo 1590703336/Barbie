@@ -3,10 +3,21 @@
 
 export const changelog = [
     {
+        version: "1.10.0",
+        date: "2026-01-28",
+        changes: [
+            "Added 'Forgot Password' and 'Reset Password' functionality",
+            "Added 'Show Password' toggle for better usability",
+            "Fixed User Trend chart display issues",
+            "Enhanced accessibility for authentication forms"
+        ]
+    },
+    {
         version: "1.9.0",
         date: "2026-01-27",
         changes: [
-            "Added currency trend charts"
+            "Added currency trend charts",
+            "Fixed currency trend chart display"
         ]
     },
     {
