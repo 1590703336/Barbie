@@ -457,6 +457,8 @@ cd apps/frontend && npm run build && npm run preview
 - [Frontend Documentation](../../apps/frontend/README.md)
 - [Data Science Documentation](../../apps/data-science/README.md)
 - [System Architecture](../ARCHITECTURE.md)
+- [PR Guidelines](../PR_GUIDELINES.md)
+- [PR Description Skill](../../.agent/skills/pr-description/)
 
 ---
 
