@@ -79,13 +79,41 @@ export function useHistoricalRates({ fromCurrency, toCurrency, granularity = 'mo
     })
 }
 
-// Mutations
+// Mutations with optimistic updates to prevent race conditions
+// when rapidly creating/updating/deleting convert pairs
+
 export function useCreateConvertPair() {
     const queryClient = useQueryClient()
     return useMutation({
+        mutationKey: ['createConvertPair'],
         mutationFn: createConvertPair,
-        onSuccess: () => {
-            // Only invalidate convertPairs, NOT the exchange rates
+        onMutate: async (newPair) => {
+            // Cancel any outgoing refetches to prevent overwriting optimistic update
+            await queryClient.cancelQueries({ queryKey: currencyKeys.convertPairs() })
+
+            // Snapshot previous value for rollback
+            const previousPairs = queryClient.getQueryData(currencyKeys.convertPairs())
+
+            // Optimistically add new pair with temporary ID
+            const tempId = `temp-${Date.now()}`
+            queryClient.setQueryData(currencyKeys.convertPairs(), (old) => ({
+                ...old,
+                data: [
+                    { _id: tempId, ...newPair, createdAt: new Date().toISOString() },
+                    ...(old?.data || [])
+                ]
+            }))
+
+            return { previousPairs, tempId }
+        },
+        onError: (err, newPair, context) => {
+            // Rollback on error
+            if (context?.previousPairs) {
+                queryClient.setQueryData(currencyKeys.convertPairs(), context.previousPairs)
+            }
+        },
+        onSettled: () => {
+            // Always refetch to sync with server after mutation settles
             queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() })
         },
     })
@@ -94,8 +122,34 @@ export function useCreateConvertPair() {
 export function useUpdateConvertPair() {
     const queryClient = useQueryClient()
     return useMutation({
+        // Mutation key includes pair ID to prevent overlapping updates to same pair
+        mutationKey: ['updateConvertPair'],
         mutationFn: ({ id, data }) => updateConvertPair(id, data),
-        onSuccess: () => {
+        onMutate: async ({ id, data }) => {
+            // Cancel any outgoing refetches to prevent overwriting optimistic update
+            await queryClient.cancelQueries({ queryKey: currencyKeys.convertPairs() })
+
+            // Snapshot previous value for rollback
+            const previousPairs = queryClient.getQueryData(currencyKeys.convertPairs())
+
+            // Optimistically update the pair
+            queryClient.setQueryData(currencyKeys.convertPairs(), (old) => ({
+                ...old,
+                data: old?.data?.map(pair =>
+                    pair._id === id ? { ...pair, ...data } : pair
+                )
+            }))
+
+            return { previousPairs }
+        },
+        onError: (err, { id }, context) => {
+            // Rollback on error
+            if (context?.previousPairs) {
+                queryClient.setQueryData(currencyKeys.convertPairs(), context.previousPairs)
+            }
+        },
+        onSettled: () => {
+            // Always refetch to sync with server after mutation settles
             queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() })
         },
     })
@@ -104,8 +158,31 @@ export function useUpdateConvertPair() {
 export function useDeleteConvertPair() {
     const queryClient = useQueryClient()
     return useMutation({
+        mutationKey: ['deleteConvertPair'],
         mutationFn: deleteConvertPair,
-        onSuccess: () => {
+        onMutate: async (deletedId) => {
+            // Cancel any outgoing refetches to prevent overwriting optimistic update
+            await queryClient.cancelQueries({ queryKey: currencyKeys.convertPairs() })
+
+            // Snapshot previous value for rollback
+            const previousPairs = queryClient.getQueryData(currencyKeys.convertPairs())
+
+            // Optimistically remove the pair
+            queryClient.setQueryData(currencyKeys.convertPairs(), (old) => ({
+                ...old,
+                data: old?.data?.filter(pair => pair._id !== deletedId)
+            }))
+
+            return { previousPairs }
+        },
+        onError: (err, deletedId, context) => {
+            // Rollback on error
+            if (context?.previousPairs) {
+                queryClient.setQueryData(currencyKeys.convertPairs(), context.previousPairs)
+            }
+        },
+        onSettled: () => {
+            // Always refetch to sync with server after mutation settles
             queryClient.invalidateQueries({ queryKey: currencyKeys.convertPairs() })
         },
     })
