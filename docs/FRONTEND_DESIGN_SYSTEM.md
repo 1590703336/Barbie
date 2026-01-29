@@ -8,6 +8,7 @@ This document defines the UI patterns, styling conventions, and code standards f
 - [Design Philosophy](#design-philosophy)
 - [Theme System](#theme-system)
 - [Text Colors](#text-colors)
+- [Message State Colors](#message-state-colors)
 - [Glass Effects](#glass-effects)
 - [Form Elements](#form-elements)
 - [Component Patterns](#component-patterns)
@@ -89,6 +90,55 @@ For semantic meaning, these Tailwind colors are acceptable:
 - `text-rose-400` / `text-rose-500` - Negative values, expenses, errors
 - `text-indigo-400` / `text-indigo-300` - Accent, links, highlights
 - `text-amber-400` - Warnings
+
+### Message State Colors
+
+> [!IMPORTANT]
+> For user-facing error, success, and warning messages on `<p>` elements, you **MUST** use the custom CSS classes below. Tailwind color classes like `text-rose-400` will be overridden by the global `p { color: ... }` rule.
+
+| Class | Color | Hex | Usage |
+|-------|-------|-----|-------|
+| `.text-error` | Rose-400 | `#fb7185` | Error messages, validation failures |
+| `.text-success` | Emerald-400 | `#34d399` | Success messages, confirmations |
+| `.text-warning` | Amber-400 | `#fbbf24` | Warning messages, alerts |
+
+These classes use `!important` to override the global paragraph styling.
+
+#### ✅ Usage Example
+```jsx
+// Error message
+{error && <p className="text-sm text-error">{error}</p>}
+
+// Success message
+{success && <p className="text-sm text-success">{success}</p>}
+
+// Conditional styling
+<p className={`text-sm ${isError ? 'text-error' : 'text-success'}`}>
+  {message}
+</p>
+```
+
+#### ❌ Do NOT Use
+```jsx
+// These will be overridden by global p styling
+<p className="text-rose-400">{error}</p>
+<p className="text-emerald-600">{success}</p>
+```
+
+#### CSS Definition (in index.css)
+```css
+.text-error {
+  color: #fb7185 !important; /* rose-400 */
+}
+
+.text-success {
+  color: #34d399 !important; /* emerald-400 */
+}
+
+.text-warning {
+  color: #fbbf24 !important; /* amber-400 */
+}
+```
 
 ---
 
