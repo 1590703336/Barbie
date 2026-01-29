@@ -1,6 +1,7 @@
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { ActionButton } from './ActionButton'
 import { CategoryIcon } from './CategoryIcon'
+import CurrencySelect from './CurrencySelect'
 
 export default function RecordModal({
     isOpen,
@@ -43,16 +44,11 @@ export default function RecordModal({
                             </div>
                             <div>
                                 <label className={labelClass}>Currency</label>
-                                <select
-                                    className={inputClass}
+                                <CurrencySelect
                                     value={data.currency ?? ''}
-                                    onChange={(e) => onChange('currency', e.target.value)}
-                                >
-                                    <option value="">Select currency</option>
-                                    {options.currencies?.map((opt) => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
+                                    onChange={(value) => onChange('currency', value)}
+                                    currencies={options.currencies}
+                                />
                             </div>
                         </div>
 
@@ -127,16 +123,11 @@ export default function RecordModal({
                             </div>
                             <div>
                                 <label className={labelClass}>Currency</label>
-                                <select
-                                    className={inputClass}
+                                <CurrencySelect
                                     value={data.currency ?? ''}
-                                    onChange={(e) => onChange('currency', e.target.value)}
-                                >
-                                    <option value="">Select currency</option>
-                                    {options.currencies?.map((opt) => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
+                                    onChange={(value) => onChange('currency', value)}
+                                    currencies={options.currencies}
+                                />
                             </div>
                         </div>
 
@@ -204,16 +195,11 @@ export default function RecordModal({
                             </div>
                             <div>
                                 <label className={labelClass}>Currency</label>
-                                <select
-                                    className={inputClass}
+                                <CurrencySelect
                                     value={data.currency ?? ''}
-                                    onChange={(e) => onChange('currency', e.target.value)}
-                                >
-                                    <option value="">Select currency</option>
-                                    {options.currencies?.map((opt) => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
+                                    onChange={(value) => onChange('currency', value)}
+                                    currencies={options.currencies}
+                                />
                             </div>
                         </div>
 
@@ -310,16 +296,11 @@ export default function RecordModal({
                             </div>
                             <div>
                                 <label className={labelClass}>Currency</label>
-                                <select
-                                    className={inputClass}
+                                <CurrencySelect
                                     value={data.currency ?? ''}
-                                    onChange={(e) => onChange('currency', e.target.value)}
-                                >
-                                    <option value="">Select currency</option>
-                                    {options.currencies?.map((opt) => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                </select>
+                                    onChange={(value) => onChange('currency', value)}
+                                    currencies={options.currencies}
+                                />
                             </div>
                         </div>
 

@@ -31,6 +31,8 @@ import { useIncomeList, incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { useUserSubscriptions, subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { expenseKeys } from '../hooks/queries/useExpenseQueries'
 import { analyticsKeys } from '../hooks/useChartData'
+import { TOP_CURRENCIES } from '../data/currencyNames'
+import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
 
 const expenseCategories = [
   'Food',
@@ -42,14 +44,11 @@ const expenseCategories = [
   'Others',
 ]
 
-const currencies = ['USD', 'EUR', 'CNY', 'AUD']
-const subscriptionCurrencies = currencies
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = expenseCategories
 const subscriptionStatuses = ['active', 'cancelled', 'expired']
 const budgetCategories = expenseCategories
-const budgetCurrencies = currencies
-const expenseCurrencies = currencies
+
 const incomeCategories = [
   'Salary',
   'Freelance',
@@ -57,7 +56,6 @@ const incomeCategories = [
   'Investment',
   'Other',
 ]
-const incomeCurrencies = currencies
 
 const formatDateInput = (value) => {
   if (!value) return ''
@@ -100,7 +98,9 @@ function Records() {
   const debouncedMonth = useDebouncedValue(month, 500)
   const debouncedYear = useDebouncedValue(year, 500)
 
+
   const queryClient = useQueryClient()
+  const { data: currencyList = TOP_CURRENCIES } = useAvailableCurrencies()
 
   // React Query hooks for data fetching
   const { data: expenses = [], isLoading: expensesLoading } = useExpenseList({
@@ -482,18 +482,18 @@ function Records() {
   const getModalOptions = () => {
     switch (editingType) {
       case 'budget':
-        return { categories: budgetCategories, currencies: budgetCurrencies }
+        return { categories: budgetCategories, currencies: currencyList }
       case 'expense':
-        return { categories: expenseCategories, currencies: expenseCurrencies }
+        return { categories: expenseCategories, currencies: currencyList }
       case 'subscription':
         return {
           categories: subscriptionCategories,
-          currencies: subscriptionCurrencies,
+          currencies: currencyList,
           frequencies: subscriptionFrequencies,
           statuses: subscriptionStatuses
         }
       case 'income':
-        return { categories: incomeCategories, currencies: incomeCurrencies }
+        return { categories: incomeCategories, currencies: currencyList }
       default:
         return {}
     }
