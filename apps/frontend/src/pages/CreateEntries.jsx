@@ -164,7 +164,7 @@ function CreateEntries() {
       })
       setMessage('Subscription created successfully')
       setIsError(false)
-      setSubscriptionForm(initialSubscription)
+      setSubscriptionForm({ ...initialSubscription, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
     } catch (err) {
@@ -200,7 +200,7 @@ function CreateEntries() {
       })
       setMessage('Budget created successfully')
       setIsError(false)
-      setBudgetForm(initialBudget)
+      setBudgetForm({ ...initialBudget, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
@@ -272,7 +272,7 @@ function CreateEntries() {
       }
 
       setIsError(false)
-      setExpenseForm(initialExpense)
+      setExpenseForm({ ...initialExpense, currency: defaultCurrency })
       // Invalidate cache so other pages refetch (expense affects budget and analytics too)
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
@@ -309,7 +309,7 @@ function CreateEntries() {
       })
       setMessage('Income created successfully')
       setIsError(false)
-      setIncomeForm(initialIncome)
+      setIncomeForm({ ...initialIncome, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
