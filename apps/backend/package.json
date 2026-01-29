@@ -11,6 +11,7 @@
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.15",
     "@arcjet/node": "^1.0.0-beta.15",
+    "@upstash/redis": "^1.36.1",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "~1.4.4",
@@ -21,13 +22,15 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.2",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "nodemailer": "^7.0.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
     "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.1.11"
   }
 }

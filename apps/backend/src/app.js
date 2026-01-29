@@ -8,6 +8,8 @@ import currencyRouter from "./modules/currency/currency.routes.js";
 import incomeRouter from "./modules/income/income.routes.js";
 import convertPairRouter from "./modules/convertPair/convertPair.routes.js";
 import analyticsRouter from "./modules/analytics/analytics.routes.js";
+import adminAuthRouter from "./modules/admin/admin.auth.routes.js";
+import adminDashboardRouter from "./modules/admin/admin.dashboard.routes.js";
 import errorMiddlewares from "./middlewares/error.middlewares.js";
 import cookieParser from "cookie-parser";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
@@ -20,6 +22,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser())
 app.use(arcjetMiddleware);
 
+// Admin routes (must be before regular user routes)
+app.use('/api/admin/auth', adminAuthRouter);
+app.use('/api/admin', adminDashboardRouter);
+
+// Regular user routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/subscriptions', subscriptionRouter);

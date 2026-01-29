@@ -9,3 +9,5 @@ export { default as TrendLineChart } from './TrendLineChart'
 export { default as CategoryPieChart } from './CategoryPieChart'
 export { default as BudgetProgressBars } from './BudgetProgressBars'
 export { default as MonthlyComparisonChart } from './MonthlyComparisonChart'
+export { default as CurrencyRateTrendChart } from './CurrencyRateTrendChart'
+

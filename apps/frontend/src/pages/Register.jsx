@@ -61,7 +61,7 @@ function Register() {
         <div className="glass-card p-6 rounded-2xl">
           <RegisterForm onSubmit={handleRegister} loading={loading} />
         </div>
-        {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+        {error ? <p className="text-sm text-error">{error}</p> : null}
         <p className="text-sm text-secondary">
           Already have an account?{' '}
           <Link to="/login" className="text-indigo-400 hover:text-indigo-300 underline">

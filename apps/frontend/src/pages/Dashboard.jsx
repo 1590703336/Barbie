@@ -221,7 +221,7 @@ function Dashboard() {
       {loading ? (
         <LoadingSpinner />
       ) : error ? (
-        <p className="text-rose-600">{error}</p>
+        <p className="text-error">{error}</p>
       ) : (
         <>
           {/* Row 1: Trend Line Chart with Granularity Selector */}

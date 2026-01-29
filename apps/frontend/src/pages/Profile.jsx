@@ -12,6 +12,7 @@ import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { analyticsKeys } from '../hooks/useChartData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import CurrencySelect from '../components/common/CurrencySelect'
+import PasswordInput from '../components/common/PasswordInput'
 
 function Profile() {
     const navigate = useNavigate()
@@ -162,12 +163,10 @@ function Profile() {
                         <h3 className="mb-4 text-base font-semibold text-main">Change Password</h3>
                         <div>
                             <label className="block text-sm font-medium text-muted">New Password</label>
-                            <input
-                                type="password"
+                            <PasswordInput
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Leave blank to keep current password"
-                                className="mt-1 w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             />
                             <p className="mt-1 text-xs text-slate-500">
                                 Changing your password will log you out of all devices.
@@ -186,6 +185,26 @@ function Profile() {
                     </div>
                 </form>
             </div>
+
+            {/* Admin Dashboard button - only visible for admins */}
+            {storedUser?.role === 'admin' && (
+                <div className="mt-6 rounded-2xl glass-card p-6 shadow-xl">
+                    <h3 className="text-lg font-semibold text-main mb-2">Admin Access</h3>
+                    <p className="text-sm text-secondary mb-4">
+                        You have administrator privileges. Access the admin dashboard to manage users and view analytics.
+                    </p>
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="rounded-lg bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 shadow-lg shadow-violet-500/20 flex items-center gap-2"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Admin Dashboard
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

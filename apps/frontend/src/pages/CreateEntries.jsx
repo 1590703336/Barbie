@@ -312,8 +312,7 @@ function CreateEntries() {
         </p>
         {message ? (
           <p
-            className={`text-sm ${isError ? 'text-rose-600' : 'text-emerald-600'
-              }`}
+            className={`text-sm ${isError ? 'text-error' : 'text-success'}`}
           >
             {message}
           </p>
@@ -321,7 +320,7 @@ function CreateEntries() {
         {alerts.length > 0 && (
           <div className="space-y-1">
             {alerts.map((alert, idx) => (
-              <p key={idx} className="text-sm text-rose-600 font-medium">
+              <p key={idx} className="text-sm text-error font-medium">
                 {alert}
               </p>
             ))}
