@@ -96,9 +96,40 @@ describe('useConvertPairs', () => {
     })
 })
 
-describe('Currency mutations - Isolation test', () => {
+describe('Currency mutations - Optimistic updates', () => {
     describe('useCreateConvertPair', () => {
-        it('should ONLY invalidate convertPairs, NOT exchange rates', async () => {
+        it('should optimistically add pair to cache before API response', async () => {
+            // Simulate slow API
+            currencyService.createConvertPair.mockImplementation(
+                () => new Promise(resolve => setTimeout(() => resolve({ data: { _id: 'real-id' } }), 100))
+            )
+
+            const queryClient = new QueryClient({
+                defaultOptions: { queries: { retry: false } },
+            })
+
+            // Pre-populate cache with existing pairs
+            queryClient.setQueryData(currencyKeys.convertPairs(), {
+                data: [{ _id: '1', fromCurrency: 'EUR', toCurrency: 'GBP' }]
+            })
+
+            const wrapper = ({ children }) =>
+                createElement(QueryClientProvider, { client: queryClient }, children)
+
+            const { result } = renderHook(() => useCreateConvertPair(), { wrapper })
+
+            // Start mutation
+            result.current.mutate({ fromCurrency: 'USD', toCurrency: 'EUR' })
+
+            // Check cache was updated optimistically (before API response)
+            await waitFor(() => {
+                const cached = queryClient.getQueryData(currencyKeys.convertPairs())
+                expect(cached.data.length).toBe(2)
+                expect(cached.data[0].fromCurrency).toBe('USD') // New pair added at front
+            })
+        })
+
+        it('should invalidate convertPairs after mutation settles', async () => {
             currencyService.createConvertPair.mockResolvedValue({ data: { _id: '1' } })
 
             const queryClient = new QueryClient({
@@ -115,44 +146,86 @@ describe('Currency mutations - Isolation test', () => {
 
             await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-            // Critical: pair mutations should NOT invalidate exchange rates
+            // Should invalidate convertPairs via onSettled
             expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: currencyKeys.convertPairs() })
             expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: currencyKeys.rates() })
-            expect(invalidateSpy).toHaveBeenCalledTimes(1)
         })
     })
 
     describe('useUpdateConvertPair', () => {
-        it('should ONLY invalidate convertPairs, NOT exchange rates', async () => {
-            currencyService.updateConvertPair.mockResolvedValue({ data: { _id: '1' } })
+        it('should optimistically update pair in cache', async () => {
+            currencyService.updateConvertPair.mockImplementation(
+                () => new Promise(resolve => setTimeout(() => resolve({ data: { _id: '1' } }), 100))
+            )
 
             const queryClient = new QueryClient({
                 defaultOptions: { queries: { retry: false } },
             })
-            const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+
+            // Pre-populate cache
+            queryClient.setQueryData(currencyKeys.convertPairs(), {
+                data: [{ _id: '1', fromCurrency: 'USD', toCurrency: 'EUR' }]
+            })
 
             const wrapper = ({ children }) =>
                 createElement(QueryClientProvider, { client: queryClient }, children)
 
             const { result } = renderHook(() => useUpdateConvertPair(), { wrapper })
 
-            result.current.mutate({ id: '1', payload: { fromCurrency: 'GBP' } })
+            // Start mutation
+            result.current.mutate({ id: '1', data: { fromCurrency: 'GBP' } })
 
-            await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-            expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: currencyKeys.convertPairs() })
-            expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: currencyKeys.rates() })
+            // Check cache was updated optimistically
+            await waitFor(() => {
+                const cached = queryClient.getQueryData(currencyKeys.convertPairs())
+                expect(cached.data[0].fromCurrency).toBe('GBP')
+            })
         })
-    })
 
-    describe('useDeleteConvertPair', () => {
-        it('should ONLY invalidate convertPairs, NOT exchange rates', async () => {
-            currencyService.deleteConvertPair.mockResolvedValue({ success: true })
+        it('should rollback on error', async () => {
+            currencyService.updateConvertPair.mockRejectedValue(new Error('API Error'))
 
             const queryClient = new QueryClient({
                 defaultOptions: { queries: { retry: false } },
             })
-            const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+
+            // Pre-populate cache
+            queryClient.setQueryData(currencyKeys.convertPairs(), {
+                data: [{ _id: '1', fromCurrency: 'USD', toCurrency: 'EUR' }]
+            })
+
+            const wrapper = ({ children }) =>
+                createElement(QueryClientProvider, { client: queryClient }, children)
+
+            const { result } = renderHook(() => useUpdateConvertPair(), { wrapper })
+
+            result.current.mutate({ id: '1', data: { fromCurrency: 'GBP' } })
+
+            await waitFor(() => expect(result.current.isError).toBe(true))
+
+            // Cache should be rolled back to original value
+            const cached = queryClient.getQueryData(currencyKeys.convertPairs())
+            expect(cached.data[0].fromCurrency).toBe('USD')
+        })
+    })
+
+    describe('useDeleteConvertPair', () => {
+        it('should optimistically remove pair from cache', async () => {
+            currencyService.deleteConvertPair.mockImplementation(
+                () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
+            )
+
+            const queryClient = new QueryClient({
+                defaultOptions: { queries: { retry: false } },
+            })
+
+            // Pre-populate cache with 2 pairs
+            queryClient.setQueryData(currencyKeys.convertPairs(), {
+                data: [
+                    { _id: '1', fromCurrency: 'USD', toCurrency: 'EUR' },
+                    { _id: '2', fromCurrency: 'GBP', toCurrency: 'JPY' }
+                ]
+            })
 
             const wrapper = ({ children }) =>
                 createElement(QueryClientProvider, { client: queryClient }, children)
@@ -161,10 +234,38 @@ describe('Currency mutations - Isolation test', () => {
 
             result.current.mutate('1')
 
-            await waitFor(() => expect(result.current.isSuccess).toBe(true))
+            // Check cache was updated optimistically (pair removed immediately)
+            await waitFor(() => {
+                const cached = queryClient.getQueryData(currencyKeys.convertPairs())
+                expect(cached.data.length).toBe(1)
+                expect(cached.data[0]._id).toBe('2')
+            })
+        })
 
-            expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: currencyKeys.convertPairs() })
-            expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: currencyKeys.rates() })
+        it('should rollback on delete error', async () => {
+            currencyService.deleteConvertPair.mockRejectedValue(new Error('API Error'))
+
+            const queryClient = new QueryClient({
+                defaultOptions: { queries: { retry: false } },
+            })
+
+            queryClient.setQueryData(currencyKeys.convertPairs(), {
+                data: [{ _id: '1', fromCurrency: 'USD', toCurrency: 'EUR' }]
+            })
+
+            const wrapper = ({ children }) =>
+                createElement(QueryClientProvider, { client: queryClient }, children)
+
+            const { result } = renderHook(() => useDeleteConvertPair(), { wrapper })
+
+            result.current.mutate('1')
+
+            await waitFor(() => expect(result.current.isError).toBe(true))
+
+            // Cache should be rolled back - pair restored
+            const cached = queryClient.getQueryData(currencyKeys.convertPairs())
+            expect(cached.data.length).toBe(1)
         })
     })
 })
+

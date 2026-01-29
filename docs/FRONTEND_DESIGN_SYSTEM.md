@@ -8,6 +8,7 @@ This document defines the UI patterns, styling conventions, and code standards f
 - [Design Philosophy](#design-philosophy)
 - [Theme System](#theme-system)
 - [Text Colors](#text-colors)
+- [Message State Colors](#message-state-colors)
 - [Glass Effects](#glass-effects)
 - [Form Elements](#form-elements)
 - [Component Patterns](#component-patterns)
@@ -89,6 +90,55 @@ For semantic meaning, these Tailwind colors are acceptable:
 - `text-rose-400` / `text-rose-500` - Negative values, expenses, errors
 - `text-indigo-400` / `text-indigo-300` - Accent, links, highlights
 - `text-amber-400` - Warnings
+
+### Message State Colors
+
+> [!IMPORTANT]
+> For user-facing error, success, and warning messages on `<p>` elements, you **MUST** use the custom CSS classes below. Tailwind color classes like `text-rose-400` will be overridden by the global `p { color: ... }` rule.
+
+| Class | Color | Hex | Usage |
+|-------|-------|-----|-------|
+| `.text-error` | Rose-400 | `#fb7185` | Error messages, validation failures |
+| `.text-success` | Emerald-400 | `#34d399` | Success messages, confirmations |
+| `.text-warning` | Amber-400 | `#fbbf24` | Warning messages, alerts |
+
+These classes use `!important` to override the global paragraph styling.
+
+#### ✅ Usage Example
+```jsx
+// Error message
+{error && <p className="text-sm text-error">{error}</p>}
+
+// Success message
+{success && <p className="text-sm text-success">{success}</p>}
+
+// Conditional styling
+<p className={`text-sm ${isError ? 'text-error' : 'text-success'}`}>
+  {message}
+</p>
+```
+
+#### ❌ Do NOT Use
+```jsx
+// These will be overridden by global p styling
+<p className="text-rose-400">{error}</p>
+<p className="text-emerald-600">{success}</p>
+```
+
+#### CSS Definition (in index.css)
+```css
+.text-error {
+  color: #fb7185 !important; /* rose-400 */
+}
+
+.text-success {
+  color: #34d399 !important; /* emerald-400 */
+}
+
+.text-warning {
+  color: #fbbf24 !important; /* amber-400 */
+}
+```
 
 ---
 
@@ -388,6 +438,15 @@ tickFormatter={(value) => {
 }}
 ```
 
+### 🚫 No Internal Formatting Logic
+Chart components should **NEVER** contain internal currency formatting logic (e.g., hardcoded `$` or local `Intl.NumberFormat` instances).
+Always import and use the shared utility:
+```javascript
+import { formatCurrency } from '../../utils/formatCurrency'
+// ...
+{formatCurrency(value, currency)}
+```
+
 ---
 
 ## Animation Guidelines
@@ -616,8 +675,72 @@ Before submitting any UI code, verify:
 - [ ] Charts use CSS variable for grid lines
 - [ ] Framer Motion uses `Motion` alias
 - [ ] Currency values use `formatCurrency()` utility with user's default currency
-- [ ] Chart components receive `currency` prop
+- [ ] Chart components (including `BudgetProgressBars`) receive `currency` prop
+- [ ] NO internal currency formatting logic in components - always import utility
 - [ ] Month/Year selectors use `<select>` dropdowns, not number inputs
 - [ ] Mutations invalidate all related caches (including analytics for financial data)
 - [ ] User-specific queries include `userId` in query key
+
+---
+
+## Admin Dashboard UI Patterns
+
+The admin dashboard uses a **purple accent theme** to distinguish it from the user-facing app (which uses indigo).
+
+### File Structure
+```
+src/
+├── components/admin/
+│   └── AdminLayout.jsx        # Sidebar navigation + session timer
+├── pages/admin/
+│   ├── AdminLogin.jsx         # Dedicated admin login
+│   ├── AdminDashboard.jsx     # Platform KPIs + charts
+│   ├── AdminUsers.jsx         # User management table
+│   ├── AdminFinancials.jsx    # Financial analytics
+│   └── AdminSubscriptions.jsx # Subscription health
+├── services/
+│   └── adminService.js        # Dedicated admin API client
+└── store/slices/
+    └── adminAuthSlice.js      # Separate from user auth
+```
+
+### Admin Route Structure
+```jsx
+// App.jsx - Admin routes are completely separate
+if (isAdminRoute) {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        {/* ... */}
+      </Route>
+    </Routes>
+  )
+}
+```
+
+### Admin Color Scheme
+| Element | User App | Admin Dashboard |
+|---------|----------|-----------------|
+| Primary accent | `indigo-500` | `purple-500` |
+| Active nav | `bg-indigo-500/20` | `bg-purple-500/20` |
+| Buttons | `from-indigo-500` | `from-purple-500` |
+
+### Session Management
+- **Auto-logout**: Sessions expire after 30 minutes
+- **Session timer**: Displayed in sidebar, shows remaining time
+- **Click to refresh**: Clicking the timer refreshes the session
+- **Expiry warning**: Timer turns red when < 5 minutes remaining
+
+### Reusing Chart Components
+Admin pages reuse the same chart components as the user dashboard:
+```jsx
+import { TrendLineChart, CategoryPieChart } from '../../components/charts'
+
+// Same props, just with platform-wide data
+<TrendLineChart data={platformTrendData} currency="USD" />
+```
+
 

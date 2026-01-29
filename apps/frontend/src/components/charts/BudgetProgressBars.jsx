@@ -11,6 +11,7 @@
 import { useMemo, useState } from 'react'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { CHART_COLORS } from '../../data/mockChartData'
+import { formatCurrency } from '../../utils/formatCurrency'
 import { CategoryIcon } from '../common/CategoryIcon'
 
 // Get color based on usage percentage
@@ -27,7 +28,7 @@ function ProgressBar({
     usage,
     status,
     index,
-    formatCurrency,
+    currency,
     isHovered,
     onHover
 }) {
@@ -36,7 +37,7 @@ function ProgressBar({
 
     return (
         <Motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -20 }} // ... (rest of animation props)
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
             className={`p-4 rounded-xl cursor-pointer chart-item-hover ${isHovered ? 'chart-item-active' : ''
@@ -106,20 +107,20 @@ function ProgressBar({
                             <div>
                                 <p className="text-xs text-muted">Budget</p>
                                 <p className="text-sm font-medium text-main">
-                                    {formatCurrency(budget)}
+                                    {formatCurrency(budget, currency)}
                                 </p>
                             </div>
                             <div>
                                 <p className="text-xs text-muted">Spent</p>
                                 <p className="text-sm font-medium" style={{ color }}>
-                                    {formatCurrency(spent)}
+                                    {formatCurrency(spent, currency)}
                                 </p>
                             </div>
                             <div>
                                 <p className="text-xs text-muted">Remaining</p>
                                 <p className={`text-sm font-medium ${remaining >= 0 ? 'text-emerald-400' : 'text-rose-400'
                                     }`}>
-                                    {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining))}
+                                    {remaining >= 0 ? '' : '-'}{formatCurrency(Math.abs(remaining), currency)}
                                 </p>
                             </div>
                         </div>
@@ -133,21 +134,9 @@ function ProgressBar({
 export default function BudgetProgressBars({
     data,
     title = 'Budget Usage',
-    currency = 'CAD'
+    currency = 'USD'
 }) {
     const [hoveredIndex, setHoveredIndex] = useState(null)
-
-    // Format currency helper
-    const formatCurrency = useMemo(() => {
-        return (value) => {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currency,
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(value)
-        }
-    }, [currency])
 
     const categories = data?.categories || []
     const summary = data?.summary || {}
@@ -201,10 +190,10 @@ export default function BudgetProgressBars({
                 <div className="mb-6">
                     <div className="flex justify-between text-sm mb-2">
                         <span className="text-secondary">
-                            Spent: {formatCurrency(summary.totalSpent)}
+                            Spent: {formatCurrency(summary.totalSpent, currency)}
                         </span>
                         <span className="text-secondary">
-                            Budget: {formatCurrency(summary.totalBudget)}
+                            Budget: {formatCurrency(summary.totalBudget, currency)}
                         </span>
                     </div>
                     <div className="h-2 rounded-full bg-white/10 overflow-hidden">
@@ -232,7 +221,7 @@ export default function BudgetProgressBars({
                         key={cat.category}
                         {...cat}
                         index={index}
-                        formatCurrency={formatCurrency}
+                        currency={currency}
                         isHovered={hoveredIndex === index}
                         onHover={setHoveredIndex}
                     />

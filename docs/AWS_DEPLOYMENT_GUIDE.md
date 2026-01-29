@@ -14,7 +14,7 @@
 | Nginx | 80 / 443 | 反向代理 + HTTPS + 静态文件 |
 | Backend (Node.js) | 4273 | Express API 服务 (内部) |
 | MongoDB | Atlas | 云数据库 |
-| Redis | Upstash | 缓存服务 |
+| Redis | - | (未使用 - 当前使用内存缓存) |
 
 ```
 用户请求 (uofa.ink)
@@ -34,7 +34,6 @@
                          ↓
               ┌──────────────────┐
               │   MongoDB Atlas  │
-              │   + Upstash Redis│
               └──────────────────┘
 ```
 
@@ -131,10 +130,6 @@ JWT_EXPIRES_IN=1d
 # 替换为你的 Arcjet 密钥
 ARCJET_KEY=YOUR_ARCJET_KEY
 ARCJET_ENV=production
-
-# 替换为你的 Upstash Redis 配置
-UPSTASH_REDIS_REST_URL="YOUR_UPSTASH_URL"
-UPSTASH_REDIS_REST_TOKEN="YOUR_UPSTASH_TOKEN"
 ```
 
 按 `Ctrl+X`，然后 `Y`，再 `Enter` 保存退出。

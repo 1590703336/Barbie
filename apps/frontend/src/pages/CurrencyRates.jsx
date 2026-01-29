@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CurrencySelect from '../components/common/CurrencySelect';
 import {
     useExchangeRates,
@@ -10,6 +11,7 @@ import {
 } from '../hooks/queries/useCurrencyQueries';
 
 const CurrencyRates = () => {
+    const navigate = useNavigate();
     const [error, setError] = useState(null);
 
     // State for amounts in each pair (keyed by pair id)
@@ -176,6 +178,15 @@ const CurrencyRates = () => {
                                         className="w-32 sm:w-48"
                                         placeholder="To"
                                     />
+
+                                    {/* View Chart button */}
+                                    <button
+                                        onClick={() => navigate(`/rates/${pair._id}`)}
+                                        className="px-3 py-2 text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition text-sm"
+                                        title="View rate history"
+                                    >
+                                        📈 Chart
+                                    </button>
 
                                     {/* Delete button */}
                                     <button
