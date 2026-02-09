@@ -28,3 +28,21 @@ export async function getBudgetSummary({ month, year, userId }) {
   })
   return response.data?.data ?? null
 }
+
+export async function getImportPreview({ month, year }) {
+  const response = await api.get('/budgets/import/preview', {
+    params: { month, year },
+  })
+  return response.data?.data ?? null
+}
+
+export async function importBudgets({ targetMonth, targetYear, budgets, strategy }) {
+  const response = await api.post('/budgets/import', {
+    targetMonth,
+    targetYear,
+    budgets,
+    strategy,
+  })
+  return response.data?.data ?? []
+}
+

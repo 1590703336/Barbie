@@ -23,5 +23,9 @@ budgetRouter.delete('/:id', budgetController.deleteBudgetController); // delete 
 budgetRouter.get('/summary/categories', budgetController.getBudgetCategoriesSummaryController); // get all budget categories for a specific month and year for a user
 budgetRouter.get('/summary/spending-summary', budgetController.getBudgetStatisticsController); // get a full spending summary comparing budgets and expenses
 
+// Import routes
+budgetRouter.get('/import/preview', budgetController.getImportPreviewController); // get budgets from last non-empty month for import preview
+budgetRouter.post('/import', budgetController.importBudgetsController); // import budgets from preview with selected categories and amounts
+
 
 export default budgetRouter;
