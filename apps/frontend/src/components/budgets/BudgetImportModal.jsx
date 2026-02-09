@@ -180,11 +180,15 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+                    onClick={onClose}
+                >
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
+                        onClick={(e) => e.stopPropagation()}
                         className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl glass-card p-6"
                     >
                         {/* Header */}
@@ -241,12 +245,12 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                             <div
                                                 key={budget.category}
                                                 className={`p-4 rounded-xl border transition-all ${hasConflict
-                                                        ? isSelected
-                                                            ? 'border-amber-500 bg-amber-500/10'
-                                                            : 'border-amber-700/50 glass'
-                                                        : isSelected
-                                                            ? 'border-indigo-500 bg-indigo-500/10'
-                                                            : 'border-slate-700 glass'
+                                                    ? isSelected
+                                                        ? 'border-amber-500 bg-amber-500/10'
+                                                        : 'border-amber-700/50 glass'
+                                                    : isSelected
+                                                        ? 'border-indigo-500 bg-indigo-500/10'
+                                                        : 'border-slate-700 glass'
                                                     }`}
                                             >
                                                 <div className="flex items-start gap-4">
@@ -275,19 +279,39 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                         {hasConflict && existingBudget ? (
                                                             <div className="space-y-2">
                                                                 {/* Current (Existing) Budget */}
-                                                                <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                                                                    <p className="text-xs font-semibold text-slate-400 mb-1">Current Budget</p>
+                                                                <div
+                                                                    className="p-3 rounded-lg"
+                                                                    style={{
+                                                                        backgroundColor: 'var(--conflict-current-bg)',
+                                                                        borderWidth: '1px',
+                                                                        borderStyle: 'solid',
+                                                                        borderColor: 'var(--conflict-current-border)'
+                                                                    }}
+                                                                >
+                                                                    <p className="text-xs font-semibold mb-1" style={{ color: 'var(--conflict-current-label)' }}>
+                                                                        Current Budget
+                                                                    </p>
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="text-sm font-semibold text-main">
+                                                                        <span className="text-sm font-semibold" style={{ color: 'var(--conflict-current-text)' }}>
                                                                             {existingBudget.limit}
                                                                         </span>
-                                                                        <span className="text-xs text-secondary">{existingBudget.currency}</span>
+                                                                        <span className="text-xs" style={{ color: 'var(--conflict-current-label)' }}>
+                                                                            {existingBudget.currency}
+                                                                        </span>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* New (Import) Budget */}
-                                                                <div className="p-3 rounded-lg bg-indigo-900/20 border border-indigo-700/50">
-                                                                    <p className="text-xs font-semibold text-indigo-400 mb-1">New Budget (from import)</p>
+                                                                <div
+                                                                    className="p-3 rounded-lg"
+                                                                    style={{
+                                                                        backgroundColor: 'var(--conflict-new-bg)',
+                                                                        borderWidth: '1px',
+                                                                        borderStyle: 'solid',
+                                                                        borderColor: 'var(--conflict-new-border)'
+                                                                    }}
+                                                                >
+                                                                    <p className="text-xs font-semibold mb-1" style={{ color: 'var(--conflict-new-label)' }}>New Budget (from import)</p>
                                                                     <div className="flex items-center gap-2">
                                                                         <input
                                                                             type="number"
@@ -297,11 +321,11 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                                             onChange={(e) => handleAmountChange(budget.category, e.target.value)}
                                                                             disabled={!isSelected}
                                                                             className={`w-32 px-3 py-2 text-sm rounded-lg border ${isSelected
-                                                                                    ? 'border-slate-700 bg-slate-800/50 text-main'
-                                                                                    : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
+                                                                                ? 'border-slate-300 bg-white text-slate-900'
+                                                                                : 'border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed'
                                                                                 }`}
                                                                         />
-                                                                        <span className="text-xs text-secondary">{budget.currency}</span>
+                                                                        <span className="text-xs" style={{ color: 'var(--conflict-new-label)' }}>{budget.currency}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -315,8 +339,8 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                                     onChange={(e) => handleAmountChange(budget.category, e.target.value)}
                                                                     disabled={!isSelected}
                                                                     className={`w-32 px-3 py-2 text-sm rounded-lg border ${isSelected
-                                                                            ? 'border-slate-700 bg-slate-800/50 text-main'
-                                                                            : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
+                                                                        ? 'border-slate-700 bg-slate-800/50 text-main'
+                                                                        : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
                                                                         }`}
                                                                 />
                                                                 <span className="text-sm text-secondary">{budget.currency}</span>
