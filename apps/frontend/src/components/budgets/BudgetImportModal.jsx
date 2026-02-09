@@ -41,6 +41,12 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
         )
     }, [previewData, existingBudgets])
 
+    // Create a map of existing budgets by category for easy lookup
+    const existingBudgetMap = useMemo(() => {
+        if (!existingBudgets) return new Map()
+        return new Map(existingBudgets.map(b => [b.category, b]))
+    }, [existingBudgets])
+
     // Initialize selections when preview data loads
     useEffect(() => {
         if (previewData?.budgets) {
@@ -229,6 +235,7 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                         const isSelected = selectedBudgets[budget.category]
                                         const hasConflict = conflicts.has(budget.category)
                                         const conflictStrategy = conflictStrategies[budget.category]
+                                        const existingBudget = existingBudgetMap.get(budget.category)
 
                                         return (
                                             <div
@@ -253,7 +260,7 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                         category={budget.category}
                                                         className="h-8 w-8 text-slate-300 mt-1"
                                                     />
-                                                    <div className="flex-1 space-y-2">
+                                                    <div className="flex-1 space-y-3">
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <p className="text-sm font-semibold text-main">{budget.category}</p>
@@ -263,24 +270,58 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <p className="text-xs text-secondary">Currency: {budget.currency}</p>
                                                         </div>
 
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                step="0.01"
-                                                                value={editedAmounts[budget.category] ?? budget.limit}
-                                                                onChange={(e) => handleAmountChange(budget.category, e.target.value)}
-                                                                disabled={!isSelected}
-                                                                className={`w-32 px-3 py-2 text-sm rounded-lg border ${isSelected
-                                                                        ? 'border-slate-700 bg-slate-800/50 text-main'
-                                                                        : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
-                                                                    }`}
-                                                            />
-                                                            <span className="text-sm text-secondary">{budget.currency}</span>
-                                                        </div>
+                                                        {hasConflict && existingBudget ? (
+                                                            <div className="space-y-2">
+                                                                {/* Current (Existing) Budget */}
+                                                                <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                                                                    <p className="text-xs font-semibold text-slate-400 mb-1">Current Budget</p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-sm font-semibold text-main">
+                                                                            {existingBudget.limit}
+                                                                        </span>
+                                                                        <span className="text-xs text-secondary">{existingBudget.currency}</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* New (Import) Budget */}
+                                                                <div className="p-3 rounded-lg bg-indigo-900/20 border border-indigo-700/50">
+                                                                    <p className="text-xs font-semibold text-indigo-400 mb-1">New Budget (from import)</p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            step="0.01"
+                                                                            value={editedAmounts[budget.category] ?? budget.limit}
+                                                                            onChange={(e) => handleAmountChange(budget.category, e.target.value)}
+                                                                            disabled={!isSelected}
+                                                                            className={`w-32 px-3 py-2 text-sm rounded-lg border ${isSelected
+                                                                                    ? 'border-slate-700 bg-slate-800/50 text-main'
+                                                                                    : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
+                                                                                }`}
+                                                                        />
+                                                                        <span className="text-xs text-secondary">{budget.currency}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    step="0.01"
+                                                                    value={editedAmounts[budget.category] ?? budget.limit}
+                                                                    onChange={(e) => handleAmountChange(budget.category, e.target.value)}
+                                                                    disabled={!isSelected}
+                                                                    className={`w-32 px-3 py-2 text-sm rounded-lg border ${isSelected
+                                                                            ? 'border-slate-700 bg-slate-800/50 text-main'
+                                                                            : 'border-slate-700 bg-slate-900/50 text-slate-500 cursor-not-allowed'
+                                                                        }`}
+                                                                />
+                                                                <span className="text-sm text-secondary">{budget.currency}</span>
+                                                            </div>
+                                                        )}
 
                                                         {hasConflict && isSelected && (
                                                             <div className="flex items-center gap-3 pt-2">
@@ -294,7 +335,7 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                                         onChange={(e) => handleConflictStrategyChange(budget.category, e.target.value)}
                                                                         className="w-3 h-3"
                                                                     />
-                                                                    <span className="text-xs text-main">Skip (Keep existing)</span>
+                                                                    <span className="text-xs text-main">Skip (Keep current)</span>
                                                                 </label>
                                                                 <label className="flex items-center gap-2 cursor-pointer">
                                                                     <input
@@ -305,7 +346,7 @@ export default function BudgetImportModal({ isOpen, onClose, targetMonth, target
                                                                         onChange={(e) => handleConflictStrategyChange(budget.category, e.target.value)}
                                                                         className="w-3 h-3"
                                                                     />
-                                                                    <span className="text-xs text-main">Replace with this</span>
+                                                                    <span className="text-xs text-main">Replace with new</span>
                                                                 </label>
                                                             </div>
                                                         )}
