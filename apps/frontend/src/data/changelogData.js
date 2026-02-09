@@ -3,6 +3,16 @@
 
 export const changelog = [
     {
+        version: "1.11.0",
+        date: "2026-02-09",
+        changes: [
+            "New Budget Import feature - import budgets from previous months",
+            "Live budget amount editing before import",
+            "Dynamic currency management - default currency always appears first",
+            "Fixed currency reset behavior"
+        ]
+    },
+    {
         version: "1.10.0",
         date: "2026-01-28",
         changes: [
