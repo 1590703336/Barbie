@@ -385,7 +385,7 @@ function CreateEntries() {
                 onClick={() => setIsImportModalOpen(true)}
                 className="px-3 py-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/50 hover:border-indigo-400 rounded-lg transition-colors"
               >
-                Import from Last Month
+                Import from Previous Month
               </button>
               <ActionButton
                 onClick={handleCreateBudget}
