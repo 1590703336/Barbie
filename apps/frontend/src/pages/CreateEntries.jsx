@@ -15,6 +15,7 @@ import { analyticsKeys } from '../hooks/useChartData'
 import { TOP_CURRENCIES } from '../data/currencyNames'
 import CurrencySelect from '../components/common/CurrencySelect'
 import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
+import BudgetImportModal from '../components/budgets/BudgetImportModal'
 
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = [
@@ -126,6 +127,7 @@ function CreateEntries() {
   const [isError, setIsError] = useState(false)
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
 
   const handleSubscriptionChange = (field, value) => {
     setSubscriptionForm((prev) => ({ ...prev, [field]: value }))
@@ -375,15 +377,24 @@ function CreateEntries() {
           onSubmit={handleCreateBudget}
           className="space-y-4 rounded-2xl glass-card p-6"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-main">Create budget</h2>
-            <ActionButton
-              onClick={handleCreateBudget}
-              disabled={loading}
-              successText="Created!"
-            >
-              Submit
-            </ActionButton>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="px-3 py-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/50 hover:border-indigo-400 rounded-lg transition-colors"
+              >
+                Import from Previous Month
+              </button>
+              <ActionButton
+                onClick={handleCreateBudget}
+                disabled={loading}
+                successText="Created!"
+              >
+                Submit
+              </ActionButton>
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <select
@@ -701,6 +712,20 @@ function CreateEntries() {
           </div>
         </motion.form>
       </motion.div>
+
+      {/* Budget Import Modal */}
+      <BudgetImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        targetMonth={budgetForm.month}
+        targetYear={budgetForm.year}
+        onImportComplete={() => {
+          setMessage('Budgets imported successfully')
+          setIsError(false)
+          queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+          queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+        }}
+      />
     </div>
   )
 }
