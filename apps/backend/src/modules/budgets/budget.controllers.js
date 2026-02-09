@@ -221,3 +221,94 @@ export const getBudgetStatisticsController = async (req, res, next) => {
 //         ]
 //     }
 // }
+// controller to get import preview (budgets from last non-empty month)
+export const getImportPreviewController = async (req, res, next) => {
+    try {
+        const month = parseInt(req.query.month, 10);
+        const year = parseInt(req.query.year, 10);
+        const targetUserId = req.query.userId || req.user._id;
+
+        if (!month || !year) {
+            return res.status(400).json({ message: "Month and year are required" });
+        }
+
+        const requester = { id: req.user._id.toString(), role: req.user.role };
+        assertSameUserOrAdmin(targetUserId, requester, 'access these budgets');
+
+        // Find last non-empty month
+        const lastNonEmpty = await budgetService.findLastNonEmptyMonth(
+            budgetRepository,
+            targetUserId,
+            month,
+            year
+        );
+
+        if (!lastNonEmpty) {
+            return res.json({
+                success: true,
+                data: {
+                    sourceMonth: null,
+                    sourceYear: null,
+                    budgets: []
+                }
+            });
+        }
+
+        res.json({
+            success: true,
+            data: {
+                sourceMonth: lastNonEmpty.month,
+                sourceYear: lastNonEmpty.year,
+                budgets: lastNonEmpty.budgets
+            }
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+// controller to import budgets
+export const importBudgetsController = async (req, res, next) => {
+    try {
+        const { targetMonth, targetYear, budgets, strategy } = req.body;
+        const userId = req.user._id;
+
+        // Validate input
+        if (!targetMonth || !targetYear) {
+            return res.status(400).json({ message: "Target month and year are required" });
+        }
+
+        if (!strategy || !['merge', 'replace'].includes(strategy)) {
+            return res.status(400).json({ message: "Invalid strategy. Must be 'merge' or 'replace'" });
+        }
+
+        // Validate budgets data
+        const validationErrors = budgetService.validateImportBudgets(budgets, targetMonth, targetYear);
+        if (validationErrors) {
+            return res.status(400).json({
+                message: "Validation failed",
+                errors: validationErrors
+            });
+        }
+
+        // Execute import
+        const createdBudgets = await budgetService.executeBudgetImport(
+            budgetRepository,
+            userId,
+            budgets,
+            targetMonth,
+            targetYear,
+            strategy
+        );
+
+        res.status(201).json({
+            success: true,
+            message: `Successfully imported ${createdBudgets.length} budget(s)`,
+            data: createdBudgets
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};

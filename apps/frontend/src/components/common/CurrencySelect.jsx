@@ -3,6 +3,8 @@ import { Combobox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { CURRENCY_NAMES, TOP_CURRENCIES } from '../../data/currencyNames'
 
+import useStore from '../../store/store'
+
 export default function CurrencySelect({
     value,
     onChange,
@@ -12,14 +14,27 @@ export default function CurrencySelect({
     className = '',
     placeholder = 'Select currency...'
 }) {
+    const user = useStore(state => state.user)
     const [query, setQuery] = useState('')
 
     const filteredCurrencies = useMemo(() => {
         if (query === '') {
-            // Prioritize top currencies + then the rest
-            const tops = currencies.filter(c => TOP_CURRENCIES.includes(c)).sort();
-            const others = currencies.filter(c => !TOP_CURRENCIES.includes(c)).sort();
-            return [...tops, ...others];
+            // Prioritize user's default currency -> top currencies -> others
+            const defaultCurrency = user?.defaultCurrency || ''
+
+            // Get all currencies excluding the default one
+            const others = currencies.filter(c => c !== defaultCurrency)
+
+            const topsList = others.filter(c => TOP_CURRENCIES.includes(c)).sort()
+            const othersList = others.filter(c => !TOP_CURRENCIES.includes(c)).sort()
+
+            // Only add default currency if it exists in the provided list (or we want to ensuring it's always an option if valid)
+            const result = []
+            if (defaultCurrency && currencies.includes(defaultCurrency)) {
+                result.push(defaultCurrency)
+            }
+
+            return [...result, ...topsList, ...othersList]
         }
 
         const lowerQuery = query.toLowerCase()
@@ -47,7 +62,7 @@ export default function CurrencySelect({
 
             return 0;
         })
-    }, [query, currencies])
+    }, [query, currencies, value])
 
     return (
         <div className={className}>

@@ -12,8 +12,11 @@ import { expenseKeys } from '../hooks/queries/useExpenseQueries'
 import { incomeKeys } from '../hooks/queries/useIncomeQueries'
 import { subscriptionKeys } from '../hooks/queries/useSubscriptionQueries'
 import { analyticsKeys } from '../hooks/useChartData'
+import { TOP_CURRENCIES } from '../data/currencyNames'
+import CurrencySelect from '../components/common/CurrencySelect'
+import { useAvailableCurrencies } from '../hooks/queries/useCurrencyQueries'
+import BudgetImportModal from '../components/budgets/BudgetImportModal'
 
-const currencies = ['USD', 'EUR', 'CNY', 'AUD']
 const subscriptionFrequencies = ['daily', 'weekly', 'monthly', 'yearly']
 const subscriptionCategories = [
   'Food',
@@ -91,16 +94,40 @@ function CreateEntries() {
     () => user?._id || user?.id || user?.userId || null,
     [user],
   )
-  const [subscriptionForm, setSubscriptionForm] = useState(initialSubscription)
-  const [expenseForm, setExpenseForm] = useState(initialExpense)
-  const [budgetForm, setBudgetForm] = useState(initialBudget)
-  const [incomeForm, setIncomeForm] = useState(initialIncome)
+  const queryClient = useQueryClient()
+  const { data: availableCurrencies = TOP_CURRENCIES } = useAvailableCurrencies()
+
+  const defaultCurrency = user?.defaultCurrency || 'USD'
+
+  // Ensure default currency is in the list
+  const currencyOptions = useMemo(() => {
+    if (!availableCurrencies.includes(defaultCurrency)) {
+      return [defaultCurrency, ...availableCurrencies]
+    }
+    return availableCurrencies
+  }, [availableCurrencies, defaultCurrency])
+
+  const [subscriptionForm, setSubscriptionForm] = useState(() => ({
+    ...initialSubscription,
+    currency: defaultCurrency
+  }))
+  const [expenseForm, setExpenseForm] = useState(() => ({
+    ...initialExpense,
+    currency: defaultCurrency
+  }))
+  const [budgetForm, setBudgetForm] = useState(() => ({
+    ...initialBudget,
+    currency: defaultCurrency
+  }))
+  const [incomeForm, setIncomeForm] = useState(() => ({
+    ...initialIncome,
+    currency: defaultCurrency
+  }))
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
-
-  const queryClient = useQueryClient()
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
 
   const handleSubscriptionChange = (field, value) => {
     setSubscriptionForm((prev) => ({ ...prev, [field]: value }))
@@ -139,7 +166,7 @@ function CreateEntries() {
       })
       setMessage('Subscription created successfully')
       setIsError(false)
-      setSubscriptionForm(initialSubscription)
+      setSubscriptionForm({ ...initialSubscription, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
     } catch (err) {
@@ -175,7 +202,7 @@ function CreateEntries() {
       })
       setMessage('Budget created successfully')
       setIsError(false)
-      setBudgetForm(initialBudget)
+      setBudgetForm({ ...initialBudget, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
@@ -247,7 +274,7 @@ function CreateEntries() {
       }
 
       setIsError(false)
-      setExpenseForm(initialExpense)
+      setExpenseForm({ ...initialExpense, currency: defaultCurrency })
       // Invalidate cache so other pages refetch (expense affects budget and analytics too)
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
@@ -284,7 +311,7 @@ function CreateEntries() {
       })
       setMessage('Income created successfully')
       setIsError(false)
-      setIncomeForm(initialIncome)
+      setIncomeForm({ ...initialIncome, currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: incomeKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
@@ -350,15 +377,24 @@ function CreateEntries() {
           onSubmit={handleCreateBudget}
           className="space-y-4 rounded-2xl glass-card p-6"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-main">Create budget</h2>
-            <ActionButton
-              onClick={handleCreateBudget}
-              disabled={loading}
-              successText="Created!"
-            >
-              Submit
-            </ActionButton>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="px-3 py-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 border border-indigo-500/50 hover:border-indigo-400 rounded-lg transition-colors"
+              >
+                Import from Previous Month
+              </button>
+              <ActionButton
+                onClick={handleCreateBudget}
+                disabled={loading}
+                successText="Created!"
+              >
+                Submit
+              </ActionButton>
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <select
@@ -374,19 +410,11 @@ function CreateEntries() {
                 </option>
               ))}
             </select>
-            <select
-              className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
+            <CurrencySelect
               value={budgetForm.currency}
-              onChange={(e) => handleBudgetChange('currency', e.target.value)}
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleBudgetChange('currency', value)}
+              currencies={currencyOptions}
+            />
             <input
               className="w-full rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2 text-sm text-main focus:border-indigo-500 focus:outline-none"
               placeholder="Limit"
@@ -471,19 +499,12 @@ function CreateEntries() {
                 </option>
               ))}
             </select>
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            <CurrencySelect
+              className="w-full"
               value={expenseForm.currency}
-              onChange={(e) => handleExpenseChange('currency', e.target.value)}
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleExpenseChange('currency', value)}
+              currencies={currencyOptions}
+            />
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               type="date"
@@ -539,21 +560,14 @@ function CreateEntries() {
               }
               required
             />
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            <CurrencySelect
+              className="w-full"
               value={subscriptionForm.currency}
-              onChange={(e) =>
-                handleSubscriptionChange('currency', e.target.value)
+              onChange={(value) =>
+                handleSubscriptionChange('currency', value)
               }
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              currencies={currencyOptions}
+            />
             <select
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={subscriptionForm.frequency}
@@ -656,19 +670,12 @@ function CreateEntries() {
               onChange={(e) => handleIncomeChange('amount', e.target.value)}
               required
             />
-            <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            <CurrencySelect
+              className="w-full"
               value={incomeForm.currency}
-              onChange={(e) => handleIncomeChange('currency', e.target.value)}
-              required
-            >
-              <option value="">Select currency</option>
-              {currencies.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleIncomeChange('currency', value)}
+              currencies={currencyOptions}
+            />
             <select
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={incomeForm.category}
@@ -705,6 +712,20 @@ function CreateEntries() {
           </div>
         </motion.form>
       </motion.div>
+
+      {/* Budget Import Modal */}
+      <BudgetImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        targetMonth={budgetForm.month}
+        targetYear={budgetForm.year}
+        onImportComplete={() => {
+          setMessage('Budgets imported successfully')
+          setIsError(false)
+          queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+          queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+        }}
+      />
     </div>
   )
 }

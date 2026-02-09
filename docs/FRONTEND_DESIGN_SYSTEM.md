@@ -142,6 +142,104 @@ These classes use `!important` to override the global paragraph styling.
 
 ---
 
+## Conflict Display CSS Variables
+
+> [!NOTE]
+> These CSS variables enable theme-aware styling for side-by-side conflict comparison displays, such as comparing current budgets vs. import data.
+
+### Purpose
+When displaying conflicts (e.g., budget import conflicts), we need to visually distinguish between:
+- **Current** data (existing in the system)
+- **New** data (being imported)
+
+### Available Variables
+
+| Variable | Dark Mode | Light Mode | Usage |
+|----------|-----------|------------|-------|
+| **Current Budget Box** |
+| `--conflict-current-bg` | `rgba(30, 41, 59, 0.5)` (slate-800) | `#fff7ed` (orange-50) | Background for current item |
+| `--conflict-current-border` | `rgba(71, 85, 105, 0.5)` (slate-600) | `#fed7aa` (orange-200) | Border for current item |
+| `--conflict-current-label` | `#94a3b8` (slate-400) | `#7c2d12` (orange-900) | Label text color |
+| `--conflict-current-text` | `#f8fafc` (slate-50) | `#7c2d12` (orange-900) | Value text color |
+| **New Budget Box** |
+| `--conflict-new-bg` | `rgba(49, 46, 129, 0.2)` (indigo-900) | `#eff6ff` (blue-50) | Background for new item |
+| `--conflict-new-border` | `rgba(99, 102, 241, 0.3)` (indigo-500) | `#bfdbfe` (blue-200) | Border for new item |
+| `--conflict-new-label` | `#a5b4fc` (indigo-300) | `#1e3a8a` (blue-900) | Label text color |
+| `--conflict-new-text` | `#f8fafc` (slate-50) | `#1e3a8a` (blue-900) | Value text color |
+
+### Design Rationale
+
+**Dark Mode:**
+- **Current**: Neutral slate tones (no emphasis)
+- **New**: Indigo accent (subtle emphasis on import data)
+
+**Light Mode:**
+- **Current**: Warm orange (keep existing)
+- **New**: Cool blue (bring in new)
+- High contrast for clear visual distinction
+
+### Usage Pattern
+
+**⚠️ CRITICAL**: Because Tailwind's `dark:` modifier doesn't work with our `data-theme` system, you **MUST** use CSS variables via inline `style` prop:
+
+#### ❌ DO NOT Use Tailwind dark: Modifier
+```jsx
+// BAD - Won't respect data-theme switching
+<div className="bg-orange-50 dark:bg-slate-800">
+  Current Budget
+</div>
+```
+
+#### ✅ ALWAYS Use CSS Variables via Inline Styles
+```jsx
+// GOOD - Adapts to theme automatically
+<div 
+  className="p-3 rounded-lg"
+  style={{
+    backgroundColor: 'var(--conflict-current-bg)',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'var(--conflict-current-border)'
+  }}
+>
+  <p className="text-xs font-semibold mb-1" 
+     style={{ color: 'var(--conflict-current-label)' }}>
+    Current Budget
+  </p>
+  <div className="flex items-center gap-2">
+    <span className="text-sm font-semibold" 
+          style={{ color: 'var(--conflict-current-text)' }}>
+      {existingBudget.limit}
+    </span>
+    <span className="text-xs" 
+          style={{ color: 'var(--conflict-current-label)' }}>
+      {existingBudget.currency}
+    </span>
+  </div>
+</div>
+
+<div 
+  className="p-3 rounded-lg"
+  style={{
+    backgroundColor: 'var(--conflict-new-bg)',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'var(--conflict-new-border)'
+  }}
+>
+  <p className="text-xs font-semibold mb-1" 
+     style={{ color: 'var(--conflict-new-label)' }}>
+    New Budget (from import)
+  </p>
+  {/* ... */}
+</div>
+```
+
+### Implementation Reference
+See [`BudgetImportModal.jsx`](file:///Users/huanzhang/code/Barbie/apps/frontend/src/components/budgets/BudgetImportModal.jsx) for complete implementation example.
+
+---
+
 ## Glass Effects
 
 ### Available Glass Classes

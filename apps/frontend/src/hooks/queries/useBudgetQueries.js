@@ -5,6 +5,8 @@ import {
     updateBudget,
     deleteBudget,
     getBudgetSummary,
+    getImportPreview,
+    importBudgets,
 } from '../../services/budgetService'
 import { analyticsKeys } from '../useChartData'
 
@@ -61,6 +63,26 @@ export function useDeleteBudget() {
     const queryClient = useQueryClient()
     return useMutation({
         mutationFn: deleteBudget,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: budgetKeys.all })
+            queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+        },
+    })
+}
+
+// Import queries and mutations
+export function useImportPreview({ month, year, enabled = true }) {
+    return useQuery({
+        queryKey: [...budgetKeys.all, 'import-preview', { month, year }],
+        queryFn: () => getImportPreview({ month, year }),
+        enabled: enabled && !!month && !!year,
+    })
+}
+
+export function useImportBudgets() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: importBudgets,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: budgetKeys.all })
             queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
