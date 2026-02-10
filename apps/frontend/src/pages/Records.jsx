@@ -340,6 +340,7 @@ function Records() {
 
   const handleUpdateBudget = async (id) => {
     setError('')
+    setAlerts([])
     const payload = budgetEdits[id]
     if (!payload) return
 
@@ -349,12 +350,24 @@ function Records() {
     }
 
     try {
-      await updateBudget(id, {
+      const response = await updateBudget(id, {
         ...payload,
         limit: Number(payload.limit),
         month: Number(payload.month),
         year: Number(payload.year),
       })
+
+      // Display alerts from backend if any
+      if (response && response.alerts && response.alerts.length > 0) {
+        setAlerts(
+          response.alerts.map(
+            (a) => `Alert: You have reached ${a.threshold}% of your ${a.category} budget (Usage: ${a.usage}%).`
+          )
+        )
+      } else {
+        setAlerts([])
+      }
+
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
@@ -362,6 +375,7 @@ function Records() {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
       setError(message)
+      setAlerts([])
       throw err
     }
   }
