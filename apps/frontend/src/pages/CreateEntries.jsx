@@ -49,6 +49,15 @@ const incomeCategories = [
   'Other',
 ]
 
+// Helper function to get today's date in YYYY-MM-DD format for date inputs
+const getTodayString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const initialSubscription = {
   name: '',
   price: '',
@@ -57,7 +66,7 @@ const initialSubscription = {
   category: '',
   paymentMethod: '',
   status: 'active',
-  startDate: '',
+  startDate: getTodayString(),
   renewalDate: '',
 }
 
@@ -66,7 +75,7 @@ const initialExpense = {
   amount: '',
   currency: 'USD',
   category: '',
-  date: '',
+  date: getTodayString(),
   notes: '',
 }
 
@@ -84,7 +93,7 @@ const initialIncome = {
   currency: 'USD',
   source: '',
   category: '',
-  date: '',
+  date: getTodayString(),
   notes: '',
 }
 
