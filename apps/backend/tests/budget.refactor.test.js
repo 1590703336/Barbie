@@ -43,6 +43,9 @@ jest.unstable_mockModule('../src/modules/currency/currency.service.js', () => ({
     convertFromUSD: jest.fn((amount) => amount), // Identity for testing
     convertToUSD: jest.fn((amount) => amount)
 }));
+jest.unstable_mockModule('../src/modules/budgets/budgetAlertService.js', () => ({
+    checkBudgetAlerts: jest.fn(() => ({ alerts: [] }))
+}));
 
 // Import Controller
 const {
@@ -177,7 +180,12 @@ describe('Budget Controller (Refactored)', () => {
 
             expect(mockAuthorization.assertOwnerOrAdmin).toHaveBeenCalled();
             expect(mockBudgetRepository.update).toHaveBeenCalledWith('b1', preparedData);
-            console.log('--- TEST PASSED ---');
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                message: "Budget updated successfully",
+                data: updatedBudget,
+                alerts: []
+            });
         });
 
         it('should handle update failure (Budget not found)', async () => {

@@ -157,7 +157,16 @@ describe('Expense Controller (Refactored)', () => {
             const processedData = { amount: 200, amountUSD: 200 };
             console.log('Mock Setup (Service prepareExpenseData) returns:', JSON.stringify(processedData, null, 2));
 
-            const updatedExpense = { ...existingExpense, ...processedData };
+            const updatedExpense = {
+                ...existingExpense,
+                ...processedData,
+                category: 'Food',
+                date: new Date(),
+                toJSON: function () {
+                    const { toJSON, ...rest } = this;
+                    return rest;
+                }
+            };
             console.log('Mock Setup (Repository update) returns:', JSON.stringify(updatedExpense, null, 2));
 
             mockExpenseRepository.findById.mockResolvedValue(existingExpense);
@@ -171,11 +180,13 @@ describe('Expense Controller (Refactored)', () => {
             expect(mockExpenseService.prepareExpenseData).toHaveBeenCalledWith(req.body, existingExpense);
             expect(mockExpenseRepository.update).toHaveBeenCalledWith('exp1', processedData);
 
-            console.log('Expected Output (res.json):', JSON.stringify(updatedExpense, null, 2));
+            // Now we expect the response to include alerts field
+            const expectedResponse = { ...updatedExpense.toJSON(), alerts: [] };
+            console.log('Expected Output (res.json):', JSON.stringify(expectedResponse, null, 2));
             const actualJson = res.json.mock.calls[0][0];
             console.log('Actual Output (res.json):', JSON.stringify(actualJson, null, 2));
 
-            expect(res.json).toHaveBeenCalledWith(updatedExpense);
+            expect(res.json).toHaveBeenCalledWith(expectedResponse);
             console.log('--- TEST PASSED ---\n');
         });
 

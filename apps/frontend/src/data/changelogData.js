@@ -3,6 +3,16 @@
 
 export const changelog = [
     {
+        version: "1.12.0",
+        date: "2026-02-10",
+        changes: [
+            "Pre-filled 'Today' date for new Expenses, Incomes, and Subscriptions",
+            "Real-time budget alerts when creating or updating expenses",
+            "Remove restriction of only create expenses in existing budgets",
+            "Budget status alerts when modifying budget limits"
+        ]
+    },
+    {
         version: "1.11.0",
         date: "2026-02-09",
         changes: [

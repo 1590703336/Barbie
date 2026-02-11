@@ -10,10 +10,10 @@ const incomeSchema = Joi.object({
             'any.required': 'Amount is required'
         }),
     currency: Joi.string()
-        .valid('EUR', 'USD', 'CNY', 'AUD')
+        .pattern(/^[A-Z]{3}$/)
         .default('USD')
         .messages({
-            'any.only': 'Currency must be one of: EUR, USD, CNY, AUD'
+            'string.pattern.base': 'Currency must be a valid 3-letter currency code (e.g. USD, GBP, JPY)'
         }),
     source: Joi.string()
         .trim()

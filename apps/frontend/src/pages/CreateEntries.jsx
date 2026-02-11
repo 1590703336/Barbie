@@ -49,6 +49,15 @@ const incomeCategories = [
   'Other',
 ]
 
+// Helper function to get today's date in YYYY-MM-DD format for date inputs
+const getTodayString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const initialSubscription = {
   name: '',
   price: '',
@@ -57,8 +66,8 @@ const initialSubscription = {
   category: '',
   paymentMethod: '',
   status: 'active',
-  startDate: '',
-  renewalDate: '',
+  startDate: getTodayString(),
+  notes: '',
 }
 
 const initialExpense = {
@@ -66,7 +75,7 @@ const initialExpense = {
   amount: '',
   currency: 'USD',
   category: '',
-  date: '',
+  date: getTodayString(),
   notes: '',
 }
 
@@ -84,7 +93,7 @@ const initialIncome = {
   currency: 'USD',
   source: '',
   category: '',
-  date: '',
+  date: getTodayString(),
   notes: '',
 }
 
@@ -162,7 +171,7 @@ function CreateEntries() {
       await createSubscription({
         ...subscriptionForm,
         price: Number(subscriptionForm.price),
-        renewalDate: subscriptionForm.renewalDate || undefined,
+        notes: subscriptionForm.notes,
       })
       setMessage('Subscription created successfully')
       setIsError(false)
@@ -236,26 +245,6 @@ function CreateEntries() {
 
     setLoading(true)
     try {
-      // Parse date string (YYYY-MM-DD) directly to avoid timezone issues of "new Date(string)"
-      // which defaults to UTC for hyphenated strings, causing day shifts in local time.
-      const [y, m] = expenseForm.date.split('-')
-      const year = Number(y)
-      const month = Number(m)
-
-      // Check if budget exists for this category and month/year
-      const budgets = await listBudgets({ month, year, userId })
-      const budgetExists = budgets.some(
-        (b) => b.category === expenseForm.category
-      )
-
-      if (!budgetExists) {
-        const errorMsg = `Please set a budget for ${expenseForm.category} before creating an expense.`
-        setMessage(errorMsg)
-        setIsError(true)
-        setLoading(false)
-        throw new Error(errorMsg)
-      }
-
       const response = await createExpense({
         ...expenseForm,
         amount: Number(expenseForm.amount),
@@ -631,13 +620,13 @@ function CreateEntries() {
               }
               required
             />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              type="date"
-              placeholder="Renewal date"
-              value={subscriptionForm.renewalDate}
+
+            <textarea
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+              placeholder="Notes"
+              value={subscriptionForm.notes}
               onChange={(e) =>
-                handleSubscriptionChange('renewalDate', e.target.value)
+                handleSubscriptionChange('notes', e.target.value)
               }
             />
           </div>

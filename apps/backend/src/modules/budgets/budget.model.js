@@ -28,7 +28,7 @@ const budgetSchema = new mongoose.Schema(
 
     currency: {
       type: String,
-      enum: ['EUR', 'USD', 'CNY', 'AUD'],
+      match: [/^[A-Z]{3}$/, 'Currency must be a valid 3-letter currency code'],
       default: 'USD',
     },
     amountUSD: {

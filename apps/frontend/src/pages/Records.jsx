@@ -89,6 +89,7 @@ function Records() {
   const setYear = useStore((state) => state.setSelectedYear)
 
   const [error, setError] = useState('')
+  const [alerts, setAlerts] = useState([])
   const [expenseEdits, setExpenseEdits] = useState({})
   const [subscriptionEdits, setSubscriptionEdits] = useState({})
   const [budgetEdits, setBudgetEdits] = useState({})
@@ -164,6 +165,7 @@ function Records() {
               status: item.status ?? 'active',
               startDate: formatDateInput(item.startDate),
               renewalDate: formatDateInput(item.renewalDate),
+              notes: item.notes ?? '',
             },
           ]
         }),
@@ -242,6 +244,7 @@ function Records() {
 
   const handleUpdateExpense = async (id) => {
     setError('')
+    setAlerts([])
     const payload = expenseEdits[id]
     if (!payload) return
 
@@ -250,58 +253,23 @@ function Records() {
       throw new Error('Validation failed')
     }
 
-    // Budget check
-    if (payload.date && payload.category) {
-      // Parse date string (YYYY-MM-DD) directly to avoid timezone issues
-      let expMonth, expYear
-      // Handle partial date strings or full ISO strings if they occur (though payload.date is usually YYYY-MM-DD from input)
-      if (payload.date.includes('T')) {
-        const d = new Date(payload.date)
-        expMonth = d.getMonth() + 1
-        expYear = d.getFullYear()
-      } else {
-        const [y, m] = payload.date.split('-')
-        expYear = Number(y)
-        expMonth = Number(m)
-      }
-
-      let relevantBudgets = []
-      // If the expense date falls in the currently viewed month/year, we can use the local state
-      if (expMonth === month && expYear === year) {
-        relevantBudgets = budgets
-      } else {
-        // Otherwise we need to fetch the budgets for that time period
-        try {
-          relevantBudgets = await listBudgets({
-            month: expMonth,
-            year: expYear,
-            userId,
-          })
-        } catch {
-          // If fetch fails, we can't verify, so we might choose to block or warn. 
-          // For now let's assume empty to result in blocking to be safe?
-          // Or strictly follow requirements: "ask them to set a budget first" -> implies blocking.
-          relevantBudgets = []
-        }
-      }
-
-      const budgetExists = relevantBudgets.some(
-        (b) => b.category === payload.category
-      )
-
-      if (!budgetExists) {
-        setError(
-          `Please set a budget for ${payload.category} before updating this expense.`
-        )
-        throw new Error('Budget missing')
-      }
-    }
-
     try {
-      await updateExpense(id, {
+      const response = await updateExpense(id, {
         ...payload,
         amount: Number(payload.amount),
       })
+
+      // Display alerts from backend if any
+      if (response && response.alerts && response.alerts.length > 0) {
+        setAlerts(
+          response.alerts.map(
+            (a) => `Alert: You have reached ${a.threshold}% of your ${a.category} budget (Usage: ${a.usage}%).`
+          )
+        )
+      } else {
+        setAlerts([])
+      }
+
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: expenseKeys.all })
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
@@ -310,6 +278,7 @@ function Records() {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
       setError(message)
+      setAlerts([])
       throw err
     }
   }
@@ -372,6 +341,7 @@ function Records() {
 
   const handleUpdateBudget = async (id) => {
     setError('')
+    setAlerts([])
     const payload = budgetEdits[id]
     if (!payload) return
 
@@ -381,12 +351,24 @@ function Records() {
     }
 
     try {
-      await updateBudget(id, {
+      const response = await updateBudget(id, {
         ...payload,
         limit: Number(payload.limit),
         month: Number(payload.month),
         year: Number(payload.year),
       })
+
+      // Display alerts from backend if any
+      if (response && response.alerts && response.alerts.length > 0) {
+        setAlerts(
+          response.alerts.map(
+            (a) => `Alert: You have reached ${a.threshold}% of your ${a.category} budget (Usage: ${a.usage}%).`
+          )
+        )
+      } else {
+        setAlerts([])
+      }
+
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
@@ -394,6 +376,7 @@ function Records() {
       const message =
         err?.response?.data?.message ?? err?.message ?? 'Update failed'
       setError(message)
+      setAlerts([])
       throw err
     }
   }
@@ -661,6 +644,15 @@ function Records() {
                 {error && (
                   <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm">
                     {error}
+                  </div>
+                )}
+                {alerts.length > 0 && (
+                  <div className="space-y-1">
+                    {alerts.map((alert, idx) => (
+                      <p key={idx} className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-sm font-medium">
+                        {alert}
+                      </p>
+                    ))}
                   </div>
                 )}
 
