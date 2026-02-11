@@ -67,7 +67,7 @@ const initialSubscription = {
   paymentMethod: '',
   status: 'active',
   startDate: getTodayString(),
-  renewalDate: '',
+  notes: '',
 }
 
 const initialExpense = {
@@ -171,7 +171,7 @@ function CreateEntries() {
       await createSubscription({
         ...subscriptionForm,
         price: Number(subscriptionForm.price),
-        renewalDate: subscriptionForm.renewalDate || undefined,
+        notes: subscriptionForm.notes,
       })
       setMessage('Subscription created successfully')
       setIsError(false)
@@ -620,13 +620,13 @@ function CreateEntries() {
               }
               required
             />
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              type="date"
-              placeholder="Renewal date"
-              value={subscriptionForm.renewalDate}
+
+            <textarea
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm sm:col-span-2"
+              placeholder="Notes"
+              value={subscriptionForm.notes}
               onChange={(e) =>
-                handleSubscriptionChange('renewalDate', e.target.value)
+                handleSubscriptionChange('notes', e.target.value)
               }
             />
           </div>

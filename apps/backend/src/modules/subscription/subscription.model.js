@@ -58,6 +58,10 @@ const subscriptionSchema = new mongoose.Schema({
         //     message: 'start data must be in the past',
         // }
     },
+    notes: {
+        type: String,
+        trim: true,
+    },
     renewalDate: {
         type: Date,
     },
