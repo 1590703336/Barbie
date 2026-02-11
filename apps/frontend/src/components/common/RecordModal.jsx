@@ -277,7 +277,18 @@ export default function RecordModal({
                                 />
                             </div>
                         </div>
-                    </div>
+
+                        <div>
+                            <label className={labelClass}>Notes</label>
+                            <textarea
+                                className={inputClass}
+                                rows={3}
+                                value={data.notes ?? ''}
+                                onChange={(e) => onChange('notes', e.target.value)}
+                                placeholder="Add details..."
+                            />
+                        </div>
+                    </div >
                 )
 
             case 'income':

@@ -13,4 +13,5 @@ export const subscriptionSchema = Joi.object({
   status: Joi.string().valid('active', 'cancelled', 'expired').default('active'),
   renewalDate: Joi.date(),
   user: Joi.string().hex().length(24), // ObjectId validation
+  notes: Joi.string().allow('').optional(),
 });

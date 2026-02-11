@@ -165,6 +165,7 @@ function Records() {
               status: item.status ?? 'active',
               startDate: formatDateInput(item.startDate),
               renewalDate: formatDateInput(item.renewalDate),
+              notes: item.notes ?? '',
             },
           ]
         }),
