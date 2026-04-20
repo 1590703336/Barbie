@@ -8,35 +8,62 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          port: ${{ secrets.EC2_PORT }}
+          command_timeout: 30m
           script: |
-            cd /home/ubuntu/projects/Barbie
-            
-            echo "📥 Fetching latest code..."
+            sudo -u ubuntu -H bash <<'EOF'
+            set -euo pipefail
+            export PATH=/usr/local/bin:/usr/bin:/bin:/opt/node-v22.22.2/bin
+            export PM2_HOME=/home/ubuntu/.pm2
+
+            REPO_DIR="/srv/uofa/apps/Barbie"
+            BACKEND_DIR="$REPO_DIR/apps/backend"
+            FRONTEND_DIR="$REPO_DIR/apps/frontend"
+
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              echo "Missing git repository: $REPO_DIR"
+              exit 1
+            fi
+
+            if [ ! -f "$BACKEND_DIR/.env.production.local" ]; then
+              echo "Missing backend env file: $BACKEND_DIR/.env.production.local"
+              exit 1
+            fi
+
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "pm2 is required on server"
+              exit 1
+            fi
+
+            cd "$REPO_DIR"
+
+            echo "Fetching latest code..."
             git fetch origin main
-            
-            echo "🔄 Resetting to latest commit..."
-            git reset --hard origin/main
-            
-            echo "📦 Installing backend dependencies..."
-            cd apps/backend
-            npm install --production
-            
-            echo "🔄 Restarting backend..."
-            pm2 restart barbie-backend
-            
-            echo "📦 Installing frontend dependencies..."
-            cd ../frontend
-            npm install
-            
-            echo "🔨 Building frontend..."
+            git checkout main
+            git pull --ff-only origin main
+
+            echo "Installing backend dependencies..."
+            cd "$BACKEND_DIR"
+            npm ci --omit=dev
+
+            echo "Installing frontend dependencies..."
+            cd "$FRONTEND_DIR"
+            npm ci
+
+            echo "Building frontend..."
             npm run build
-            
-            echo "✅ Deployment completed!"
+
+            echo "Restarting backend..."
+            pm2 restart barbie-backend --update-env || pm2 start npm --name "barbie-backend" --cwd "$BACKEND_DIR" -- start
+            pm2 save
+
+            echo "Deployment completed."
+            EOF

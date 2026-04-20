@@ -8,54 +8,72 @@ on:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy Preview to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          port: ${{ secrets.EC2_PORT }}
+          command_timeout: 30m
           script: |
-            cd /home/ubuntu/projects/Barbie-preview
-            
-            echo "📥 Fetching latest code..."
+            sudo -u ubuntu -H bash <<'EOF'
+            set -euo pipefail
+            export PATH=/usr/local/bin:/usr/bin:/bin:/opt/node-v22.22.2/bin
+            export PM2_HOME=/home/ubuntu/.pm2
+
+            REPO_DIR="/srv/uofa/apps/Barbie-preview"
+            BACKEND_DIR="$REPO_DIR/apps/backend"
+            FRONTEND_DIR="$REPO_DIR/apps/frontend"
+
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              echo "Missing git repository: $REPO_DIR"
+              exit 1
+            fi
+
+            if [ ! -f "$BACKEND_DIR/.env.production.local" ]; then
+              echo "Missing backend env file: $BACKEND_DIR/.env.production.local"
+              exit 1
+            fi
+
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "pm2 is required on server"
+              exit 1
+            fi
+
+            cd "$REPO_DIR"
+
+            echo "Fetching latest code..."
             git fetch origin preview
-            
-            echo "🔄 Resetting to latest commit..."
-            git reset --hard origin/preview
-            
-            echo "📦 Installing backend dependencies..."
-            cd apps/backend
-            npm install --production
-            
-            echo "� Configuring backend .env for preview..."
-            # Update PORT from 4273 to 4274 (using regex)
+            git checkout preview
+            git pull --ff-only origin preview
+
+            echo "Installing backend dependencies..."
+            cd "$BACKEND_DIR"
+            npm ci --omit=dev
+
+            echo "Configuring backend .env for preview..."
             sed -i "s/^PORT=.*/PORT=4274/" .env.production.local
-            # Update SERVER_URL to use port 4274 (using regex)
             sed -i "s|^SERVER_URL=.*|SERVER_URL=http://localhost:4274|" .env.production.local
-            # Update FRONTEND_URL for preview path (using regex)
             sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=https://uofa.ink/preview|" .env.production.local
-            
-            echo "�🔄 Restarting preview backend..."
-            pm2 restart barbie-backend-preview || pm2 start npm --name "barbie-backend-preview" -- start
-            
-            echo "📝 Configuring frontend for preview..."
-            cd ../frontend
-            
-            # 修改 vite.config.js: 端口改为 4274，base 改为 /preview/
-            # Update backend port
+
+            echo "Configuring frontend for preview..."
+            cd "$FRONTEND_DIR"
             sed -i "s/const backendPort = .*;/const backendPort = mode === 'development' ? 5500 : 4274;/" vite.config.js
-            # Comment out root base path
             sed -i "s|.*const base = '/';|  // const base = '/';|" vite.config.js
-            # Uncomment preview base path
             sed -i "s|.*// const base = '/preview/';|  const base = '/preview/';|" vite.config.js
-            
-            echo "📦 Installing frontend dependencies..."
-            npm install
-            
-            echo "🔨 Building frontend..."
+
+            echo "Installing frontend dependencies..."
+            npm ci
+
+            echo "Building frontend..."
             npm run build
-            
-            echo "✅ Preview deployment completed!"
-            echo "🌐 Access at: https://uofa.ink/preview/"
+
+            echo "Restarting preview backend..."
+            pm2 restart barbie-backend-preview --update-env || pm2 start npm --name "barbie-backend-preview" --cwd "$BACKEND_DIR" -- start
+            pm2 save
+
+            echo "Preview deployment completed."
+            EOF
