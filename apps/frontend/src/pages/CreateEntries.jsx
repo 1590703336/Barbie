@@ -79,13 +79,15 @@ const initialExpense = {
   notes: '',
 }
 
-const today = new Date()
-const initialBudget = {
-  category: '',
-  limit: '',
-  month: today.getMonth() + 1,
-  year: today.getFullYear(),
-  currency: 'USD',
+const getInitialBudget = () => {
+  const today = new Date()
+  return {
+    category: '',
+    limit: '',
+    month: today.getMonth() + 1,
+    year: today.getFullYear(),
+    currency: 'USD',
+  }
 }
 
 const initialIncome = {
@@ -125,7 +127,7 @@ function CreateEntries() {
     currency: defaultCurrency
   }))
   const [budgetForm, setBudgetForm] = useState(() => ({
-    ...initialBudget,
+    ...getInitialBudget(),
     currency: defaultCurrency
   }))
   const [incomeForm, setIncomeForm] = useState(() => ({
@@ -211,7 +213,7 @@ function CreateEntries() {
       })
       setMessage('Budget created successfully')
       setIsError(false)
-      setBudgetForm({ ...initialBudget, currency: defaultCurrency })
+      setBudgetForm({ ...getInitialBudget(), currency: defaultCurrency })
       // Invalidate cache so other pages refetch
       queryClient.invalidateQueries({ queryKey: budgetKeys.all })
       queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
