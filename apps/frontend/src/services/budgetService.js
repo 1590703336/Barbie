@@ -14,7 +14,8 @@ export async function createBudget(payload) {
 
 export async function updateBudget(id, payload) {
   const response = await api.put(`/budgets/${id}`, payload)
-  return response.data?.data ?? {}
+  // Return the full response data to include alerts field
+  return response.data ?? {}
 }
 
 export async function deleteBudget(id) {

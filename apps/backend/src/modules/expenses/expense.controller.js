@@ -79,7 +79,23 @@ export const updateExpenseController = async (req, res, next) => {
         const processedData = await expenseService.prepareExpenseData(req.body, existingExpense);
         const updatedExpense = await expenseRepository.update(req.params.id, processedData);
 
-        res.json(updatedExpense);
+        // Check budget alerts (only computes if budget exists for this category)
+        const { checkBudgetAlerts } = await import("../budgets/budgetAlertService.js");
+        let alerts = [];
+
+        // checkBudgetAlerts returns null if no budget exists, so we can safely call it
+        const alertResult = await checkBudgetAlerts({
+            userId: req.user._id.toString(),
+            category: updatedExpense.category,
+            month: updatedExpense.date.getUTCMonth() + 1,
+            year: updatedExpense.date.getUTCFullYear()
+        });
+
+        if (alertResult && alertResult.alerts.length > 0) {
+            alerts = alertResult.alerts;
+        }
+
+        res.json({ ...updatedExpense.toJSON(), alerts });
     } catch (err) {
         next(err);
     }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import authorize from '../../middlewares/auth.middleware.js';
 import validate from '../../middlewares/validate.middleware.js';
-import { subscriptionSchema } from './subscription.validation.js';
+import { subscriptionSchema, subscriptionUpdateSchema } from './subscription.validation.js';
 import {
     createSubscription,
     getSubscriptions,
@@ -27,7 +27,7 @@ subscriptionRouter.get('/:id', getSubscriptionById);
 
 subscriptionRouter.post('/', validate(subscriptionSchema), createSubscription);
 
-subscriptionRouter.put('/:id', updateSubscription);
+subscriptionRouter.put('/:id', validate(subscriptionUpdateSchema), updateSubscription);
 
 subscriptionRouter.delete('/:id', deleteSubscription);
 

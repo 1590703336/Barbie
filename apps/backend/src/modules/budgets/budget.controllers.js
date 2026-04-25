@@ -45,7 +45,23 @@ export const updateBudgetController = async (req, res, next) => {
         const updates = await budgetService.prepareBudgetData(req.body, existingBudget);
         const updatedBudget = await budgetRepository.update(budgetId, updates);
 
-        res.json({ success: true, message: "Budget updated successfully", data: updatedBudget });
+        // Check budget alerts with the new budget amount
+        const { checkBudgetAlerts } = await import("./budgetAlertService.js");
+        let alerts = [];
+
+        // Compute alerts based on the updated budget's new limit
+        const alertResult = await checkBudgetAlerts({
+            userId: req.user._id.toString(),
+            category: updatedBudget.category,
+            month: updatedBudget.month,
+            year: updatedBudget.year
+        });
+
+        if (alertResult && alertResult.alerts.length > 0) {
+            alerts = alertResult.alerts;
+        }
+
+        res.json({ success: true, message: "Budget updated successfully", data: updatedBudget, alerts });
 
     } catch (err) {
         next(err);

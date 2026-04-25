@@ -148,6 +148,12 @@ function aggregateToMonthly(series) {
 }
 
 
+const unsupportedCurrencyError = (currencyCode) => {
+    const err = new Error(`Unsupported currency: ${currencyCode}`);
+    err.statusCode = 400;
+    return err;
+};
+
 export const convertToUSD = async (amount, currencyCode) => {
     if (currencyCode === 'USD') return amount;
 
@@ -155,7 +161,7 @@ export const convertToUSD = async (amount, currencyCode) => {
     const rate = rates[currencyCode];
 
     if (!rate) {
-        throw new Error(`Currency code ${currencyCode} not found`);
+        throw unsupportedCurrencyError(currencyCode);
     }
 
     // Convert to USD: Amount / Rate
@@ -170,7 +176,7 @@ export const convertFromUSD = async (amountUSD, targetCurrency) => {
     const rate = rates[targetCurrency];
 
     if (!rate) {
-        throw new Error(`Currency code ${targetCurrency} not found`);
+        throw unsupportedCurrencyError(targetCurrency);
     }
 
     // Convert from USD: Amount * Rate
