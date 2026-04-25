@@ -31,8 +31,10 @@ if (NODE_ENV === 'development') {
         },
     });
     console.log('[EMAIL] Using production SMTP');
-    console.log(`[EMAIL_DEBUG] Host: ${EMAIL_HOST}, User: ${EMAIL_USER}`);
-    console.log(`[EMAIL_DEBUG] Pass (first 4): ${EMAIL_PASS ? EMAIL_PASS.substring(0, 4) + '...' : 'MISSING'}`);
+    if (NODE_ENV !== 'production') {
+        console.log(`[EMAIL_DEBUG] Host: ${EMAIL_HOST}, User: ${EMAIL_USER}`);
+        console.log(`[EMAIL_DEBUG] Pass (first 4): ${EMAIL_PASS ? EMAIL_PASS.substring(0, 4) + '...' : 'MISSING'}`);
+    }
 }
 
 // Verify connection on startup
