@@ -56,6 +56,20 @@ const tryDelete = async (bot, chatId, messageId) => {
     }
 };
 
+// Telegram's CDN often serves photos with content-type=application/octet-stream,
+// which OpenAI-compatible APIs reject. Sniff the format from the bytes instead.
+const detectImageMime = (buf) => {
+    if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+    if (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
+    if (buf.length >= 6 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'image/gif';
+    if (
+        buf.length >= 12 &&
+        buf.slice(0, 4).toString('ascii') === 'RIFF' &&
+        buf.slice(8, 12).toString('ascii') === 'WEBP'
+    ) return 'image/webp';
+    return 'image/jpeg';
+};
+
 const downloadAsDataUrl = async (bot, fileId) => {
     const link = await bot.getFileLink(fileId);
     const res = await fetch(link);
@@ -64,7 +78,7 @@ const downloadAsDataUrl = async (bot, fileId) => {
     if (buf.length > 5 * 1024 * 1024) {
         throw new Error('Image is too large (>5MB)');
     }
-    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    const contentType = detectImageMime(buf);
     return `data:${contentType};base64,${buf.toString('base64')}`;
 };
 
