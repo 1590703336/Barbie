@@ -55,9 +55,31 @@ jobs:
             npm ci --omit=dev
 
             echo "Configuring backend .env for preview..."
-            sed -i "s/^PORT=.*/PORT=4274/" .env.production.local
-            sed -i "s|^SERVER_URL=.*|SERVER_URL=http://localhost:4274|" .env.production.local
-            sed -i "s|^FRONTEND_URL=.*|FRONTEND_URL=https://uofa.ink/preview|" .env.production.local
+            # Idempotent upsert: replace KEY=... if present, append otherwise.
+            ensure_kv() {
+              local file="$1" key="$2" value="$3"
+              if grep -q "^${key}=" "$file"; then
+                # Use a delimiter unlikely to appear in our values.
+                sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+              else
+                printf '\n%s=%s\n' "$key" "$value" >> "$file"
+              fi
+            }
+            ensure_kv .env.production.local PORT 4274
+            ensure_kv .env.production.local SERVER_URL http://localhost:4274
+            ensure_kv .env.production.local FRONTEND_URL https://uofa.ink/preview
+            # Telegram bot multi-instance ownership: this deployment claims bots
+            # whose runningOn=='preview'. Must differ from the main deployment.
+            ensure_kv .env.production.local BARBIE_INSTANCE_ID preview
+
+            # Telegram bot secrets are sensitive and managed manually on the host.
+            # If they are missing the bot feature will be disabled but the rest
+            # of the app keeps working.
+            for key in TELEGRAM_BOT_ENCRYPTION_KEY SUB2API_BASE_URL SUB2API_KEY SUB2API_MODEL; do
+              if ! grep -q "^${key}=" .env.production.local; then
+                echo "WARNING: ${key} is not set in .env.production.local; the Telegram bot feature will be disabled until you add it."
+              fi
+            done
 
             echo "Configuring frontend for preview..."
             cd "$FRONTEND_DIR"

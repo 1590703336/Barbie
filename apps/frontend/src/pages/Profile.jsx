@@ -13,6 +13,7 @@ import { analyticsKeys } from '../hooks/useChartData'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import CurrencySelect from '../components/common/CurrencySelect'
 import PasswordInput from '../components/common/PasswordInput'
+import TelegramBotCard from '../components/common/TelegramBotCard'
 
 function Profile() {
     const navigate = useNavigate()
@@ -185,6 +186,8 @@ function Profile() {
                     </div>
                 </form>
             </div>
+
+            <TelegramBotCard />
 
             {/* Admin Dashboard button - only visible for admins */}
             {storedUser?.role === 'admin' && (

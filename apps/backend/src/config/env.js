@@ -29,5 +29,11 @@ export const {
     EMAIL_PASS,
     EMAIL_FROM,
     FRONTEND_URL,
-    PASSWORD_RESET_TOKEN_EXPIRY
+    PASSWORD_RESET_TOKEN_EXPIRY,
+    // Telegram bot integration
+    BARBIE_INSTANCE_ID,
+    TELEGRAM_BOT_ENCRYPTION_KEY,
+    SUB2API_BASE_URL,
+    SUB2API_KEY,
+    SUB2API_MODEL
 } = process.env;

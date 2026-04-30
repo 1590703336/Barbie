@@ -23,7 +23,9 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.2",
     "morgan": "~1.9.1",
-    "nodemailer": "^7.0.13"
+    "node-telegram-bot-api": "^0.67.0",
+    "nodemailer": "^7.0.13",
+    "openai": "^6.35.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
