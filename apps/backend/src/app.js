@@ -10,6 +10,7 @@ import convertPairRouter from "./modules/convertPair/convertPair.routes.js";
 import analyticsRouter from "./modules/analytics/analytics.routes.js";
 import adminAuthRouter from "./modules/admin/admin.auth.routes.js";
 import adminDashboardRouter from "./modules/admin/admin.dashboard.routes.js";
+import telegramBotRouter from "./modules/telegramBot/telegramBot.routes.js";
 import errorMiddlewares from "./middlewares/error.middlewares.js";
 import cookieParser from "cookie-parser";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
@@ -36,6 +37,7 @@ app.use('/api/v1/currencies', currencyRouter);
 app.use('/api/v1/income', incomeRouter);
 app.use('/api/v1/convert-pairs', convertPairRouter);
 app.use('/api/v1/analytics', analyticsRouter);
+app.use('/api/v1/telegram-bot', telegramBotRouter);
 
 app.use(errorMiddlewares);
 

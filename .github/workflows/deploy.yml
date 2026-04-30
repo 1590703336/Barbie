@@ -54,6 +54,28 @@ jobs:
             cd "$BACKEND_DIR"
             npm ci --omit=dev
 
+            echo "Configuring backend .env for main..."
+            # Idempotent upsert: replace KEY=... if present, append otherwise.
+            ensure_kv() {
+              local file="$1" key="$2" value="$3"
+              if grep -q "^${key}=" "$file"; then
+                sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+              else
+                printf '\n%s=%s\n' "$key" "$value" >> "$file"
+              fi
+            }
+            # Telegram bot multi-instance ownership: this deployment claims bots
+            # whose runningOn=='main'. Must differ from the preview deployment
+            # (which sets BARBIE_INSTANCE_ID=preview).
+            ensure_kv .env.production.local BARBIE_INSTANCE_ID main
+
+            # Telegram bot secrets are sensitive and managed manually on the host.
+            for key in TELEGRAM_BOT_ENCRYPTION_KEY SUB2API_BASE_URL SUB2API_KEY SUB2API_MODEL; do
+              if ! grep -q "^${key}=" .env.production.local; then
+                echo "WARNING: ${key} is not set in .env.production.local; the Telegram bot feature will be disabled until you add it."
+              fi
+            done
+
             echo "Installing frontend dependencies..."
             cd "$FRONTEND_DIR"
             npm ci
