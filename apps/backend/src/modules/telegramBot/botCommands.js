@@ -14,10 +14,15 @@ const PENDING_ADD_TTL_MS = 5 * 60 * 1000;
 const HELP_TEXT = `*Barbie bot commands*
 
 /login <email> <password> — link this chat to your Barbie account
-/add — next message (text and/or photo) is parsed by AI and added as expense or subscription
+/add — your next message (text and/or photo) is parsed by AI; it can *add*, *update*, or *delete* an expense or subscription
 /check — generate a finance report from your recent data
 /unbind — disconnect this chat from your Barbie account
-/help — show this message`;
+/help — show this message
+
+_Examples for /add:_
+• "i bought coffee for $5" → adds an expense
+• "change yesterday's lunch to $15" → updates the matching expense
+• "delete my netflix subscription" → deletes the matching subscription`;
 
 const safeReply = async (bot, chatId, text, opts = {}) => {
     try {
@@ -178,19 +183,25 @@ const handleAddCommand = async (bot, botDocId, msg) => {
     await safeReply(
         bot,
         chatId,
-        '✏️ Send the next message with a photo (receipt/screenshot) and/or a text description. I will identify it as expense or subscription and add it to your account.\n\nThe prompt expires in 5 minutes.'
+        '✏️ Send the next message with a photo (receipt/screenshot) and/or a text description.\n' +
+            'I will use AI to detect whether you want to *add*, *update*, or *delete* an expense or subscription, ' +
+            'and apply it to your account.\n\nThe prompt expires in 5 minutes.',
+        { parse_mode: 'Markdown' }
     );
 };
 
-const sanitizeExpense = (parsed) => {
-    const ALLOWED_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Rent', 'Health', 'Others'];
+const ALLOWED_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Rent', 'Health', 'Others'];
+const ALLOWED_FREQUENCIES = ['daily', 'weekly', 'monthly', 'yearly'];
+
+// Full sanitize for "create" — every required attribute must be present.
+const sanitizeExpenseFull = (fields) => {
     const data = {
-        title: typeof parsed.title === 'string' ? parsed.title.slice(0, 100) : null,
-        amount: typeof parsed.amount === 'number' ? parsed.amount : NaN,
-        currency: /^[A-Z]{3}$/.test(parsed.currency || '') ? parsed.currency : 'USD',
-        category: ALLOWED_CATEGORIES.includes(parsed.category) ? parsed.category : 'Others',
-        date: parsed.date ? new Date(parsed.date) : new Date(),
-        notes: typeof parsed.notes === 'string' ? parsed.notes : '',
+        title: typeof fields.title === 'string' ? fields.title.slice(0, 100) : null,
+        amount: typeof fields.amount === 'number' ? fields.amount : NaN,
+        currency: /^[A-Z]{3}$/.test(fields.currency || '') ? fields.currency : 'USD',
+        category: ALLOWED_CATEGORIES.includes(fields.category) ? fields.category : 'Others',
+        date: fields.date ? new Date(fields.date) : new Date(),
+        notes: typeof fields.notes === 'string' ? fields.notes : '',
     };
     if (!data.title || data.title.length < 2) throw new Error('Missing title');
     if (!Number.isFinite(data.amount) || data.amount <= 0) throw new Error('Invalid amount');
@@ -198,20 +209,18 @@ const sanitizeExpense = (parsed) => {
     return data;
 };
 
-const sanitizeSubscription = (parsed) => {
-    const ALLOWED_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Rent', 'Health', 'Others'];
-    const ALLOWED_FREQUENCIES = ['daily', 'weekly', 'monthly', 'yearly'];
+const sanitizeSubscriptionFull = (fields) => {
     const data = {
-        name: typeof parsed.name === 'string' ? parsed.name.slice(0, 100) : null,
-        price: typeof parsed.price === 'number' ? parsed.price : NaN,
-        currency: /^[A-Z]{3}$/.test(parsed.currency || '') ? parsed.currency : 'USD',
-        frequency: ALLOWED_FREQUENCIES.includes(parsed.frequency) ? parsed.frequency : 'monthly',
-        category: ALLOWED_CATEGORIES.includes(parsed.category) ? parsed.category : 'Others',
-        paymentMethod: typeof parsed.paymentMethod === 'string' && parsed.paymentMethod.trim()
-            ? parsed.paymentMethod.trim()
+        name: typeof fields.name === 'string' ? fields.name.slice(0, 100) : null,
+        price: typeof fields.price === 'number' ? fields.price : NaN,
+        currency: /^[A-Z]{3}$/.test(fields.currency || '') ? fields.currency : 'USD',
+        frequency: ALLOWED_FREQUENCIES.includes(fields.frequency) ? fields.frequency : 'monthly',
+        category: ALLOWED_CATEGORIES.includes(fields.category) ? fields.category : 'Others',
+        paymentMethod: typeof fields.paymentMethod === 'string' && fields.paymentMethod.trim()
+            ? fields.paymentMethod.trim()
             : 'Unknown',
-        startDate: parsed.startDate ? new Date(parsed.startDate) : new Date(),
-        notes: typeof parsed.notes === 'string' ? parsed.notes : '',
+        startDate: fields.startDate ? new Date(fields.startDate) : new Date(),
+        notes: typeof fields.notes === 'string' ? fields.notes : '',
         status: 'active',
     };
     if (!data.name || data.name.length < 2) throw new Error('Missing name');
@@ -220,7 +229,134 @@ const sanitizeSubscription = (parsed) => {
     return data;
 };
 
+// Partial sanitize for "update" — only validates fields the AI actually included.
+const sanitizeExpensePartial = (fields) => {
+    const out = {};
+    if (!fields || typeof fields !== 'object') return out;
+    if (typeof fields.title === 'string' && fields.title.trim().length >= 2) {
+        out.title = fields.title.slice(0, 100);
+    }
+    if (typeof fields.amount === 'number' && Number.isFinite(fields.amount) && fields.amount > 0) {
+        out.amount = fields.amount;
+    }
+    if (typeof fields.currency === 'string' && /^[A-Z]{3}$/.test(fields.currency)) {
+        out.currency = fields.currency;
+    }
+    if (typeof fields.category === 'string' && ALLOWED_CATEGORIES.includes(fields.category)) {
+        out.category = fields.category;
+    }
+    if (fields.date !== undefined && fields.date !== null) {
+        const d = new Date(fields.date);
+        if (!Number.isNaN(d.getTime())) out.date = d;
+    }
+    if (typeof fields.notes === 'string') out.notes = fields.notes;
+    return out;
+};
+
+const sanitizeSubscriptionPartial = (fields) => {
+    const out = {};
+    if (!fields || typeof fields !== 'object') return out;
+    if (typeof fields.name === 'string' && fields.name.trim().length >= 2) {
+        out.name = fields.name.slice(0, 100);
+    }
+    if (typeof fields.price === 'number' && Number.isFinite(fields.price) && fields.price > 0) {
+        out.price = fields.price;
+    }
+    if (typeof fields.currency === 'string' && /^[A-Z]{3}$/.test(fields.currency)) {
+        out.currency = fields.currency;
+    }
+    if (typeof fields.frequency === 'string' && ALLOWED_FREQUENCIES.includes(fields.frequency)) {
+        out.frequency = fields.frequency;
+    }
+    if (typeof fields.category === 'string' && ALLOWED_CATEGORIES.includes(fields.category)) {
+        out.category = fields.category;
+    }
+    if (typeof fields.paymentMethod === 'string' && fields.paymentMethod.trim()) {
+        out.paymentMethod = fields.paymentMethod.trim();
+    }
+    if (fields.startDate !== undefined && fields.startDate !== null) {
+        const d = new Date(fields.startDate);
+        if (!Number.isNaN(d.getTime())) out.startDate = d;
+    }
+    if (typeof fields.notes === 'string') out.notes = fields.notes;
+    if (typeof fields.status === 'string' && ['active', 'cancelled', 'expired'].includes(fields.status)) {
+        out.status = fields.status;
+    }
+    return out;
+};
+
 const formatMoney = (amount, currency) => `${amount.toFixed(2)} ${currency}`;
+const fmtDate = (d) => new Date(d).toISOString().slice(0, 10);
+const confLine = (parsed) =>
+    typeof parsed.confidence === 'number'
+        ? `_AI confidence: ${(parsed.confidence * 100).toFixed(0)}%_`
+        : null;
+
+const expenseSummary = (e) =>
+    [
+        `*${e.title}* — ${formatMoney(e.amount, e.currency)}`,
+        `Category: ${e.category}`,
+        `Date: ${fmtDate(e.date)}`,
+    ].join('\n');
+
+const subscriptionSummary = (s) =>
+    [
+        `*${s.name}* — ${formatMoney(s.price, s.currency)} / ${s.frequency}`,
+        `Category: ${s.category}`,
+        `Payment: ${s.paymentMethod}`,
+        `Start: ${fmtDate(s.startDate)}`,
+        s.renewalDate ? `Next renewal: ${fmtDate(s.renewalDate)}` : null,
+    ].filter(Boolean).join('\n');
+
+// Build the CONTEXT object the AI uses to identify update/delete targets.
+// Limit to keep prompt size bounded.
+const CONTEXT_EXPENSE_DAYS = 60;
+const CONTEXT_EXPENSE_LIMIT = 50;
+
+const buildContext = async (userId) => {
+    const sinceDate = new Date();
+    sinceDate.setUTCDate(sinceDate.getUTCDate() - CONTEXT_EXPENSE_DAYS);
+
+    const [expenses, subscriptions] = await Promise.all([
+        expenseRepository.find({ user: userId, date: { $gte: sinceDate } }),
+        subscriptionRepository.find({ user: userId, status: 'active' }),
+    ]);
+
+    const expenseList = expenses
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, CONTEXT_EXPENSE_LIMIT)
+        .map((e) => ({
+            id: e._id.toString(),
+            title: e.title,
+            amount: e.amount,
+            currency: e.currency,
+            category: e.category,
+            date: fmtDate(e.date),
+        }));
+
+    const subList = subscriptions.map((s) => ({
+        id: s._id.toString(),
+        name: s.name,
+        price: s.price,
+        currency: s.currency,
+        frequency: s.frequency,
+        category: s.category,
+        startDate: fmtDate(s.startDate),
+    }));
+
+    return { expenses: expenseList, subscriptions: subList };
+};
+
+// Resolve & enforce ownership for an update/delete target id. Throws otherwise.
+const findOwnedRecord = async (type, id, userId) => {
+    const repository = type === 'expense' ? expenseRepository : subscriptionRepository;
+    const doc = await repository.findById(id);
+    if (!doc) throw new Error(`${type} not found`);
+    if (doc.user.toString() !== userId.toString()) {
+        throw new Error('You do not own that record');
+    }
+    return doc;
+};
 
 const handleAddPayload = async (bot, botDocId, msg) => {
     const chatId = msg.chat.id;
@@ -250,9 +386,11 @@ const handleAddPayload = async (bot, botDocId, msg) => {
 
     await safeReply(bot, chatId, '🔍 Identifying with AI…');
 
+    const context = await buildContext(user._id);
+
     let parsed;
     try {
-        parsed = await ai.parseRecord({ text, images });
+        parsed = await ai.parseRecord({ text, images, context });
     } catch (err) {
         console.error('[telegram-bot] AI parse failed:', err);
         await safeReply(bot, chatId, `AI parsing failed: ${err.message}`);
@@ -261,46 +399,121 @@ const handleAddPayload = async (bot, botDocId, msg) => {
     }
 
     try {
-        if (parsed.type === 'subscription') {
-            const data = sanitizeSubscription(parsed);
-            const prepared = await subscriptionService.prepareSubscriptionData({ ...data, user: user._id });
-            const created = await subscriptionRepository.create(prepared);
-            await safeReply(
-                bot,
-                chatId,
-                [
-                    '✅ *Subscription added*',
-                    `*${created.name}* — ${formatMoney(created.price, created.currency)} / ${created.frequency}`,
-                    `Category: ${created.category}`,
-                    `Payment: ${created.paymentMethod}`,
-                    `Start: ${new Date(created.startDate).toISOString().slice(0, 10)}`,
-                    created.renewalDate
-                        ? `Next renewal: ${new Date(created.renewalDate).toISOString().slice(0, 10)}`
-                        : null,
-                    typeof parsed.confidence === 'number'
-                        ? `_AI confidence: ${(parsed.confidence * 100).toFixed(0)}%_`
-                        : null,
-                ]
-                    .filter(Boolean)
-                    .join('\n'),
-                { parse_mode: 'Markdown' }
+        const action = parsed.action || (parsed.type ? 'create' : null);
+        const type = parsed.type;
+        if (!['create', 'update', 'delete'].includes(action)) {
+            throw new Error(`Unknown action: ${action}`);
+        }
+        if (!['expense', 'subscription'].includes(type)) {
+            throw new Error(`Unknown type: ${type}`);
+        }
+
+        // For update/delete, verify targetId is among the records we showed the AI.
+        if (action === 'update' || action === 'delete') {
+            const allowedIds = new Set(
+                (type === 'expense' ? context.expenses : context.subscriptions).map((r) => r.id)
             );
-        } else {
-            // Default to expense
-            const data = sanitizeExpense(parsed);
+            if (!parsed.targetId || !allowedIds.has(parsed.targetId)) {
+                throw new Error(
+                    `AI referenced an unknown ${type} id "${parsed.targetId || ''}" — refusing to ${action}.`
+                );
+            }
+        }
+
+        if (action === 'create' && type === 'expense') {
+            const data = sanitizeExpenseFull(parsed.fields || parsed);
             const prepared = await expenseService.prepareExpenseData({ ...data, user: user._id });
             const created = await expenseRepository.create(prepared);
             await safeReply(
                 bot,
                 chatId,
+                ['✅ *Expense added*', expenseSummary(created), confLine(parsed)]
+                    .filter(Boolean)
+                    .join('\n'),
+                { parse_mode: 'Markdown' }
+            );
+        } else if (action === 'create' && type === 'subscription') {
+            const data = sanitizeSubscriptionFull(parsed.fields || parsed);
+            const prepared = await subscriptionService.prepareSubscriptionData({
+                ...data,
+                user: user._id,
+            });
+            const created = await subscriptionRepository.create(prepared);
+            await safeReply(
+                bot,
+                chatId,
+                ['✅ *Subscription added*', subscriptionSummary(created), confLine(parsed)]
+                    .filter(Boolean)
+                    .join('\n'),
+                { parse_mode: 'Markdown' }
+            );
+        } else if (action === 'update' && type === 'expense') {
+            const existing = await findOwnedRecord('expense', parsed.targetId, user._id);
+            const partial = sanitizeExpensePartial(parsed.fields);
+            if (Object.keys(partial).length === 0) {
+                throw new Error('AI did not specify any fields to change');
+            }
+            const prepared = await expenseService.prepareExpenseData(partial, existing);
+            const updated = await expenseRepository.update(existing._id, prepared);
+            await safeReply(
+                bot,
+                chatId,
                 [
-                    '✅ *Expense added*',
-                    `*${created.title}* — ${formatMoney(created.amount, created.currency)}`,
-                    `Category: ${created.category}`,
-                    `Date: ${new Date(created.date).toISOString().slice(0, 10)}`,
-                    typeof parsed.confidence === 'number'
-                        ? `_AI confidence: ${(parsed.confidence * 100).toFixed(0)}%_`
-                        : null,
+                    '🔧 *Expense updated*',
+                    expenseSummary(updated),
+                    `_Changed: ${Object.keys(partial).join(', ')}_`,
+                    confLine(parsed),
+                ]
+                    .filter(Boolean)
+                    .join('\n'),
+                { parse_mode: 'Markdown' }
+            );
+        } else if (action === 'update' && type === 'subscription') {
+            const existing = await findOwnedRecord('subscription', parsed.targetId, user._id);
+            const partial = sanitizeSubscriptionPartial(parsed.fields);
+            if (Object.keys(partial).length === 0) {
+                throw new Error('AI did not specify any fields to change');
+            }
+            const prepared = await subscriptionService.prepareSubscriptionData(partial, existing);
+            const updated = await subscriptionRepository.update(existing._id, prepared);
+            await safeReply(
+                bot,
+                chatId,
+                [
+                    '🔧 *Subscription updated*',
+                    subscriptionSummary(updated),
+                    `_Changed: ${Object.keys(partial).join(', ')}_`,
+                    confLine(parsed),
+                ]
+                    .filter(Boolean)
+                    .join('\n'),
+                { parse_mode: 'Markdown' }
+            );
+        } else if (action === 'delete' && type === 'expense') {
+            const existing = await findOwnedRecord('expense', parsed.targetId, user._id);
+            await expenseRepository.deleteById(existing._id);
+            await safeReply(
+                bot,
+                chatId,
+                [
+                    '🗑 *Expense deleted*',
+                    expenseSummary(existing),
+                    confLine(parsed),
+                ]
+                    .filter(Boolean)
+                    .join('\n'),
+                { parse_mode: 'Markdown' }
+            );
+        } else if (action === 'delete' && type === 'subscription') {
+            const existing = await findOwnedRecord('subscription', parsed.targetId, user._id);
+            await subscriptionRepository.deleteById(existing._id);
+            await safeReply(
+                bot,
+                chatId,
+                [
+                    '🗑 *Subscription deleted*',
+                    subscriptionSummary(existing),
+                    confLine(parsed),
                 ]
                     .filter(Boolean)
                     .join('\n'),
@@ -312,7 +525,7 @@ const handleAddPayload = async (bot, botDocId, msg) => {
         await safeReply(
             bot,
             chatId,
-            `Could not save record: ${err.message}\n\nRaw AI output:\n\`\`\`\n${JSON.stringify(parsed, null, 2)}\n\`\`\``,
+            `Could not apply record: ${err.message}\n\nRaw AI output:\n\`\`\`\n${JSON.stringify(parsed, null, 2)}\n\`\`\``,
             { parse_mode: 'Markdown' }
         );
     } finally {
