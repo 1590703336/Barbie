@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { BARBIE_INSTANCE_ID } from '../../config/env.js';
 import * as userRepository from '../user/user.repository.js';
 import * as expenseRepository from '../expenses/expense.repository.js';
 import * as expenseService from '../expenses/expense.service.js';
@@ -86,10 +87,14 @@ const downloadAsDataUrl = async (bot, fileId) => {
 // /start, /help
 
 const handleStart = async (bot, msg) => {
+    const instance = BARBIE_INSTANCE_ID || 'unknown';
+    const deploymentNote = `_This bot is bound to the *${instance}* Barbie deployment and only the ${instance} backend polls it._
+
+_To move it to a different deployment (e.g. main ↔ preview): open the Profile page on the *${instance}* site, click *Unbind* (this deletes the binding), then click *Bind* on the other site with the same bot token. The /unbind command only logs out this chat — it does not change the deployment ownership._`;
     await safeReply(
         bot,
         msg.chat.id,
-        `Welcome to Barbie!\n\n${HELP_TEXT}`,
+        `Welcome to Barbie!\n\n${HELP_TEXT}\n\n${deploymentNote}`,
         { parse_mode: 'Markdown' }
     );
 };
